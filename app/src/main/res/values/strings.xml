@@ -3,6 +3,6 @@
 
     <string name="app_name">AnyWay</string>
     <string name="action_settings">הגדרות</string>
-    <string name="title_activity_maps">מפת תאונות</string>
-    <string name="button_startMap">פתח מפה</string>
+    <string name="first_marker_desc">נסיון</string>
+    <string name="first_marker_title">fistuk home</string>
 </resources>
