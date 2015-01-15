@@ -19,13 +19,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
+
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener {
 
-    private final LatLng LOCATION_HOME = new LatLng(31.7459074,35.2303028);
+    private final LatLng AZZA_METUDELA = new LatLng(31.772126, 35.213678);
 
     private GoogleMap map;
     private boolean needsInit=false;
+    private static boolean debug = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +43,29 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         }
 
         if(needsInit) {
-            centerMapOnMyLocation();
+            // set map location to current location
+            if(debug)
+                setMapToLocation(AZZA_METUDELA, 17);
+            else
+                centerMapOnMyLocation();
         }
-        addSomeMarkers();
+        addAccidentsMarkers();
 
         map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
         map.setOnInfoWindowClickListener(this);
+    }
+
+    // move map to specific location
+    private void setMapToLocation(LatLng location, int zoomLevel) {
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(location.latitude, location.longitude), zoomLevel));
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(location)           // Sets the center of the map to location user
+                .zoom(zoomLevel)            // Sets the zoom
+                .build();                   // Creates a CameraPosition from the builder
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
     }
 
     @Override
@@ -64,7 +84,11 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Toast.makeText(getApplicationContext(), "עוד אין הגדרות", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "עוד אין הגדרות", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        if (id == R.id.action_back_to_start_location) {
+            setMapToLocation(AZZA_METUDELA, 17);
             return true;
         }
 
@@ -95,11 +119,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     }
 
-    private void addSomeMarkers() {
-        map.addMarker(new MarkerOptions()
-                .title(getResources().getString(R.string.first_marker_title))
-                .snippet(getResources().getString(R.string.first_marker_desc))
-                .position(new LatLng(31.7459074,35.2303028)));
+    private void addAccidentsMarkers() {
+        List<Accident> accidents = new Accidents().getAccidents();
+        for(Accident a : accidents) {
+            map.addMarker(new MarkerOptions()
+                    .title(a.getTitle())
+                    .snippet(a.getDescription() + "\n" + a.getAddress())
+                    .position(a.getLocation()));
+        }
     }
 
     @Override

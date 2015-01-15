@@ -2,9 +2,15 @@
 <resources>
 
     <string name="app_name" translatable="false">ANYWAY</string>
+
+    <!-- Settings -->
     <string name="action_settings">הגדרות</string>
+
+    <!-- Main map activity -->
+    <string name="back_to_start_location">מרכז</string>
+
+    <!-- popup layout -->
+    <string name="show_more_details_button">הצג עוד פרטים</string>
     <string name="icon">Accident logo</string>
 
-    <string name="first_marker_desc">קאי שמעון ונמו מחכים לכם</string>
-    <string name="first_marker_title">הבית של פיסטוק</string>
 </resources>
