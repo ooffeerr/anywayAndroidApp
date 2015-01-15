@@ -6,7 +6,7 @@ This app is build as my final project to BSc in Software Engineering in "Azrieli
 http://www.jce.ac.il/
 
 [יומן מעקב לפרויקט](https://github.com/samuelregev/anywayAndroidApp/wiki/יומן-מעקב-לפרויקט)  
-[ניהול משימות](https://github.com/samuelregev/anywayAndroidApp/issues)
+[ניהול משימות](https://huboard.com/samuelregev/anywayAndroidApp)
 
 
 
