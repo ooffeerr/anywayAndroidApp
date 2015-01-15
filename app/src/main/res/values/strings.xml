@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">AnyWay</string>
+    <string name="app_name" translatable="false">ANYWAY</string>
     <string name="action_settings">הגדרות</string>
-    <string name="first_marker_desc">נסיון</string>
-    <string name="first_marker_title">fistuk home</string>
+    <string name="icon">Accident logo</string>
+
+    <string name="first_marker_desc">קאי שמעון ונמו מחכים לכם</string>
+    <string name="first_marker_title">הבית של פיסטוק</string>
 </resources>

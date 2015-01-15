@@ -12,17 +12,20 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener {
 
     private final LatLng LOCATION_HOME = new LatLng(31.7459074,35.2303028);
 
     private GoogleMap map;
+    private boolean needsInit=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +35,17 @@ public class MainActivity extends ActionBarActivity {
         map  = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
         map.setMyLocationEnabled(true);
 
+        if (savedInstanceState == null) {
+            needsInit=true;
+        }
 
-        centerMapOnMyLocation();
+        if(needsInit) {
+            centerMapOnMyLocation();
+        }
         addSomeMarkers();
+
+        map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
+        map.setOnInfoWindowClickListener(this);
     }
 
     @Override
@@ -89,5 +100,10 @@ public class MainActivity extends ActionBarActivity {
                 .title(getResources().getString(R.string.first_marker_title))
                 .snippet(getResources().getString(R.string.first_marker_desc))
                 .position(new LatLng(31.7459074,35.2303028)));
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Toast.makeText(this, marker.getTitle(), Toast.LENGTH_LONG).show();
     }
 }
