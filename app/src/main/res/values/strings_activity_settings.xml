@@ -1,0 +1,29 @@
+<resources>
+    <string name="title_activity_settings">הגדרות</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">סינון לפי חומרה</string>
+
+    <string name="pref_title_accidents_fatal">תאונות קטלניות</string>
+    <string name="pref_accidents_fatal_key">checkbox_accidents_fatal</string>
+    <string name="pref_title_accidents_severe">תאונות קשות</string>
+    <string name="pref_accidents_severe_key">checkbox_accidents_severe</string>
+    <string name="pref_title_accidents_light">תאונות קלות</string>
+    <string name="pref_accidents_light_key">checkbox_accidents_light</string>
+    <string name="pref_title_accidents_inaccurate">תאונות שמיקומן משוער</string>
+    <string name="pref_accidents_inaccurate_key">checkbox_accidents_inaccurate</string>
+
+
+
+    <string name="pref_header_date_range">סינון לפי טווח תאריכים</string>
+
+    <string name="pref_title_from_date">מתאריך</string>
+    <string name="pref_desc_from_date"></string>
+
+    <string name="pref_title_to_date">עד תאריך</string>
+    <string name="pref_desc_to_date"></string>
+
+
+</resources>

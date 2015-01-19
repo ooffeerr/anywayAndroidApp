@@ -1,0 +1,30 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/pref_header_general">
+        <CheckBoxPreference
+            android:key="@string/pref_accidents_fatal_key"
+            android:title="@string/pref_title_accidents_fatal"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_accidents_severe_key"
+            android:title="@string/pref_title_accidents_severe"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_accidents_light_key"
+            android:title="@string/pref_title_accidents_light"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_accidents_inaccurate_key"
+            android:title="@string/pref_title_accidents_inaccurate"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+
+
+
+
+
+</PreferenceScreen>

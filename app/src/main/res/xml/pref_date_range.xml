@@ -1,0 +1,18 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/pref_header_date_range">
+        <Preference
+            android:key="show_from_date"
+            android:summary="@string/pref_desc_from_date"
+            android:title="@string/pref_title_from_date" />
+
+        <Preference
+            android:key="show_to_date"
+            android:summary="@string/pref_desc_to_date"
+            android:title="@string/pref_title_to_date"
+            android:defaultValue=""/>
+    </PreferenceCategory>
+
+
+
+</PreferenceScreen>
