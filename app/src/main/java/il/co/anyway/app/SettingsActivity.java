@@ -1,19 +1,12 @@
 package il.co.anyway.app;
 
-import android.annotation.TargetApi;
-import android.app.DatePickerDialog;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.MenuItem;
-import android.widget.DatePicker;
-
-import java.util.Calendar;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -26,9 +19,10 @@ import java.util.Calendar;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends PreferenceActivity implements DatePickerDialog.OnDateSetListener, Preference.OnPreferenceClickListener {
+public class SettingsActivity extends PreferenceActivity  {
 
     private final String LOG_TAG = SettingsActivity.class.getSimpleName();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,34 +70,6 @@ public class SettingsActivity extends PreferenceActivity implements DatePickerDi
 
         // Add 'date range' preferences.
         addPreferencesFromResource(R.xml.pref_date_range);
-
-        Preference btnDateTo = (Preference) findPreference("show_to_date");
-        btnDateTo.setOnPreferenceClickListener(this);
-
-        Preference btnDateFrom = (Preference) findPreference("show_from_date");
-        btnDateFrom.setOnPreferenceClickListener(this);
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    @Override
-    public boolean onPreferenceClick(Preference preference) {
-        showDateDialog();
-        return false;
-    }
-
-    private void showDateDialog(){
-        // Use the current date as the default date in the picker
-        final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
-        new DatePickerDialog(this,this, year, month, day).show();
-
-    }
-
-    @Override
-    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Log.i(LOG_TAG, "year " + year + " month " + monthOfYear + " day " + dayOfMonth);
     }
 
     /**
