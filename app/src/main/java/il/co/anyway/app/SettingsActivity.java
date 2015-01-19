@@ -6,7 +6,11 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
+import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -53,6 +57,17 @@ public class SettingsActivity extends PreferenceActivity  {
         super.onPostCreate(savedInstanceState);
 
         setupPreferencesScreen();
+
+        // add action bar to preferences
+        LinearLayout root = (LinearLayout)findViewById(android.R.id.list).getParent().getParent().getParent();
+        Toolbar bar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.settings_toolbar, root, false);
+        root.addView(bar, 0); // insert at top
+        bar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     /**
