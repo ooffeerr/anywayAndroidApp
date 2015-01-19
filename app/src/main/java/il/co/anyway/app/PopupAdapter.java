@@ -10,6 +10,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
 class PopupAdapter implements GoogleMap.InfoWindowAdapter {
+
+    private final String LOG_TAG = PopupAdapter.class.getSimpleName();
     private View popup=null;
     private LayoutInflater inflater=null;
 

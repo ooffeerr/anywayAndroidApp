@@ -8,9 +8,9 @@
 
     <!-- Main map activity -->
     <string name="back_to_start_location">מרכז</string>
+    <string name="fetch_markers">תאונות</string>
 
     <!-- popup layout -->
-    <string name="show_more_details_button">הצג עוד פרטים</string>
     <string name="icon">Accident logo</string>
 
 </resources>

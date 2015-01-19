@@ -12,22 +12,26 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener {
+public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
+        OnMapLongClickListener, OnCameraChangeListener {
 
-    private final LatLng AZZA_METUDELA = new LatLng(31.772126, 35.213678);
+    public final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
+    public final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 15;
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private GoogleMap map;
-    private boolean needsInit=false;
+    public static GoogleMap map;
     private static boolean debug = true;
 
     @Override
@@ -35,27 +39,45 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        map  = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+        setUpMapIfNeeded();
+    }
+
+    private void setUpMapIfNeeded() {
+        // Do a null check to confirm that we have not already instantiated the map.
+        if (map == null) {
+
+            // Try to obtain the map from the SupportMapFragment.
+            map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+                    .getMap();
+
+            // Check if we were successful in obtaining the map.
+            if (map != null) {
+                setUpMap();
+            }
+        }
+    }
+
+    private void setUpMap() {
+        // Enable location buttons
         map.setMyLocationEnabled(true);
 
-        if (savedInstanceState == null) {
-            needsInit=true;
-        }
-
-        if(needsInit) {
-            // set map location to current location
-            if(debug)
-                setMapToLocation(AZZA_METUDELA, 17);
-            else
-                centerMapOnMyLocation();
-        }
-        addAccidentsMarkers();
+        // go to test area in map if we are still debugging
+        if(debug)
+            setMapToLocation(AZZA_METUDELA_LOCATION, 17);
+        else
+            centerMapOnMyLocation();
 
         map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
         map.setOnInfoWindowClickListener(this);
+        map.setOnMapLongClickListener(this);
+        map.setOnCameraChangeListener(this);
     }
 
-    // move map to specific location
+    /**
+     * move the camera to specific location, should be called on after checking map!=null
+     * @param location location to move to
+     * @param zoomLevel move camera to this specific
+     */
     private void setMapToLocation(LatLng location, int zoomLevel) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(location.latitude, location.longitude), zoomLevel));
@@ -88,14 +110,20 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             return true;
         }
         if (id == R.id.action_back_to_start_location) {
-            setMapToLocation(AZZA_METUDELA, 17);
+            setMapToLocation(AZZA_METUDELA_LOCATION, 17);
+            return true;
+        }
+        if (id == R.id.action_fetch_markers) {
+            addAccidentsMarkers();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-
+    /**
+     * Move the camera to cuurent user location(recevied from gps sensors)
+     */
     private void centerMapOnMyLocation() {
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -103,34 +131,45 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
         if (location != null)
-        {
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(location.getLatitude(), location.getLongitude()), 13));
-
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                    .zoom(17)                   // Sets the zoom
-                    .bearing(90)                // Sets the orientation of the camera to east
-                    //.tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
-            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-        }
+            setMapToLocation(new LatLng(location.getLatitude(), location.getLongitude()), 16);
 
     }
 
     private void addAccidentsMarkers() {
-        List<Accident> accidents = new Accidents().getAccidents();
+        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+        int zoomLevel = (int)map.getCameraPosition().zoom;
+        List<Accident> accidents = new Accidents(bounds, zoomLevel).getAccidents();
+
+        /*
+        TODO make the map not static and private again, find a way to add markers
         for(Accident a : accidents) {
             map.addMarker(new MarkerOptions()
                     .title(a.getTitle())
                     .snippet(a.getDescription() + "\n" + a.getAddress())
                     .position(a.getLocation()));
         }
+        */
     }
 
     @Override
     public void onInfoWindowClick(Marker marker) {
+        // TODO
+        // Show accident specific details
         Toast.makeText(this, marker.getTitle(), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        // TODO
+        // Add new accident,
+        Toast.makeText(this, "Long pressed: " + latLng, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+        //TODO get accidents for current location
+        //Toast.makeText(this, cameraPosition.target.toString(), Toast.LENGTH_LONG).show();
+        //LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+
     }
 }

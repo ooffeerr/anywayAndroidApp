@@ -6,8 +6,9 @@ import java.util.Date;
 
 public class Accident {
 
+    private final String LOG_TAG = Accident.class.getSimpleName();
     private long id;
-    private int user;
+    private long user;
     private String title;
     private String description;
     private int type;
@@ -19,7 +20,7 @@ public class Accident {
     private int locationAccuracy;
 
     public Accident(long id,
-                    int user,
+                    long user,
                     String title,
                     String description,
                     int type,
@@ -43,23 +44,6 @@ public class Accident {
         this.locationAccuracy = locationAccuracy;
     }
 
-    // TODO delete this constructor after checking
-    // only for checking purposes
-    public Accident(String title, String description, LatLng location) {
-        this.id = 1000 + (int)(Math.random()*9999);
-        this.user = 1000 + (int)(Math.random()*9999);
-        this.type = 1 + (int)(Math.random()*10);
-        this.subType = 11 + (int)(Math.random()*20);
-        this.severity = 1 + (int)(Math.random()*3);
-        this.created = new Date();
-        this.address = "בין שום מקום לאנשהו";
-        this.locationAccuracy = 1 + (int)(Math.random()*3);
-
-        this.description = description;
-        this.title = title;
-        this.location = location;
-    }
-
     public long getId() {
         return id;
     }
@@ -68,11 +52,11 @@ public class Accident {
         this.id = id;
     }
 
-    public int getUser() {
+    public long getUser() {
         return user;
     }
 
-    public void setUser(int user) {
+    public void setUser(long user) {
         this.user = user;
     }
 
