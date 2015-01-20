@@ -44,91 +44,104 @@ public class Accident {
         this.locationAccuracy = locationAccuracy;
     }
 
+    public Accident() {}
+
     public long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public Accident setId(long id) {
         this.id = id;
+        return this;
     }
 
     public long getUser() {
         return user;
     }
 
-    public void setUser(long user) {
+    public Accident setUser(long user) {
         this.user = user;
+        return this;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public Accident setTitle(String title) {
         this.title = title;
+        return this;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public Accident setDescription(String description) {
         this.description = description;
+        return this;
     }
 
     public int getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public Accident setType(int type) {
         this.type = type;
+        return this;
     }
 
     public int getSubType() {
         return subType;
     }
 
-    public void setSubType(int subType) {
+    public Accident setSubType(int subType) {
         this.subType = subType;
+        return this;
     }
 
     public int getSeverity() {
         return severity;
     }
 
-    public void setSeverity(int severity) {
+    public Accident setSeverity(int severity) {
         this.severity = severity;
+        return this;
     }
 
     public Date getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public Accident setCreated(Date created) {
         this.created = created;
+        return this;
     }
 
     public LatLng getLocation() {
         return location;
     }
 
-    public void setLocation(LatLng location) {
+    public Accident setLocation(LatLng location) {
         this.location = location;
+        return this;
     }
 
     public String getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public Accident setAddress(String address) {
         this.address = address;
+        return this;
     }
 
     public int getLocationAccuracy() {
         return locationAccuracy;
     }
 
-    public void setLocationAccuracy(int locationAccuracy) {
+    public Accident setLocationAccuracy(int locationAccuracy) {
         this.locationAccuracy = locationAccuracy;
+        return this;
     }
 }
