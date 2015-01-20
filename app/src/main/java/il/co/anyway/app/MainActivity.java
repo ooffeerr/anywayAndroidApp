@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.CancelableCallback;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
@@ -144,8 +145,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         map.setOnInfoWindowClickListener(this);
         map.setOnMapLongClickListener(this);
         map.setOnCameraChangeListener(this);
-
-        getAccidentsFromASyncTask();
     }
 
     /**
@@ -155,17 +154,24 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      */
     private void setMapToLocation(LatLng location, int zoomLevel) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.latitude, location.longitude), zoomLevel));
+                new LatLng(location.latitude, location.longitude), zoomLevel),
+                new CancelableCallback() {
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(location)           // Sets the center of the map to location user
-                .zoom(zoomLevel)            // Sets the zoom
-                .build();                   // Creates a CameraPosition from the builder
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    @Override
+                    public void onFinish() {
+                        getAccidentsFromASyncTask();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        //Log.d(LOG_TAG, "onCancel");
+                    }
+            });
+
     }
 
     /**
-     * Move the camera to cuurent user location(recevied from gps sensors)
+     * Move the camera to current user location(received from gps sensors)
      */
     private boolean centerMapOnMyLocation() {
 
