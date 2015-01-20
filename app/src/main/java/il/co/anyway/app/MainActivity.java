@@ -129,9 +129,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        //TODO get accidents for current location
-        //Toast.makeText(this, cameraPosition.target.toString(), Toast.LENGTH_LONG).show();
-        //LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+        // TODO when this enabled, updating happing too much, not allowing to focus on marker
+        //getAccidentsFromASyncTask();
     }
 
     private void setUpMapIfNeeded() {
@@ -153,9 +152,10 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // Enable location buttons
         map.setMyLocationEnabled(true);
 
-        // go to default area in map for start and then try to find user location
-        setMapToLocation(AZZA_METUDELA_LOCATION, 17);
-        centerMapOnMyLocation();
+        // try to move map to user location, if not succeed go to default
+        if(!centerMapOnMyLocation())
+            setMapToLocation(AZZA_METUDELA_LOCATION, 17);
+
 
         map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
         map.setOnInfoWindowClickListener(this);
@@ -184,14 +184,19 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     /**
      * Move the camera to cuurent user location(recevied from gps sensors)
      */
-    private void centerMapOnMyLocation() {
+    private boolean centerMapOnMyLocation() {
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
 
         Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-        if (location != null)
+        if (location != null) {
             setMapToLocation(new LatLng(location.getLatitude(), location.getLongitude()), 16);
+            return true;
+        }
+        else {
+            return false;
+        }
 
     }
 
@@ -200,7 +205,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         int zoomLevel = (int) map.getCameraPosition().zoom;
 
         if(zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
-            Toast.makeText(this, "התקרב על מנת לראות תאונות", Toast.LENGTH_SHORT);
+            Toast.makeText(this, getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -224,13 +229,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         Boolean show_light = sharedPrefs.getBoolean(getString(R.string.pref_accidents_light_key), true);
         Boolean show_inaccurate = sharedPrefs.getBoolean(getString(R.string.pref_accidents_inaccurate_key), false);
 
-        params[JSON_STRING_SHOW_FATAL] = show_fatal?"1":"0";
-        params[JSON_STRING_SHOW_SEVERE] = show_severe?"1":"0";
-        params[JSON_STRING_SHOW_LIGHT] = show_light?"1":"0";
-        params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate?"1":"0";
+        params[JSON_STRING_SHOW_FATAL] = show_fatal ? "1" : "0";
+        params[JSON_STRING_SHOW_SEVERE] = show_severe ? "1" : "0";
+        params[JSON_STRING_SHOW_LIGHT] = show_light ? "1" : "0";
+        params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate ? "1" : "0";
         params[JSON_STRING_FORMAT] = "json";
 
         accidentTask.execute(params);
+
     }
 
     // add accidents from array list to map

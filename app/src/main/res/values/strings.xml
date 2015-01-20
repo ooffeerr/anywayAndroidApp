@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">ANYWAY</string>
+    <string name="zoom_in_to_display">התקרב על מנת לראות תאונות</string>
 
     <!-- Settings -->
     <string name="action_settings">הגדרות</string>
