@@ -6,12 +6,9 @@ import android.content.SharedPreferences;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -28,15 +25,6 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.json.JSONException;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -196,6 +184,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     }
 
+
     private void getAccidentsFromASyncTask() {
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) map.getCameraPosition().zoom;
@@ -231,8 +220,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate ? "1" : "0";
         params[JSON_STRING_FORMAT] = "json";
 
+        accidentTask.setCallingActivity(this);
         accidentTask.execute(params);
-
     }
 
     // add accidents from array list to map
@@ -255,117 +244,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         }
     }
 
-    // fetching accidents from Anyway servers
-    public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>> {
-
-        private final String LOG_TAG = FetchAccidents.class.getSimpleName();
-
-        @Override
-        protected ArrayList<Accident> doInBackground(String... params) {
-
-            // If there's no parameters, there's nothing to look up.  Verify size of params.
-            if (params.length == 0) {
-                return null;
-            }
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            // Will contain the raw JSON response as a string.
-            String accidentJsonStr = null;
-
-            try {
-                // Construct the URL for the Anyway accidents query
-                final String FORECAST_BASE_URL = "http://www.anyway.co.il/markers?";
-
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter("ne_lat", params[JSON_STRING_NE_LAT])
-                        .appendQueryParameter("ne_lng", params[JSON_STRING_NE_LNG])
-                        .appendQueryParameter("sw_lat", params[JSON_STRING_SW_LAT])
-                        .appendQueryParameter("sw_lng", params[JSON_STRING_SW_LNG])
-                        .appendQueryParameter("zoom", params[JSON_STRING_ZOOM_LEVEL])
-                                // TODO
-                                //.appendQueryParameter("start_date", params[Accidents.JSON_STRING_START_DATE])
-                                //.appendQueryParameter("end_date", params[Accidents.JSON_STRING_END_DATE])
-                        .appendQueryParameter("start_date", "1356991200")
-                        .appendQueryParameter("end_date", "1388527200")
-                        .appendQueryParameter("show_fatal", params[JSON_STRING_SHOW_FATAL])
-                        .appendQueryParameter("show_severe", params[JSON_STRING_SHOW_SEVERE])
-                        .appendQueryParameter("show_light", params[JSON_STRING_SHOW_LIGHT])
-                        .appendQueryParameter("show_inaccurate", params[JSON_STRING_SHOW_INACCURATE])
-                        .appendQueryParameter("format", params[JSON_STRING_FORMAT])
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-                Log.i(LOG_TAG, "URL: " + url);
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                accidentJsonStr = buffer.toString();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
-
-            try {
-                return Utility.getAccidentDataFromJson(accidentJsonStr);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
-            }
-
-            return null;
-
-        }
-
-
-        @Override
-        protected void onPostExecute(ArrayList<Accident> accidents) {
-            super.onPostExecute(accidents);
-
-            // remove previous markers add accidents to the map
-            if(accidents != null) {
-                accidentsList = accidents;
-                addAccidentsToMap(CLEAR_MAP_AFTER_EACH_FETCH); //
-            }
-        }
+    public void setAccidentsListAndUpdateMap(List<Accident> accidentsList) {
+        this.accidentsList = accidentsList;
+        addAccidentsToMap(CLEAR_MAP_AFTER_EACH_FETCH);
     }
-
 }
