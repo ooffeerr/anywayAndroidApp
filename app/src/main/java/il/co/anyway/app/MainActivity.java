@@ -25,7 +25,6 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.Date;
 import java.util.List;
 
 
@@ -204,8 +203,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         params[JSON_STRING_ZOOM_LEVEL] = Integer.toString(zoomLevel);
 
         // TODO all this setting needs to come form user preferences
-        params[JSON_STRING_START_DATE] = Long.toString(new Date(2013, 01, 01).getTime());
-        params[JSON_STRING_END_DATE] = Long.toString(new Date(2014, 01, 01).getTime());
+        // getting timestamp for Anyway URL
+        params[JSON_STRING_START_DATE] = Utility.getTimeStamp("01/01/2013");
+        params[JSON_STRING_END_DATE] = Utility.getTimeStamp("01/01/2014");
 
         // Get preferences form SharedPreferncses
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);

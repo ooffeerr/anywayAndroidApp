@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -91,4 +92,23 @@ public class Utility {
     }
 
 
+    public static String getTimeStamp(Date date) {
+        Long ts = new Timestamp(date.getTime()).getTime()/1000;
+        return Long.toString(ts);
+    }
+
+    public static String getTimeStamp(String dateStr) {
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = null;
+
+        try {
+            date = dateFormat.parse(dateStr);
+        } catch (ParseException e) {
+            Log.e(LOG_TAG + "_TIME_STAMP", e.getMessage());
+            e.printStackTrace();
+        }
+
+        return getTimeStamp(date);
+    }
 }
