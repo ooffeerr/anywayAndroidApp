@@ -18,29 +18,35 @@ public class Utility {
 
     private static final String LOG_TAG = Utility.class.getSimpleName();
 
+    /**
+     * Parse JSON string to accidents list
+     * @param accidentJsonStr JSON string to parse
+     * @return all accidents from json string as ArrayList<Accident>
+     * @throws JSONException
+     */
     public static ArrayList<Accident> getAccidentDataFromJson(String accidentJsonStr)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
-        final String MARKERS_LIST = "markers";
-        final String MARKER_ADDRESS = "address";
-        final String MARKER_CREATED = "created";
-        final String MARKER_DESC = "description";
-        final String MARKER_ID = "id";
-        final String MARKER_LATITUDE = "latitude";
-        final String MARKER_LONGITUDE = "longitude";
-        final String MARKER_LOCATOIN_ACCURACY = "locationAccuracy";
-        final String MARKER_SEVERITY = "severity";
-        final String MARKER_TYPE = "type";
-        final String MARKER_SUBTYPE = "subtype";
-        final String MARKER_TITLE = "title";
+        final String ACCIDENT_LIST = "markers";
+        final String ACCIDENT_ADDRESS = "address";
+        final String ACCIDENT_CREATED = "created";
+        final String ACCIDENT_DESC = "description";
+        final String ACCIDENT_ID = "id";
+        final String ACCIDENT_LATITUDE = "latitude";
+        final String ACCIDENT_LONGITUDE = "longitude";
+        final String ACCIDENT_LOCATOIN_ACCURACY = "locationAccuracy";
+        final String ACCIDENT_SEVERITY = "severity";
+        final String ACCIDENT_TYPE= "type";
+        final String ACCIDENT_SUBTYPE = "subtype";
+        final String ACCIDENT_TITLE = "title";
 
         // user, following, followers - not implemented right now at anyway
         // TODO - implement users interface
-        Long user = new Long(0);
+        long user = 0;
 
         JSONObject accidentJson = new JSONObject(accidentJsonStr);
-        JSONArray accidentsArray = accidentJson.getJSONArray(MARKERS_LIST);
+        JSONArray accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
 
         ArrayList<Accident> resultList = new ArrayList<>();
         for(int i = 0; i < accidentsArray.length(); i++) {
@@ -49,7 +55,7 @@ public class Utility {
             JSONObject accidentDetails = accidentsArray.getJSONObject(i);
 
             // Date comes as 2013-12-30T21:00:00, needs to be converted
-            String created = accidentDetails.getString(MARKER_CREATED);
+            String created = accidentDetails.getString(ACCIDENT_CREATED);
             Date createdDate = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
             try {
@@ -59,19 +65,19 @@ public class Utility {
                 e.printStackTrace();
             }
 
-            String address = accidentDetails.getString(MARKER_ADDRESS);
-            String desc = accidentDetails.getString(MARKER_DESC);
-            String title = accidentDetails.getString(MARKER_TITLE);
-            Integer id = accidentDetails.getInt(MARKER_ID);
+            String address = accidentDetails.getString(ACCIDENT_ADDRESS);
+            String desc = accidentDetails.getString(ACCIDENT_DESC);
+            String title = accidentDetails.getString(ACCIDENT_TITLE);
+            Integer id = accidentDetails.getInt(ACCIDENT_ID);
 
-            Double lat = accidentDetails.getDouble(MARKER_LATITUDE);
-            Double lng = accidentDetails.getDouble(MARKER_LONGITUDE);
+            Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
+            Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
             LatLng location = new LatLng(lat, lng);
 
-            Integer accuracy = accidentDetails.getInt(MARKER_LOCATOIN_ACCURACY);
-            Integer severity = accidentDetails.getInt(MARKER_SEVERITY);
-            Integer type = accidentDetails.getInt(MARKER_TYPE);
-            Integer subtype = accidentDetails.getInt(MARKER_SUBTYPE);
+            Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATOIN_ACCURACY);
+            Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
+            Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
+            Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
 
             Accident acc = new Accident()
                     .setId(id)
@@ -91,12 +97,21 @@ public class Utility {
         return resultList;
     }
 
-
+    /**
+     * Covert date object to timestamp
+     * @param date java.util.Date object
+     * @return TimeStamp, formatted to Anyway API requirements
+     */
     public static String getTimeStamp(Date date) {
         Long ts = new Timestamp(date.getTime()).getTime()/1000;
         return Long.toString(ts);
     }
 
+    /**
+     * Covert date(saved as string) to timestamp
+     * @param dateStr Date as String, in dd/MM/yyyy format
+     * @return TimeStamp, formatted to Anyway API requirements
+     */
     public static String getTimeStamp(String dateStr) {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");

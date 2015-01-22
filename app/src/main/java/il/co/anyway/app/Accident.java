@@ -6,7 +6,9 @@ import java.util.Date;
 
 public class Accident {
 
+    @SuppressWarnings("unused")
     private final String LOG_TAG = Accident.class.getSimpleName();
+
     private long id;
     private long user;
     private String title;

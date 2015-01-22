@@ -32,15 +32,15 @@ import java.util.List;
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
         OnMapLongClickListener, OnCameraChangeListener {
 
+    @SuppressWarnings("unused")
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
+
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
     private static boolean CLEAR_MAP_AFTER_EACH_FETCH = true;
     public static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 15;
-
-
     private final int MAXIMUM_CHARACTERS_IN_INFO_WINDOWS = 100;
-    private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    // index of parameters in the parameters array for
+    // index of parameters in the parameters array for fetching accidents from server task
     public static final int JSON_STRING_PARAMETERS_COUNT = 12;
     public static final int JSON_STRING_NE_LAT = 0;
     public static final int JSON_STRING_NE_LNG = 1;
@@ -99,21 +99,21 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        // TODO
-        // Show accident specific details
-        Toast.makeText(this, marker.getTitle(), Toast.LENGTH_LONG).show();
+        // TODO Show accident specific details
+        Toast.makeText(this, "פרטי התאונה יופיעו כאן בהמשך", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        // TODO
-        // Add new accident,
+        // TODO open location based discussion
         Toast.makeText(this, "Long pressed: " + latLng, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        // TODO when this enabled, updating happing too much, not allowing to focus on marker
+        // TODO add service(?) to update map in the background, fetching only accidents not already shown
+        //
+        // when this enabled, updating happening too much, not allowing to focus on marker
         //getAccidentsFromASyncTask();
     }
 
@@ -140,7 +140,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         if(!centerMapOnMyLocation())
             setMapToLocation(AZZA_METUDELA_LOCATION, 17);
 
-
         map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
         map.setOnInfoWindowClickListener(this);
         map.setOnMapLongClickListener(this);
@@ -149,6 +148,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     /**
      * move the camera to specific location, should be called on after checking map!=null
+     * when camera finish moving - fetching accidents of current location
      * @param location location to move to
      * @param zoomLevel move camera to this specific
      */
@@ -167,7 +167,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                         //Log.d(LOG_TAG, "onCancel");
                     }
             });
-
     }
 
     /**
@@ -195,7 +194,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         int zoomLevel = (int) map.getCameraPosition().zoom;
 
         if(zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
+            // If zoom level too high, move the camera to minimum zoom level required
             Toast.makeText(this, getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
+
+            LatLng currentLocation = map.getCameraPosition().target;
+            setMapToLocation(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
+
+            // setMapToLocation calls this method again, so no need to keep going
             return;
         }
 
@@ -245,7 +250,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
             map.addMarker(new MarkerOptions()
                     .title(a.getTitle())
-                    .snippet(desc)
+                    .snippet(desc + "\n" + a.getAddress())
                     .position(a.getLocation()));
         }
     }

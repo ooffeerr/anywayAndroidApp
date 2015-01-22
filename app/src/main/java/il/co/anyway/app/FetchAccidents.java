@@ -1,7 +1,6 @@
 package il.co.anyway.app;
 
 
-import android.app.Activity;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 // fetching accidents from Anyway servers
 public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>> {
 
+    @SuppressWarnings("unused")
     private final String LOG_TAG = FetchAccidents.class.getSimpleName();
 
     private MainActivity callingActivity;
@@ -126,12 +126,7 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
         // remove previous markers add accidents to the map
         if(accidents != null) {
             callingActivity.setAccidentsListAndUpdateMap(accidents);
-
         }
-    }
-
-    public Activity getCallingActivity() {
-        return callingActivity;
     }
 
     public void setCallingActivity(MainActivity callingActivity) {

@@ -25,8 +25,8 @@ import android.widget.LinearLayout;
  */
 public class SettingsActivity extends PreferenceActivity  {
 
+    @SuppressWarnings("unused")
     private final String LOG_TAG = SettingsActivity.class.getSimpleName();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
