@@ -63,7 +63,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setUpMapIfNeeded();
+        // first run set to true only when this is the first time onCreate called
+        // used to handle the case of screen rotation
+        boolean firstRun = false;
+        if(savedInstanceState == null)
+            firstRun = true;
+
+        setUpMapIfNeeded(firstRun);
     }
 
     @Override
@@ -117,7 +123,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         //getAccidentsFromASyncTask();
     }
 
-    private void setUpMapIfNeeded() {
+    private void setUpMapIfNeeded(boolean firstRun) {
         // Do a null check to confirm that we have not already instantiated the map.
         if (map == null) {
 
@@ -127,18 +133,27 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
             // Check if we were successful in obtaining the map.
             if (map != null) {
-                setUpMap();
+                setUpMap(firstRun);
             }
         }
     }
 
-    private void setUpMap() {
+    private void setUpMap(boolean firstRun) {
         // Enable location buttons
         map.setMyLocationEnabled(true);
 
         // try to move map to user location, if not succeed go to default
-        if(!centerMapOnMyLocation())
-            setMapToLocation(AZZA_METUDELA_LOCATION, 17);
+        if(firstRun) {
+            if (!centerMapOnMyLocation())
+                setMapToLocationAndAddMarkers(AZZA_METUDELA_LOCATION, 17);
+        }
+        else {
+            // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
+            // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
+            LatLng currentLocation = map.getCameraPosition().target;
+            int currentZoomLevel = (int)map.getCameraPosition().zoom;
+            setMapToLocationAndAddMarkers(currentLocation, currentZoomLevel);
+        }
 
         map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
         map.setOnInfoWindowClickListener(this);
@@ -152,7 +167,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * @param location location to move to
      * @param zoomLevel move camera to this specific
      */
-    private void setMapToLocation(LatLng location, int zoomLevel) {
+    private void setMapToLocationAndAddMarkers(LatLng location, int zoomLevel) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(location.latitude, location.longitude), zoomLevel),
                 new CancelableCallback() {
@@ -179,7 +194,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
         if (location != null) {
-            setMapToLocation(new LatLng(location.getLatitude(), location.getLongitude()), 16);
+            setMapToLocationAndAddMarkers(new LatLng(location.getLatitude(), location.getLongitude()), 16);
             return true;
         }
         else {
@@ -198,9 +213,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             Toast.makeText(this, getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
 
             LatLng currentLocation = map.getCameraPosition().target;
-            setMapToLocation(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
+            setMapToLocationAndAddMarkers(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
 
-            // setMapToLocation calls this method again, so no need to keep going
+            // setMapToLocationAndAddMarkers calls this method again when it finish moving the camera, so no need to keep going
             return;
         }
 
