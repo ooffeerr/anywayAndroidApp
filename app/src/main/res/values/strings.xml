@@ -8,8 +8,8 @@
     <string name="action_settings">הגדרות</string>
 
     <!-- Main map activity -->
-    <string name="back_to_start_location">מרכז</string>
-    <string name="fetch_markers">תאונות</string>
+    <string name="back_to_start_location">עבור למיקום הנוכחי</string>
+    <string name="fetch_markers">רענן תאונות</string>
 
     <!-- popup layout -->
     <string name="icon">Accident logo</string>
