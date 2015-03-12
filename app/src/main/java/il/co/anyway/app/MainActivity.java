@@ -20,6 +20,8 @@ import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -141,6 +143,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private void setUpMap(boolean firstRun) {
         // Enable location buttons
         map.setMyLocationEnabled(true);
+
+        // Hide My Location button
+        // this because it implemented is the action bar
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+
+        // Disable toolbar on the right bottom corner(taking user to google maps app)
+        map.getUiSettings().setMapToolbarEnabled(false);
 
         // try to move map to user location, if not succeed go to default
         if(firstRun) {
@@ -264,8 +273,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 desc = desc.substring(0, 30).concat("...");
 
             map.addMarker(new MarkerOptions()
-                    .title(a.getTitle())
+                    .title(Utility.getAccidentTypeByIndex(a.getSubType()))
                     .snippet(desc + "\n" + a.getAddress())
+                    .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
         }
     }
