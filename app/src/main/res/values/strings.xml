@@ -10,6 +10,7 @@
     <!-- Main map activity -->
     <string name="back_to_start_location">עבור למיקום הנוכחי</string>
     <string name="fetch_markers">רענן תאונות</string>
+    <string name="address_search_hint">חפש כתובת...</string>
 
     <!-- popup layout -->
     <string name="icon">Accident logo</string>
