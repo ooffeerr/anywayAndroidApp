@@ -28,9 +28,10 @@
 
         <TextView
             android:id="@+id/snippet"
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"/>
+            android:textSize="15sp"
+            android:layout_gravity="end"/>
 
     </LinearLayout>
 

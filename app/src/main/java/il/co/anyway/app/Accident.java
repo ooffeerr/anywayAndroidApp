@@ -9,6 +9,40 @@ public class Accident {
     @SuppressWarnings("unused")
     private final String LOG_TAG = Accident.class.getSimpleName();
 
+    // accident seveirty
+    public static final int SEVERITY_FATAL = 1; // תאונה קטלנית
+    public static final int SEVERITY_SEVERE = 2; // קשה
+    public static final int SEVERITY_LIGHT = 3; // קלה
+    public static final int SEVERITY_VARIOUS = 4;
+
+    // accident subtype
+    public static final int ACCIDENT_MULTIPLE = -10;
+
+    // set finals for accident subtype
+    public static final int ACCIDENT_TYPE_CAR_TO_CAR =-1; // Synthetic type
+    public static final int ACCIDENT_TYPE_CAR_TO_OBJECT = -2; // Synthetic type
+    public static final int ACCIDENT_TYPE_CAR_TO_PEDESTRIAN = 1;
+
+    public static final int ACCIDENT_TYPE_FRONT_TO_SIDE = 2;
+    public static final int ACCIDENT_TYPE_FRONT_TO_REAR = 3;
+    public static  final int ACCIDENT_TYPE_SIDE_TO_SIDE = 4;
+    public static final int ACCIDENT_TYPE_FRONT_TO_FRONT = 5;
+    public static final int ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING = 6;
+    public static final int ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING = 7;
+    public static final int ACCIDENT_TYPE_WITH_STILL_OBJECT = 8;
+    public static final int ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK = 9;
+    public static final int ACCIDENT_TYPE_ROLLOVER = 10;
+    public static final int ACCIDENT_TYPE_SKID = 11;
+    public static final int ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR = 12;
+    public static final int ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE = 13;
+    public static final int ACCIDENT_TYPE_FIRE = 14;
+    public static final int ACCIDENT_TYPE_OTHER = 15;
+    public static final int ACCIDENT_TYPE_BACK_TO_FRONT = 17;
+    public static final int ACCIDENT_TYPE_BACK_TO_SIDE = 18;
+    public static final int ACCIDENT_TYPE_WITH_ANIMAL = 19;
+    public static final int ACCIDENT_TYPE_WITH_VEHICLE_LOAD = 20;
+
+    // accident fields
     private long id;
     private long user;
     private String title;
@@ -21,17 +55,8 @@ public class Accident {
     private String address;
     private int locationAccuracy;
 
-    public Accident(long id,
-                    long user,
-                    String title,
-                    String description,
-                    int type,
-                    int subType,
-                    int severity,
-                    Date created,
-                    LatLng location,
-                    String address,
-                    int locationAccuracy) {
+    public Accident(long id, long user, String title, String description, int type, int subType, int severity,
+                    Date created, LatLng location, String address, int locationAccuracy) {
 
         this.id = id;
         this.user = user;

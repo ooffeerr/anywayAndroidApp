@@ -1,5 +1,7 @@
 package il.co.anyway.app;
 
+import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -17,13 +19,6 @@ import java.util.Date;
 public class Utility {
 
     private static final String LOG_TAG = Utility.class.getSimpleName();
-
-    public static final int SEVERITY_FATAL = 1;
-    public static final int SEVERITY_SEVERE = 2;
-    public static final int SEVERITY_LIGHT = 3;
-    public static final int SEVERITY_VARIOUS = 4;
-
-    public static final int ACCIDENT_MULTIPLE = -10;
 
     /**
      * Parse JSON string to accidents list
@@ -134,226 +129,211 @@ public class Utility {
         return getTimeStamp(date);
     }
 
-    public static String getAccidentTypeByIndex(int accidentSubType) {
+    /**
+     *
+     * @param accidentSubType The type of the accident
+     * @param appContext Application Context
+     * @return A string describing the accident type
+     */
+    public static String getAccidentTypeByIndex(int accidentSubType, Context appContext) {
         String str = "";
 
         switch (accidentSubType) {
-            case 1:
-                str = "פגיעה בהולך רגל";
+            case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_CAR_TO_PEDESTRIAN);
                 break;
-            case 2:
-                str = "התנגשות חזית אל צד";
+            case Accident.ACCIDENT_TYPE_FRONT_TO_SIDE:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_FRONT_TO_SIDE);
                 break;
-            case 3:
-                str = "התנגשות חזית באחור";
+            case Accident.ACCIDENT_TYPE_FRONT_TO_REAR:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_FRONT_TO_REAR);
                 break;
-            case 4:
-                str = "התנגשות צד בצד";
+            case Accident.ACCIDENT_TYPE_SIDE_TO_SIDE:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_SIDE_TO_SIDE);
                 break;
-            case 5:
-                str = "התנגשות חזית אל חזית";
+            case Accident.ACCIDENT_TYPE_FRONT_TO_FRONT:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_FRONT_TO_FRONT);
                 break;
-            case 6:
-                str = "התנגשות עם רכב שנעצר ללא חניה";
+            case Accident.ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING);
                 break;
-            case 7:
-                str = "התנגשות עם רכב חונה";
+            case Accident.ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING);
                 break;
-            case 8:
-                str = "התנגשות עם עצם דומם";
+            case Accident.ACCIDENT_TYPE_WITH_STILL_OBJECT:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_WITH_STILL_OBJECT);
                 break;
-            case 9:
-                str = "ירידה מהכביש או עלייה למדרכה";
+            case Accident.ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK);
                 break;
-            case 10:
-                str = "התהפכות";
+            case Accident.ACCIDENT_TYPE_ROLLOVER:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_ROLLOVER);
                 break;
-            case 11:
-                str = "החלקה";
+            case Accident.ACCIDENT_TYPE_SKID:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_SKID);
                 break;
-            case 12:
-                str = "פגיעה בנוסע בתוך כלי רכב";
+            case Accident.ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR);
                 break;
-            case 13:
-                str = "נפילה ברכב נע";
+            case Accident.ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE);
                 break;
-            case 14:
-                str = "שריפה";
+            case Accident.ACCIDENT_TYPE_FIRE:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_FIRE);
                 break;
-            case 15:
-                str = "אחר";
+            case Accident.ACCIDENT_TYPE_OTHER:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_OTHER);
                 break;
-            case 17:
-                str = "התנגשות אחור אל חזית";
+            case Accident.ACCIDENT_TYPE_BACK_TO_FRONT:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_BACK_TO_FRONT);
                 break;
-            case 18:
-                str = "התנגשות אחור אל צד";
+            case Accident.ACCIDENT_TYPE_BACK_TO_SIDE:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_BACK_TO_SIDE);
                 break;
-            case 19:
-                str = "התנגשות עם בעל חיים";
+            case Accident.ACCIDENT_TYPE_WITH_ANIMAL:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_WITH_ANIMAL);
                 break;
-            case 20:
-                str = "פגיעה ממטען של רכב";
+            case Accident.ACCIDENT_TYPE_WITH_VEHICLE_LOAD:
+                str = appContext.getString(R.string.str_ACCIDENT_TYPE_WITH_VEHICLE_LOAD);
                 break;
         }
 
         return str;
     }
 
-    public static String getAccidentSeverityByIndex(int severity) {
+    /*public static String getAccidentSeverityByIndex(int severity) {
         String str = "";
 
-/*
-"HUMRAT_TEUNA": {
-1: "קטלנית",
-2: "קשה",
-3: "קלה",
-}
-*/
+        //TODO decide if we need this method
 
         return str;
-    }
+    }*/
 
+    /**
+     * Choose which icon to show on the map(for the marker)
+     * @param severity The severity of the accident
+     * @param accidentSubType the type of the accident
+     * @return ID of a drawable icon
+     */
     public static int getIconForMarker(int severity, int accidentSubType) {
 
         int innerType = 0;
 
-        final int ACCIDENT_TYPE_CAR_TO_CAR =-1; // Synthetic type
-        final int ACCIDENT_TYPE_CAR_TO_OBJECT = -2; // Synthetic type
-        final int ACCIDENT_TYPE_CAR_TO_PEDESTRIAN = 1;
-        final int ACCIDENT_TYPE_FRONT_TO_SIDE = 2;
-        final int ACCIDENT_TYPE_FRONT_TO_REAR = 3;
-        final int ACCIDENT_TYPE_SIDE_TO_SIDE = 4;
-        final int ACCIDENT_TYPE_FRONT_TO_FRONT = 5;
-        final int ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING = 6;
-        final int ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING = 7;
-        final int ACCIDENT_TYPE_WITH_STILL_OBJECT = 8;
-        final int ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK = 9;
-        final int ACCIDENT_TYPE_ROLLOVER = 10;
-        final int ACCIDENT_TYPE_SKID = 11;
-        final int ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR = 12;
-        final int ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE = 13;
-        final int ACCIDENT_TYPE_FIRE = 14;
-        final int ACCIDENT_TYPE_OTHER = 15;
-        final int ACCIDENT_TYPE_BACK_TO_FRONT = 17;
-        final int ACCIDENT_TYPE_BACK_TO_SIDE = 18;
-        final int ACCIDENT_TYPE_WITH_ANIMAL = 19;
-        final int ACCIDENT_TYPE_WITH_VEHICLE_LOAD = 20;
-
+        // we only have 3 different icons so we need to choose which one to use for each type of accident
         switch (accidentSubType) {
 
-            case ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
-                innerType = ACCIDENT_TYPE_CAR_TO_PEDESTRIAN;
+            case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN;
                 break;
-            case ACCIDENT_TYPE_FRONT_TO_SIDE:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_FRONT_TO_SIDE:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_FRONT_TO_REAR:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_FRONT_TO_REAR:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_SIDE_TO_SIDE:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_SIDE_TO_SIDE:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_FRONT_TO_FRONT:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_FRONT_TO_FRONT:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_WITH_STILL_OBJECT:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_WITH_STILL_OBJECT:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_ROLLOVER:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_ROLLOVER:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_SKID:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_SKID:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_FIRE:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_FIRE:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_OTHER:
-                innerType = ACCIDENT_TYPE_CAR_TO_OBJECT;
+            case Accident.ACCIDENT_TYPE_OTHER:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_OBJECT;
                 break;
-            case ACCIDENT_TYPE_BACK_TO_FRONT:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_BACK_TO_FRONT:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_BACK_TO_SIDE:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_BACK_TO_SIDE:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
-            case ACCIDENT_TYPE_WITH_ANIMAL:
-                innerType = ACCIDENT_TYPE_CAR_TO_PEDESTRIAN;
+            case Accident.ACCIDENT_TYPE_WITH_ANIMAL:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN;
                 break;
-            case ACCIDENT_TYPE_WITH_VEHICLE_LOAD:
-                innerType = ACCIDENT_TYPE_CAR_TO_CAR;
+            case Accident.ACCIDENT_TYPE_WITH_VEHICLE_LOAD:
+                innerType = Accident.ACCIDENT_TYPE_CAR_TO_CAR;
                 break;
         }
 
+        // choose the icon to show by the icon type and the severity
         int icon = 0;
-
-        if(accidentSubType == ACCIDENT_MULTIPLE) {
+        if(accidentSubType == Accident.ACCIDENT_MULTIPLE) {
             switch(severity) {
-                case SEVERITY_FATAL:
+                case Accident.SEVERITY_FATAL:
                     icon = R.drawable.multiple_lethal;
                     break;
-                case SEVERITY_SEVERE:
+                case Accident.SEVERITY_SEVERE:
                     icon = R.drawable.multiple_severe;
                     break;
-                case SEVERITY_LIGHT:
+                case Accident.SEVERITY_LIGHT:
                     icon = R.drawable.multiple_medium;
                     break;
-                case SEVERITY_VARIOUS:
+                case Accident.SEVERITY_VARIOUS:
                     icon = R.drawable.multiple_various;
                     break;
             }
         }
-        else if(severity == SEVERITY_FATAL) {
+        else if(severity == Accident.SEVERITY_FATAL) {
             switch(innerType) {
-                case ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
+                case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
                     icon = R.drawable.vehicle_person_lethal;
                     break;
-                case ACCIDENT_TYPE_CAR_TO_CAR:
+                case Accident.ACCIDENT_TYPE_CAR_TO_CAR:
                     icon = R.drawable.vehicle_person_lethal;
                     break;
-                case ACCIDENT_TYPE_CAR_TO_OBJECT:
+                case Accident.ACCIDENT_TYPE_CAR_TO_OBJECT:
                     icon = R.drawable.vehicle_object_lethal;
                     break;
             }
         }
-        else if(severity == SEVERITY_SEVERE) {
+        else if(severity == Accident.SEVERITY_SEVERE) {
             switch(innerType) {
-                case ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
+                case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
                     icon = R.drawable.vehicle_person_severe;
                     break;
-                case ACCIDENT_TYPE_CAR_TO_CAR:
+                case Accident.ACCIDENT_TYPE_CAR_TO_CAR:
                     icon = R.drawable.vehicle_vehicle_severe;
                     break;
-                case ACCIDENT_TYPE_CAR_TO_OBJECT:
+                case Accident.ACCIDENT_TYPE_CAR_TO_OBJECT:
                     icon = R.drawable.vehicle_object_severe;
                     break;
             }
         }
-        else if(severity == SEVERITY_LIGHT) {
+        else if(severity == Accident.SEVERITY_LIGHT) {
             switch(innerType) {
-                case ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
+                case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
                     icon = R.drawable.vehicle_person_medium;
                     break;
-                case ACCIDENT_TYPE_CAR_TO_CAR:
+                case Accident.ACCIDENT_TYPE_CAR_TO_CAR:
                     icon = R.drawable.vehicle_vehicle_medium;
                     break;
-                case ACCIDENT_TYPE_CAR_TO_OBJECT:
+                case Accident.ACCIDENT_TYPE_CAR_TO_OBJECT:
                     icon = R.drawable.vehicle_object_medium;
                     break;
             }

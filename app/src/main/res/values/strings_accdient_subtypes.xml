@@ -1,0 +1,23 @@
+<resources>
+
+    <string name="str_ACCIDENT_TYPE_CAR_TO_PEDESTRIAN">פגיעה בהולך רגל</string>
+    <string name="str_ACCIDENT_TYPE_FRONT_TO_SIDE">התנגשות חזית אל צד</string>
+    <string name="str_ACCIDENT_TYPE_FRONT_TO_REAR">התנגשות חזית באחור</string>
+    <string name="str_ACCIDENT_TYPE_SIDE_TO_SIDE">התנגשות צד בצד</string>
+    <string name="str_ACCIDENT_TYPE_FRONT_TO_FRONT">התנגשות חזית אל חזית</string>
+    <string name="str_ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING">התנגשות עם רכב שנעצר ללא חניה</string>
+    <string name="str_ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING">התנגשות עם רכב חונה</string>
+    <string name="str_ACCIDENT_TYPE_WITH_STILL_OBJECT">התנגשות עם עצם דומם</string>
+    <string name="str_ACCIDENT_TYPE_OFF_ROAD_OR_SIDEWALK">ירידה מהכביש או עלייה למדרכה</string>
+    <string name="str_ACCIDENT_TYPE_ROLLOVER">התהפכות</string>
+    <string name="str_ACCIDENT_TYPE_SKID">החלקה</string>
+    <string name="str_ACCIDENT_TYPE_HIT_PASSSENGER_IN_CAR">פגיעה בנוסע בתוך כלי רכב</string>
+    <string name="str_ACCIDENT_TYPE_FALLING_OFF_MOVING_VEHICLE">נפילה ברכב נע</string>
+    <string name="str_ACCIDENT_TYPE_FIRE">שריפה</string>
+    <string name="str_ACCIDENT_TYPE_OTHER">אחר</string>
+    <string name="str_ACCIDENT_TYPE_BACK_TO_FRONT">התנגשות אחור אל חזית</string>
+    <string name="str_ACCIDENT_TYPE_BACK_TO_SIDE">התנגשות אחור אל צד</string>
+    <string name="str_ACCIDENT_TYPE_WITH_ANIMAL">התנגשות עם בעל חיים</string>
+    <string name="str_ACCIDENT_TYPE_WITH_VEHICLE_LOAD">פגיעה ממטען של רכב</string>
+
+</resources>

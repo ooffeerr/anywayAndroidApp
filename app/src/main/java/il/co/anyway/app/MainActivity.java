@@ -9,8 +9,12 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -20,7 +24,6 @@ import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -29,7 +32,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
-
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
         OnMapLongClickListener, OnCameraChangeListener {
@@ -72,6 +74,68 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             firstRun = true;
 
         setUpMapIfNeeded(firstRun);
+
+        // add a listener to handle address search EditText
+        EditText address_search = (EditText) findViewById(R.id.address_search);
+        address_search.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    Toast.makeText(getApplicationContext(), "Looking for: " + v.getText(), Toast.LENGTH_LONG).show();
+                    handled = true;
+                }
+                return handled;
+            }
+        });
+    }
+
+    private void setUpMapIfNeeded(boolean firstRun) {
+        // Do a null check to confirm that we have not already instantiated the map.
+        if (map == null) {
+
+            // Try to obtain the map from the SupportMapFragment.
+            map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+                    .getMap();
+
+            // Check if we were successful in obtaining the map.
+            if (map != null) {
+                setUpMap(firstRun);
+            }
+        }
+    }
+
+    private void setUpMap(boolean firstRun) {
+
+        // Enable location buttons
+        map.setMyLocationEnabled(true);
+
+        // Hide My Location button
+        // this because it implemented is the action bar
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+
+        // Disable toolbar on the right bottom corner(taking user to google maps app)
+        map.getUiSettings().setMapToolbarEnabled(false);
+
+        map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
+        map.setOnInfoWindowClickListener(this);
+        map.setOnMapLongClickListener(this);
+        map.setOnCameraChangeListener(this);
+
+        if(firstRun) {
+
+            // try to move map to user location, if not succeed go to default
+            if (!setMapToMyLocationAndAddMarkers())
+                setMapToLocationAndAddMarkers(AZZA_METUDELA_LOCATION, 17);
+
+        }
+        else {
+            // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
+            // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
+            LatLng currentLocation = map.getCameraPosition().target;
+            int currentZoomLevel = (int)map.getCameraPosition().zoom;
+            setMapToLocationAndAddMarkers(currentLocation, currentZoomLevel);
+        }
     }
 
     @Override
@@ -94,7 +158,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             return true;
         }
         if (id == R.id.action_back_to_start_location) {
-            centerMapOnMyLocation();
+            setMapToMyLocationAndAddMarkers();
             return true;
         }
         if (id == R.id.action_fetch_markers) {
@@ -125,51 +189,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         //getAccidentsFromASyncTask();
     }
 
-    private void setUpMapIfNeeded(boolean firstRun) {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (map == null) {
-
-            // Try to obtain the map from the SupportMapFragment.
-            map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-
-            // Check if we were successful in obtaining the map.
-            if (map != null) {
-                setUpMap(firstRun);
-            }
-        }
-    }
-
-    private void setUpMap(boolean firstRun) {
-        // Enable location buttons
-        map.setMyLocationEnabled(true);
-
-        // Hide My Location button
-        // this because it implemented is the action bar
-        map.getUiSettings().setMyLocationButtonEnabled(false);
-
-        // Disable toolbar on the right bottom corner(taking user to google maps app)
-        map.getUiSettings().setMapToolbarEnabled(false);
-
-        // try to move map to user location, if not succeed go to default
-        if(firstRun) {
-            if (!centerMapOnMyLocation())
-                setMapToLocationAndAddMarkers(AZZA_METUDELA_LOCATION, 17);
-        }
-        else {
-            // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
-            // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
-            LatLng currentLocation = map.getCameraPosition().target;
-            int currentZoomLevel = (int)map.getCameraPosition().zoom;
-            setMapToLocationAndAddMarkers(currentLocation, currentZoomLevel);
-        }
-
-        map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
-        map.setOnInfoWindowClickListener(this);
-        map.setOnMapLongClickListener(this);
-        map.setOnCameraChangeListener(this);
-    }
-
     /**
      * move the camera to specific location, should be called on after checking map!=null
      * when camera finish moving - fetching accidents of current location
@@ -195,8 +214,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     /**
      * Move the camera to current user location(received from gps sensors)
+     * @return true if location is found and set, false otherwise
      */
-    private boolean centerMapOnMyLocation() {
+    private boolean setMapToMyLocationAndAddMarkers() {
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -211,7 +231,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         }
 
     }
-
 
     private void getAccidentsFromASyncTask() {
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
@@ -273,7 +292,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 desc = desc.substring(0, 30).concat("...");
 
             map.addMarker(new MarkerOptions()
-                    .title(Utility.getAccidentTypeByIndex(a.getSubType()))
+                    .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
                     .snippet(desc + "\n" + a.getAddress())
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
