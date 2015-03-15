@@ -15,4 +15,9 @@
     <!-- popup layout -->
     <string name="icon">Accident logo</string>
 
+
+    <!-- Enbale gps Alert dialog -->
+    <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
+    <string name="gps_yes">כן</string>
+    <string name="gps_no">לא</string>
 </resources>

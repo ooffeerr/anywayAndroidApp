@@ -19,13 +19,15 @@
 
             <EditText
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:id="@+id/address_search"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="5dp"
+                android:layout_margin="8dp"
+                android:padding="5dp"
                 android:inputType="text"
                 android:imeOptions="actionSearch"
+                android:background="#FFFFFF"
                 android:hint="@string/address_search_hint" />
 
         </RelativeLayout>

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -31,10 +32,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
-        OnMapLongClickListener, OnCameraChangeListener {
+        OnMapLongClickListener, OnCameraChangeListener, LocationListener {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -61,6 +63,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private GoogleMap map;
     private List<Accident> accidentsList;
+    private LocationManager locationManager;
+    private String provider;
+    private Location location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +77,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         boolean firstRun = false;
         if(savedInstanceState == null)
             firstRun = true;
+
+        // Get the location manager
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // Define the criteria how to select the location provider -> use default
+        Criteria criteria = new Criteria();
+        provider = locationManager.getBestProvider(criteria, false);
+        location = locationManager.getLastKnownLocation(provider);
+
+
+        boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!enabled && firstRun)
+            new EnableGpsDialog().show(getSupportFragmentManager(),"");
 
         setUpMapIfNeeded(firstRun);
 
@@ -189,6 +206,40 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         //getAccidentsFromASyncTask();
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        this.location = location;
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        //Toast.makeText(this, "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        //Toast.makeText(this, "Disabled provider " + provider, Toast.LENGTH_SHORT).show();
+    }
+
+    /* Request updates at startup */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        locationManager.requestLocationUpdates(provider, 400, 1, this);
+    }
+
+    /* Remove the location listener updates when Activity is paused */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
+    }
+
     /**
      * move the camera to specific location, should be called on after checking map!=null
      * when camera finish moving - fetching accidents of current location
@@ -218,10 +269,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      */
     private boolean setMapToMyLocationAndAddMarkers() {
 
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-
-        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
         if (location != null) {
             setMapToLocationAndAddMarkers(new LatLng(location.getLatitude(), location.getLongitude()), 16);
             return true;
