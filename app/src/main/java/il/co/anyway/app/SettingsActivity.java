@@ -3,6 +3,7 @@ package il.co.anyway.app;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
@@ -24,7 +25,7 @@ import android.widget.LinearLayout;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends PreferenceActivity  {
+public class SettingsActivity extends PreferenceActivity {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = SettingsActivity.class.getSimpleName();
@@ -32,6 +33,8 @@ public class SettingsActivity extends PreferenceActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
     }
 
     @Override
@@ -71,11 +74,6 @@ public class SettingsActivity extends PreferenceActivity  {
         });
     }
 
-    /**
-     * Shows the simplified settings UI if the device configuration if the
-     * device configuration dictates that a simplified, single-pane UI should be
-     * shown.
-     */
     private void setupPreferencesScreen() {
 
         // In the simplified UI, fragments are not used at all and we instead
@@ -86,6 +84,33 @@ public class SettingsActivity extends PreferenceActivity  {
 
         // Add 'date range' preferences.
         addPreferencesFromResource(R.xml.pref_date_range);
+
+        // Set the summary of the datepicker and add listener to bind the summary with the reak value
+        final DatePreference dp_from = (DatePreference) findPreference(getString(R.string.pref_from_date_key));
+        String current_from = dp_from.getText();
+        current_from = current_from.equals("")?getString(R.string.pref_default_from_date):current_from;
+        dp_from.setText(current_from);
+        dp_from.setSummary(current_from);
+        dp_from.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference,Object newValue) {
+                dp_from.setSummary((String) newValue);
+                return true;
+            }
+        });
+
+        final DatePreference dp_to = (DatePreference) findPreference(getString(R.string.pref_to_date_key));
+        String current_to = dp_to.getText();
+        current_to = current_to.equals("")?getString(R.string.pref_default_to_date):current_to;
+        dp_to.setText(current_to);
+        dp_to.setSummary(current_to);
+        dp_to.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference,Object newValue) {
+                dp_to.setSummary((String) newValue);
+                return true;
+            }
+        });
     }
 
     /**

@@ -10,6 +10,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +33,6 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
@@ -42,9 +42,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
-    private static boolean CLEAR_MAP_AFTER_EACH_FETCH = true;
-    public static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 15;
-    private final int MAXIMUM_CHARACTERS_IN_INFO_WINDOWS = 100;
+    private static final boolean CLEAR_MAP_AFTER_EACH_FETCH = true;
+    private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 15;
+    private static final int MAXIMUM_CHARACTERS_IN_INFO_WINDOWS = 100;
 
     // index of parameters in the parameters array for fetching accidents from server task
     public static final int JSON_STRING_PARAMETERS_COUNT = 12;
@@ -88,7 +88,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!enabled && firstRun)
-            new EnableGpsDialog().show(getSupportFragmentManager(),"");
+            new EnableGpsDialogFragment().show(getSupportFragmentManager(),"");
 
         setUpMapIfNeeded(firstRun);
 
@@ -99,7 +99,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 boolean handled = false;
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    Toast.makeText(getApplicationContext(), "Looking for: " + v.getText(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), "Looking for: " + v.getText(), Toast.LENGTH_LONG).show();
                     handled = true;
                 }
                 return handled;
@@ -285,7 +285,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         if(zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
             // If zoom level too high, move the camera to minimum zoom level required
-            Toast.makeText(this, getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
+            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
 
             LatLng currentLocation = map.getCameraPosition().target;
             setMapToLocationAndAddMarkers(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
@@ -303,17 +303,20 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         params[JSON_STRING_SW_LNG] = Double.toString(bounds.southwest.longitude);
         params[JSON_STRING_ZOOM_LEVEL] = Integer.toString(zoomLevel);
 
-        // TODO all this setting needs to come form user preferences
-        // getting timestamp for Anyway URL
-        params[JSON_STRING_START_DATE] = Utility.getTimeStamp("01/01/2013");
-        params[JSON_STRING_END_DATE] = Utility.getTimeStamp("01/01/2014");
-
         // Get preferences form SharedPreferncses
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         Boolean show_fatal = sharedPrefs.getBoolean(getString(R.string.pref_accidents_fatal_key), true);
         Boolean show_severe = sharedPrefs.getBoolean(getString(R.string.pref_accidents_severe_key), true);
         Boolean show_light = sharedPrefs.getBoolean(getString(R.string.pref_accidents_light_key), true);
         Boolean show_inaccurate = sharedPrefs.getBoolean(getString(R.string.pref_accidents_inaccurate_key), false);
+
+        String fromDate = sharedPrefs.getString(getString(R.string.pref_from_date_key), getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(getString(R.string.pref_to_date_key), getString(R.string.pref_default_to_date));
+
+        // getting timestamp for Anyway API
+        params[JSON_STRING_START_DATE] = Utility.getTimeStamp(fromDate);
+        params[JSON_STRING_END_DATE] = Utility.getTimeStamp(toDate);
 
         params[JSON_STRING_SHOW_FATAL] = show_fatal ? "1" : "0";
         params[JSON_STRING_SHOW_SEVERE] = show_severe ? "1" : "0";

@@ -47,11 +47,8 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
                     .appendQueryParameter("sw_lat", params[MainActivity.JSON_STRING_SW_LAT])
                     .appendQueryParameter("sw_lng", params[MainActivity.JSON_STRING_SW_LNG])
                     .appendQueryParameter("zoom", params[MainActivity.JSON_STRING_ZOOM_LEVEL])
-                            // TODO
                     .appendQueryParameter("start_date", params[MainActivity.JSON_STRING_START_DATE])
                     .appendQueryParameter("end_date", params[MainActivity.JSON_STRING_END_DATE])
-                    //.appendQueryParameter("start_date", "1356991200")
-                    //.appendQueryParameter("end_date", "1388527200")
                     .appendQueryParameter("show_fatal", params[MainActivity.JSON_STRING_SHOW_FATAL])
                     .appendQueryParameter("show_severe", params[MainActivity.JSON_STRING_SHOW_SEVERE])
                     .appendQueryParameter("show_light", params[MainActivity.JSON_STRING_SHOW_LIGHT])
@@ -60,7 +57,7 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
                     .build();
 
             URL url = new URL(builtUri.toString());
-            Log.i(LOG_TAG, "URL: " + url);
+            //Log.i(LOG_TAG, "URL: " + url);
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
