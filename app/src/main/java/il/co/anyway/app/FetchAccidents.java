@@ -74,13 +74,17 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
             String line;
-            while ((line = reader.readLine()) != null) {
-                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                // But it does make debugging a *lot* easier if you print out the completed
-                // buffer for debugging.
-                buffer.append(line + "\n");
+            try {
+                while ((line = reader.readLine()) != null) {
+                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                    // But it does make debugging a *lot* easier if you print out the completed
+                    // buffer for debugging.
+                    buffer.append(line + "\n");
+                }
             }
-
+            catch (IOException e) {
+                Log.e(LOG_TAG, "Could not load accidents from server");
+            }
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
                 return null;
@@ -107,7 +111,7 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
             return Utility.getAccidentDataFromJson(accidentJsonStr);
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return null;

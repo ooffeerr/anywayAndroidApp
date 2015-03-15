@@ -1,9 +1,13 @@
 package il.co.anyway.app;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,6 +19,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,10 +38,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
-        OnMapLongClickListener, OnCameraChangeListener, LocationListener {
+        OnMapLongClickListener, OnCameraChangeListener, LocationListener, TextView.OnEditorActionListener {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -94,17 +100,87 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         // add a listener to handle address search EditText
         EditText address_search = (EditText) findViewById(R.id.address_search);
-        address_search.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    Toast.makeText(getBaseContext(), "Looking for: " + v.getText(), Toast.LENGTH_LONG).show();
-                    handled = true;
+        address_search.setOnEditorActionListener(this);
+    }
+
+    // action handler for address search
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        boolean handled = false;
+        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+
+            // hide the keyboard
+            v.clearFocus();
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+            searchAddress(v);
+            handled = true;
+        }
+        return handled;
+    }
+
+    /**
+     * Search for an address, show a dialog and move the map to the searched location
+     * @param v TextView contain the address to search, in free speech
+     */
+    private void searchAddress(final TextView v) {
+
+        Geocoder geoCoder = new Geocoder(this);
+
+        try {
+            // Search for the address
+            final List<Address> addresses = geoCoder.getFromLocationName(v.getText().toString(),5);
+
+            if(addresses.size() > 0)
+            {
+                // arrange all the address in String array for the AlertDialog
+                final String[] addressList = new String[addresses.size()];
+                for(int i=0; i< addresses.size(); i++) {
+
+                    // Address received as an address lines, join them all to one line
+                    String tempAddress = "";
+                    for (int j=0; j<=addresses.get(i).getMaxAddressLineIndex(); j++)
+                        tempAddress += addresses.get(i).getAddressLine(j) + ", ";
+
+                    // remove the last ", " from the address
+                    tempAddress = tempAddress.substring(0, tempAddress.length()-2);
+                    // add it to the array, the index match to the address checked
+                    addressList[i] = tempAddress;
                 }
-                return handled;
+
+                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+                adb.setTitle(getString(R.string.address_result_title))
+                .setItems(addressList, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
+                        setMapToLocationAndAddMarkers(p);
+
+                        // set the address found back to the TextView
+                        v.setText(addressList[which]);
+
+                        // TODO - when markers behavior set, check this marker,
+                        // now the marker disappear when getting new markers
+                        //map.addMarker(new MarkerOptions().position(p).title("searchResult").snippet(addressList[which]));
+                    }
+                });
+                adb.show();
+
             }
-        });
+
+            else
+            {
+                // address not found, prompt user
+                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+                adb.setTitle(getString(R.string.address_not_found_title));
+                adb.setMessage(getString(R.string.address_not_found_details));
+                adb.setPositiveButton(getString(R.string.address_not_found_close),null);
+                adb.show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void setUpMapIfNeeded(boolean firstRun) {
@@ -264,6 +340,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     /**
+     * same as setMapToLocationAndAddMarkers(LatLng location, int zoomLevel)
+     * only zoom level is set to current value
+     * @param location location to move to
+     */
+    private void setMapToLocationAndAddMarkers(LatLng location) {
+        setMapToLocationAndAddMarkers(location, (int)map.getCameraPosition().zoom);
+    }
+    /**
      * Move the camera to current user location(received from gps sensors)
      * @return true if location is found and set, false otherwise
      */
@@ -353,4 +437,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         this.accidentsList = accidentsList;
         addAccidentsToMap(CLEAR_MAP_AFTER_EACH_FETCH);
     }
+
+
 }

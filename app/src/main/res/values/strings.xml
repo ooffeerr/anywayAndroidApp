@@ -11,10 +11,16 @@
     <string name="back_to_start_location">עבור למיקום הנוכחי</string>
     <string name="fetch_markers">רענן תאונות</string>
     <string name="address_search_hint">חפש כתובת...</string>
+    <string name="address_you_searched">הכתובת שחיפשת:</string>
+
+    <!-- Search Strings -->
+    <string name="address_result_title">האם התכוונת ל:</string>
+    <string name="address_not_found_title">לא נמצאה כתובת</string>
+    <string name="address_not_found_details">אנא בדוק את הכתובת שהכנסת</string>
+    <string name="address_not_found_close">סגור</string>
 
     <!-- popup layout -->
-    <string name="icon">Accident logo</string>
-
+    <string name="icon">אייקון תאונה</string>
 
     <!-- Enbale gps Alert dialog -->
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
