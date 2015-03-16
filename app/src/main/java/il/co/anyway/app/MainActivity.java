@@ -39,6 +39,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
@@ -50,22 +53,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
     private static final boolean CLEAR_MAP_AFTER_EACH_FETCH = true;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
-    private static final int MAXIMUM_CHARACTERS_IN_INFO_WINDOWS = 100;
 
-    // index of parameters in the parameters array for fetching accidents from server task
-    public static final int JSON_STRING_PARAMETERS_COUNT = 12;
-    public static final int JSON_STRING_NE_LAT = 0;
-    public static final int JSON_STRING_NE_LNG = 1;
-    public static final int JSON_STRING_SW_LAT = 2;
-    public static final int JSON_STRING_SW_LNG = 3;
-    public static final int JSON_STRING_ZOOM_LEVEL = 4;
-    public static final int JSON_STRING_START_DATE = 5;
-    public static final int JSON_STRING_END_DATE = 6;
-    public static final int JSON_STRING_SHOW_FATAL = 7;
-    public static final int JSON_STRING_SHOW_SEVERE = 8;
-    public static final int JSON_STRING_SHOW_LIGHT = 9;
-    public static final int JSON_STRING_SHOW_INACCURATE = 10;
-    public static final int JSON_STRING_FORMAT = 11;
 
     private GoogleMap map;
     private List<Accident> accidentsList;
@@ -92,10 +80,11 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         provider = locationManager.getBestProvider(criteria, false);
         location = locationManager.getLastKnownLocation(provider);
 
-
+        // check if gps enabled, if not - offer the user to turn it on
         boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!enabled && firstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(),"");
+
 
         setUpMapIfNeeded(firstRun);
 
@@ -103,7 +92,128 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         EditText address_search = (EditText) findViewById(R.id.address_search);
         address_search.setOnEditorActionListener(this);
 
+        /*
+         the real marker id is set by google maps API, i'm saving the marker id in order
+         to find accident by a marker
+          */
+
         nextMarkerID = 0;
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        if (id == R.id.action_back_to_start_location) {
+            setMapToMyLocationAndAddMarkers();
+            return true;
+        }
+        if (id == R.id.action_fetch_markers) {
+            getAccidentsFromServer();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * when marker is clicked, find and show the accident details of this marker
+     * @param marker marker clicked
+     */
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+        // findAccidentByMarkerID
+        String markerID = marker.getId();
+
+        Bundle args = new Bundle();
+
+        for(Accident a : accidentsList) {
+
+            if(markerID.equals(a.getMarkerID())) {
+
+                args.putString("description", a.getDescription());
+                args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
+                args.putLong("id", a.getId());
+                args.putString("address", a.getAddress());
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                String strCreated = dateFormat.format(a.getCreated());
+                args.putString("created", strCreated);
+
+                break;
+            }
+        }
+
+        AccidentDetailsDialogFragment accidentDetailsDialog =
+                new AccidentDetailsDialogFragment();
+        accidentDetailsDialog.setArguments(args);
+        accidentDetailsDialog.show(getSupportFragmentManager(),"accidentDetails");
+
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        // TODO open location based discussion
+        Toast.makeText(this, "Long pressed: " + latLng, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+        // TODO add service(?) to update map in the background, fetching only accidents not already shown
+        //
+        // when this enabled, updating happening too much, not allowing to focus on marker
+        //getAccidentsFromASyncTask();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        this.location = location;
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        //Toast.makeText(this, "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        //Toast.makeText(this, "Disabled provider " + provider, Toast.LENGTH_SHORT).show();
+    }
+
+    /* Request updates at startup */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        locationManager.requestLocationUpdates(provider, 400, 1, this);
+    }
+
+    /* Remove the location listener updates when Activity is paused */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
     }
 
     // action handler for address search
@@ -154,24 +264,22 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
                 adb.setTitle(getString(R.string.address_result_title))
-                .setItems(addressList, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
+                        .setItems(addressList, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
 
-                        LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
-                        setMapToLocationAndAddMarkers(p);
+                                LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
+                                setMapToLocationAndAddMarkers(p);
 
-                        // set the address found back to the TextView
-                        v.setText(addressList[which]);
+                                // set the address found back to the TextView
+                                v.setText(addressList[which]);
 
-                        // TODO - when markers behavior set, check this marker,
-                        // now the marker disappear when getting new markers
-                        //map.addMarker(new MarkerOptions().position(p).title("searchResult").snippet(addressList[which]));
-                    }
-                });
+                                // TODO - when markers behavior set, check this marker,
+                                // now the marker disappear when getting new markers
+                                //map.addMarker(new MarkerOptions().position(p).title("searchResult").snippet(addressList[which]));
+                            }
+                        });
                 adb.show();
-
             }
-
             else
             {
                 // address not found, prompt user
@@ -234,92 +342,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-        if (id == R.id.action_back_to_start_location) {
-            setMapToMyLocationAndAddMarkers();
-            return true;
-        }
-        if (id == R.id.action_fetch_markers) {
-            getAccidentsFromASyncTask();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-
-        
-
-    }
-
-    @Override
-    public void onMapLongClick(LatLng latLng) {
-        // TODO open location based discussion
-        Toast.makeText(this, "Long pressed: " + latLng, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onCameraChange(CameraPosition cameraPosition) {
-        // TODO add service(?) to update map in the background, fetching only accidents not already shown
-        //
-        // when this enabled, updating happening too much, not allowing to focus on marker
-        //getAccidentsFromASyncTask();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        this.location = location;
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        //Toast.makeText(this, "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        //Toast.makeText(this, "Disabled provider " + provider, Toast.LENGTH_SHORT).show();
-    }
-
-    /* Request updates at startup */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        locationManager.requestLocationUpdates(provider, 400, 1, this);
-    }
-
-    /* Remove the location listener updates when Activity is paused */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        locationManager.removeUpdates(this);
-    }
-
     /**
      * move the camera to specific location, should be called on after checking map!=null
      * when camera finish moving - fetching accidents of current location
@@ -333,12 +355,12 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
                     @Override
                     public void onFinish() {
-                        getAccidentsFromASyncTask();
+                        getAccidentsFromServer();
                     }
 
                     @Override
                     public void onCancel() {
-                        //Log.d(LOG_TAG, "onCancel");
+
                     }
             });
     }
@@ -368,7 +390,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     }
 
-    private void getAccidentsFromASyncTask() {
+    private void getAccidentsFromServer() {
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) map.getCameraPosition().zoom;
 
@@ -383,70 +405,38 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             return;
         }
 
-        FetchAccidents accidentTask = new FetchAccidents();
-
-        String[] params = new String[JSON_STRING_PARAMETERS_COUNT];
-        params[JSON_STRING_NE_LAT] = Double.toString(bounds.northeast.latitude);
-        params[JSON_STRING_NE_LNG] = Double.toString(bounds.northeast.longitude);
-        params[JSON_STRING_SW_LAT] = Double.toString(bounds.southwest.latitude);
-        params[JSON_STRING_SW_LNG] = Double.toString(bounds.southwest.longitude);
-        params[JSON_STRING_ZOOM_LEVEL] = Integer.toString(zoomLevel);
-
-        // Get preferences form SharedPreferncses
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        Boolean show_fatal = sharedPrefs.getBoolean(getString(R.string.pref_accidents_fatal_key), true);
-        Boolean show_severe = sharedPrefs.getBoolean(getString(R.string.pref_accidents_severe_key), true);
-        Boolean show_light = sharedPrefs.getBoolean(getString(R.string.pref_accidents_light_key), true);
-        Boolean show_inaccurate = sharedPrefs.getBoolean(getString(R.string.pref_accidents_inaccurate_key), false);
-
-        String fromDate = sharedPrefs.getString(getString(R.string.pref_from_date_key), getString(R.string.pref_default_from_date));
-        String toDate = sharedPrefs.getString(getString(R.string.pref_to_date_key), getString(R.string.pref_default_to_date));
-
-        // getting timestamp for Anyway API
-        params[JSON_STRING_START_DATE] = Utility.getTimeStamp(fromDate);
-        params[JSON_STRING_END_DATE] = Utility.getTimeStamp(toDate);
-
-        params[JSON_STRING_SHOW_FATAL] = show_fatal ? "1" : "0";
-        params[JSON_STRING_SHOW_SEVERE] = show_severe ? "1" : "0";
-        params[JSON_STRING_SHOW_LIGHT] = show_light ? "1" : "0";
-        params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate ? "1" : "0";
-        params[JSON_STRING_FORMAT] = "json";
-
-        accidentTask.setCallingActivity(this);
-        accidentTask.execute(params);
+        Utility.getAccidentsFromASyncTask(bounds, zoomLevel, this);
     }
 
     // add accidents from array list to map
     private void addAccidentsToMap(boolean clearMap) {
 
         if(clearMap) {
-            nextMarkerID = 0;
             map.clear();
         }
 
         for(Accident a : accidentsList) {
 
-            // make sure info windows don't get to messy
-            String desc = a.getDescription();
-            if(desc.length() > MAXIMUM_CHARACTERS_IN_INFO_WINDOWS)
-                desc = desc.substring(0, 30).concat("...");
-
-            a.setMarkerID("m"+nextMarkerID);
             map.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
                     .snippet(getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
+            a.setMarkerID("m"+nextMarkerID);
             nextMarkerID++;
         }
     }
 
+    /**
+     * set a new set of accidents and add them to the map, deleting previous accidents
+     * @param accidentsList
+     */
     public void setAccidentsListAndUpdateMap(List<Accident> accidentsList) {
         this.accidentsList = accidentsList;
+
+        // currently CLEAR_MAP_AFTER_EACH_FETCH have to be true, otherwise markerID will not match the right accident
         addAccidentsToMap(CLEAR_MAP_AFTER_EACH_FETCH);
     }
-
 
 }

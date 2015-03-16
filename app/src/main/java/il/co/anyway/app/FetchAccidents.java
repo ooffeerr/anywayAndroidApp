@@ -42,18 +42,18 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
             final String FORECAST_BASE_URL = "http://www.anyway.co.il/markers?";
 
             Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                    .appendQueryParameter("ne_lat", params[MainActivity.JSON_STRING_NE_LAT])
-                    .appendQueryParameter("ne_lng", params[MainActivity.JSON_STRING_NE_LNG])
-                    .appendQueryParameter("sw_lat", params[MainActivity.JSON_STRING_SW_LAT])
-                    .appendQueryParameter("sw_lng", params[MainActivity.JSON_STRING_SW_LNG])
-                    .appendQueryParameter("zoom", params[MainActivity.JSON_STRING_ZOOM_LEVEL])
-                    .appendQueryParameter("start_date", params[MainActivity.JSON_STRING_START_DATE])
-                    .appendQueryParameter("end_date", params[MainActivity.JSON_STRING_END_DATE])
-                    .appendQueryParameter("show_fatal", params[MainActivity.JSON_STRING_SHOW_FATAL])
-                    .appendQueryParameter("show_severe", params[MainActivity.JSON_STRING_SHOW_SEVERE])
-                    .appendQueryParameter("show_light", params[MainActivity.JSON_STRING_SHOW_LIGHT])
-                    .appendQueryParameter("show_inaccurate", params[MainActivity.JSON_STRING_SHOW_INACCURATE])
-                    .appendQueryParameter("format", params[MainActivity.JSON_STRING_FORMAT])
+                    .appendQueryParameter("ne_lat", params[Utility.JSON_STRING_NE_LAT])
+                    .appendQueryParameter("ne_lng", params[Utility.JSON_STRING_NE_LNG])
+                    .appendQueryParameter("sw_lat", params[Utility.JSON_STRING_SW_LAT])
+                    .appendQueryParameter("sw_lng", params[Utility.JSON_STRING_SW_LNG])
+                    .appendQueryParameter("zoom", params[Utility.JSON_STRING_ZOOM_LEVEL])
+                    .appendQueryParameter("start_date", params[Utility.JSON_STRING_START_DATE])
+                    .appendQueryParameter("end_date", params[Utility.JSON_STRING_END_DATE])
+                    .appendQueryParameter("show_fatal", params[Utility.JSON_STRING_SHOW_FATAL])
+                    .appendQueryParameter("show_severe", params[Utility.JSON_STRING_SHOW_SEVERE])
+                    .appendQueryParameter("show_light", params[Utility.JSON_STRING_SHOW_LIGHT])
+                    .appendQueryParameter("show_inaccurate", params[Utility.JSON_STRING_SHOW_INACCURATE])
+                    .appendQueryParameter("format", params[Utility.JSON_STRING_FORMAT])
                     .build();
 
             URL url = new URL(builtUri.toString());

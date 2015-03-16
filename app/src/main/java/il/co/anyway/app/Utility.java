@@ -1,10 +1,12 @@
 package il.co.anyway.app;
 
 import android.content.Context;
-import android.content.res.Resources;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +21,21 @@ import java.util.Date;
 public class Utility {
 
     private static final String LOG_TAG = Utility.class.getSimpleName();
+
+    // index of parameters in the parameters array for fetching accidents from server task
+    public static final int JSON_STRING_PARAMETERS_COUNT = 12;
+    public static final int JSON_STRING_NE_LAT = 0;
+    public static final int JSON_STRING_NE_LNG = 1;
+    public static final int JSON_STRING_SW_LAT = 2;
+    public static final int JSON_STRING_SW_LNG = 3;
+    public static final int JSON_STRING_ZOOM_LEVEL = 4;
+    public static final int JSON_STRING_START_DATE = 5;
+    public static final int JSON_STRING_END_DATE = 6;
+    public static final int JSON_STRING_SHOW_FATAL = 7;
+    public static final int JSON_STRING_SHOW_SEVERE = 8;
+    public static final int JSON_STRING_SHOW_LIGHT = 9;
+    public static final int JSON_STRING_SHOW_INACCURATE = 10;
+    public static final int JSON_STRING_FORMAT = 11;
 
     /**
      * Parse JSON string to accidents list
@@ -68,6 +85,7 @@ public class Utility {
             }
 
             try {
+
                 String address = accidentDetails.getString(ACCIDENT_ADDRESS);
                 String desc = accidentDetails.getString(ACCIDENT_DESC);
                 String title = accidentDetails.getString(ACCIDENT_TITLE);
@@ -103,6 +121,48 @@ public class Utility {
 
         }
         return resultList;
+    }
+
+    /**
+     * set all the variables needed for pulling accident data from Anyway API
+     * @param bounds map bounds
+     * @param zoomLevel map zoom level
+     * @param callingActivity the calling activity(will get updates when pulling data from server end)
+     */
+    public static void getAccidentsFromASyncTask(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
+
+        FetchAccidents accidentTask = new FetchAccidents();
+
+        String[] params = new String[JSON_STRING_PARAMETERS_COUNT];
+        params[JSON_STRING_NE_LAT] = Double.toString(bounds.northeast.latitude);
+        params[JSON_STRING_NE_LNG] = Double.toString(bounds.northeast.longitude);
+        params[JSON_STRING_SW_LAT] = Double.toString(bounds.southwest.latitude);
+        params[JSON_STRING_SW_LNG] = Double.toString(bounds.southwest.longitude);
+        params[JSON_STRING_ZOOM_LEVEL] = Integer.toString(zoomLevel);
+
+        // Get preferences form SharedPreferncses
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
+
+        Boolean show_fatal = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_fatal_key), true);
+        Boolean show_severe = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_severe_key), true);
+        Boolean show_light = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_light_key), true);
+        Boolean show_inaccurate = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_inaccurate_key), false);
+
+        String fromDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_from_date_key), callingActivity.getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_to_date_key), callingActivity.getString(R.string.pref_default_to_date));
+
+        // getting timestamp for Anyway API
+        params[JSON_STRING_START_DATE] = Utility.getTimeStamp(fromDate);
+        params[JSON_STRING_END_DATE] = Utility.getTimeStamp(toDate);
+
+        params[JSON_STRING_SHOW_FATAL] = show_fatal ? "1" : "0";
+        params[JSON_STRING_SHOW_SEVERE] = show_severe ? "1" : "0";
+        params[JSON_STRING_SHOW_LIGHT] = show_light ? "1" : "0";
+        params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate ? "1" : "0";
+        params[JSON_STRING_FORMAT] = "json";
+
+        accidentTask.setCallingActivity(callingActivity);
+        accidentTask.execute(params);
     }
 
     /**
