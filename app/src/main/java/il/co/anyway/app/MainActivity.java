@@ -49,7 +49,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
     private static final boolean CLEAR_MAP_AFTER_EACH_FETCH = true;
-    private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 15;
+    private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final int MAXIMUM_CHARACTERS_IN_INFO_WINDOWS = 100;
 
     // index of parameters in the parameters array for fetching accidents from server task
@@ -72,6 +72,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private LocationManager locationManager;
     private String provider;
     private Location location;
+    private int nextMarkerID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +102,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // add a listener to handle address search EditText
         EditText address_search = (EditText) findViewById(R.id.address_search);
         address_search.setOnEditorActionListener(this);
+
+        nextMarkerID = 0;
     }
 
     // action handler for address search
@@ -264,8 +267,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        // TODO Show accident specific details
-        Toast.makeText(this, "פרטי התאונה יופיעו כאן בהמשך", Toast.LENGTH_LONG).show();
+
+        
+
     }
 
     @Override
@@ -347,6 +351,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private void setMapToLocationAndAddMarkers(LatLng location) {
         setMapToLocationAndAddMarkers(location, (int)map.getCameraPosition().zoom);
     }
+
     /**
      * Move the camera to current user location(received from gps sensors)
      * @return true if location is found and set, false otherwise
@@ -354,7 +359,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private boolean setMapToMyLocationAndAddMarkers() {
 
         if (location != null) {
-            setMapToLocationAndAddMarkers(new LatLng(location.getLatitude(), location.getLongitude()), 16);
+            setMapToLocationAndAddMarkers(new LatLng(location.getLatitude(), location.getLongitude()));
             return true;
         }
         else {
@@ -415,8 +420,10 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     // add accidents from array list to map
     private void addAccidentsToMap(boolean clearMap) {
 
-        if(clearMap)
+        if(clearMap) {
+            nextMarkerID = 0;
             map.clear();
+        }
 
         for(Accident a : accidentsList) {
 
@@ -425,11 +432,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             if(desc.length() > MAXIMUM_CHARACTERS_IN_INFO_WINDOWS)
                 desc = desc.substring(0, 30).concat("...");
 
+            a.setMarkerID("m"+nextMarkerID);
             map.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
-                    .snippet(desc + "\n" + a.getAddress())
+                    .snippet(getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
+
+            nextMarkerID++;
         }
     }
 

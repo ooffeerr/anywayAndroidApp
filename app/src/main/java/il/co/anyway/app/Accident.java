@@ -19,13 +19,13 @@ public class Accident {
     public static final int ACCIDENT_MULTIPLE = -10;
 
     // set finals for accident subtype
-    public static final int ACCIDENT_TYPE_CAR_TO_CAR =-1; // Synthetic type
+    public static final int ACCIDENT_TYPE_CAR_TO_CAR = -1; // Synthetic type
     public static final int ACCIDENT_TYPE_CAR_TO_OBJECT = -2; // Synthetic type
     public static final int ACCIDENT_TYPE_CAR_TO_PEDESTRIAN = 1;
 
     public static final int ACCIDENT_TYPE_FRONT_TO_SIDE = 2;
     public static final int ACCIDENT_TYPE_FRONT_TO_REAR = 3;
-    public static  final int ACCIDENT_TYPE_SIDE_TO_SIDE = 4;
+    public static final int ACCIDENT_TYPE_SIDE_TO_SIDE = 4;
     public static final int ACCIDENT_TYPE_FRONT_TO_FRONT = 5;
     public static final int ACCIDENT_TYPE_WITH_STOPPED_CAR_NO_PARKING = 6;
     public static final int ACCIDENT_TYPE_WITH_STOPPED_CAR_PARKING = 7;
@@ -54,6 +54,7 @@ public class Accident {
     private LatLng location;
     private String address;
     private int locationAccuracy;
+    private String markerID;
 
     public Accident(long id, long user, String title, String description, int type, int subType, int severity,
                     Date created, LatLng location, String address, int locationAccuracy) {
@@ -71,7 +72,8 @@ public class Accident {
         this.locationAccuracy = locationAccuracy;
     }
 
-    public Accident() {}
+    public Accident() {
+    }
 
     public long getId() {
         return id;
@@ -170,5 +172,14 @@ public class Accident {
     public Accident setLocationAccuracy(int locationAccuracy) {
         this.locationAccuracy = locationAccuracy;
         return this;
+    }
+
+    public Accident setMarkerID(String markerID) {
+        this.markerID = markerID;
+        return this;
+    }
+
+    public String getMarkerID() {
+        return markerID;
     }
 }

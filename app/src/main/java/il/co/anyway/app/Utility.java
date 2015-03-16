@@ -63,38 +63,44 @@ public class Utility {
             try {
                 createdDate = sdf.parse(created);
             } catch (ParseException e) {
-                Log.e(LOG_TAG, e.getMessage());
+                Log.e(LOG_TAG, e.getLocalizedMessage());
                 e.printStackTrace();
             }
 
-            String address = accidentDetails.getString(ACCIDENT_ADDRESS);
-            String desc = accidentDetails.getString(ACCIDENT_DESC);
-            String title = accidentDetails.getString(ACCIDENT_TITLE);
-            Integer id = accidentDetails.getInt(ACCIDENT_ID);
+            try {
+                String address = accidentDetails.getString(ACCIDENT_ADDRESS);
+                String desc = accidentDetails.getString(ACCIDENT_DESC);
+                String title = accidentDetails.getString(ACCIDENT_TITLE);
+                Integer id = accidentDetails.getInt(ACCIDENT_ID);
 
-            Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
-            Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
-            LatLng location = new LatLng(lat, lng);
+                Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
+                Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
+                LatLng location = new LatLng(lat, lng);
 
-            Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATOIN_ACCURACY);
-            Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
-            Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
-            Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
+                Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATOIN_ACCURACY);
+                Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
+                Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
+                Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
 
-            Accident acc = new Accident()
-                    .setId(id)
-                    .setUser(user)
-                    .setTitle(title)
-                    .setDescription(desc)
-                    .setType(type)
-                    .setSubType(subtype)
-                    .setSeverity(severity)
-                    .setCreated(createdDate)
-                    .setLocation(location)
-                    .setAddress(address)
-                    .setLocationAccuracy(accuracy);
+                Accident acc = new Accident()
+                        .setId(id)
+                        .setUser(user)
+                        .setTitle(title)
+                        .setDescription(desc)
+                        .setType(type)
+                        .setSubType(subtype)
+                        .setSeverity(severity)
+                        .setCreated(createdDate)
+                        .setLocation(location)
+                        .setAddress(address)
+                        .setLocationAccuracy(accuracy);
 
-            resultList.add(acc);
+                resultList.add(acc);
+            }
+            catch (JSONException e) {
+                Log.e(LOG_TAG, e.getLocalizedMessage());
+            }
+
         }
         return resultList;
     }
