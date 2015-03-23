@@ -6,10 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
+import com.androidmapsextensions.GoogleMap;
+import com.androidmapsextensions.GoogleMap.InfoWindowAdapter;
+import com.androidmapsextensions.Marker;
 
-class PopupAdapter implements GoogleMap.InfoWindowAdapter {
+
+class PopupAdapter implements InfoWindowAdapter {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = PopupAdapter.class.getSimpleName();

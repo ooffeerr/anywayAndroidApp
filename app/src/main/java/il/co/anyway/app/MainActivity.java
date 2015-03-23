@@ -11,32 +11,35 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.androidmapsextensions.ClusteringSettings;
+import com.androidmapsextensions.GoogleMap;
+import com.androidmapsextensions.SupportMapFragment;
+import com.androidmapsextensions.Marker;
+import com.androidmapsextensions.MarkerOptions;
+import com.androidmapsextensions.GoogleMap.CancelableCallback;
+import com.androidmapsextensions.GoogleMap.OnCameraChangeListener;
+import com.androidmapsextensions.GoogleMap.OnInfoWindowClickListener;
+import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.CancelableCallback;
-import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
-import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
-import com.google.android.gms.maps.SupportMapFragment;
+
+
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -52,7 +55,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
 
     private GoogleMap map;
-    //private List<Accident> accidentsList;
+    private SupportMapFragment mapFragment;
     private AccidentsManager accidents;
     private LocationManager locationManager;
     private String provider;
@@ -156,14 +159,12 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             String strCreated = dateFormat.format(a.getCreated());
             args.putString("created", strCreated);
-
         }
 
         AccidentDetailsDialogFragment accidentDetailsDialog =
                 new AccidentDetailsDialogFragment();
         accidentDetailsDialog.setArguments(args);
         accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
-
     }
 
     @Override
@@ -303,14 +304,19 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     private void setUpMapIfNeeded(boolean firstRun) {
+
+        FragmentManager fm = getSupportFragmentManager();
+        mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();;
+            FragmentTransaction tx = fm.beginTransaction();
+            tx.add(R.id.map_container, mapFragment);
+            tx.commit();
+        }
+
         // Do a null check to confirm that we have not already instantiated the map.
         if (map == null) {
-
-            // Try to obtain the map from the SupportMapFragment.
-            map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-
-            // Check if we were successful in obtaining the map.
+            map = mapFragment.getExtendedMap();
             if (map != null) {
                 setUpMap(firstRun);
             }
@@ -318,6 +324,11 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     private void setUpMap(boolean firstRun) {
+
+        ClusteringSettings settings = new ClusteringSettings();
+        //CLUSTERING_ENABLED_DYNAMIC
+        settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
+        map.setClustering(settings);
 
         // Enable location buttons
         map.setMyLocationEnabled(true);
