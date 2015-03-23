@@ -42,13 +42,10 @@ public class AccidentDetailsDialogFragment extends DialogFragment {
 
         // update dialog TextViews with the accident details
         TextView tv = (TextView)v.findViewById(R.id.accident_details_desc);
-        tv.setText(address + "\n" + description);
+        tv.setText(created + "\n" + address + "\n" + description);
 
         tv = (TextView)v.findViewById(R.id.accident_details_title);
         tv.setText(titleBySubType);
-
-        tv = (TextView)v.findViewById(R.id.accident_details_date);
-        tv.setText(created);
 
         return builder.create();
     }

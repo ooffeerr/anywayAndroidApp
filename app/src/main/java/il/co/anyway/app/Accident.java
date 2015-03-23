@@ -70,9 +70,11 @@ public class Accident {
         this.location = location;
         this.address = address;
         this.locationAccuracy = locationAccuracy;
+        this.markerID = null;
     }
 
     public Accident() {
+        this.markerID = null;
     }
 
     public long getId() {

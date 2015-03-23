@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -12,7 +11,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,9 +37,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
@@ -51,12 +47,12 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
-    private static final boolean CLEAR_MAP_AFTER_EACH_FETCH = true;
+    private static final boolean CLEAR_MAP_AFTER_EACH_FETCH = false;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
 
-
     private GoogleMap map;
-    private List<Accident> accidentsList;
+    //private List<Accident> accidentsList;
+    private AccidentsManager accidents;
     private LocationManager locationManager;
     private String provider;
     private Location location;
@@ -85,7 +81,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         if (!enabled && firstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(),"");
 
-
         setUpMapIfNeeded(firstRun);
 
         // add a listener to handle address search EditText
@@ -96,10 +91,10 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
          the real marker id is set by google maps API, i'm saving the marker id in order
          to find accident by a marker
           */
+        accidents = new AccidentsManager();
 
         nextMarkerID = 0;
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -139,26 +134,27 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     @Override
     public void onInfoWindowClick(Marker marker) {
 
+        // If the marker is just the search address marker, do nothing
+        if(marker.getTitle().equals(getString(R.string.search_result)))
+            return;
+
         // findAccidentByMarkerID
         String markerID = marker.getId();
 
         Bundle args = new Bundle();
 
-        for(Accident a : accidentsList) {
+        Accident a = accidents.getAccidentByMarkerID(markerID);
+        if(a != null) {
 
-            if(markerID.equals(a.getMarkerID())) {
+            args.putString("description", a.getDescription());
+            args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
+            args.putLong("id", a.getId());
+            args.putString("address", a.getAddress());
 
-                args.putString("description", a.getDescription());
-                args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
-                args.putLong("id", a.getId());
-                args.putString("address", a.getAddress());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            String strCreated = dateFormat.format(a.getCreated());
+            args.putString("created", strCreated);
 
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                String strCreated = dateFormat.format(a.getCreated());
-                args.putString("created", strCreated);
-
-                break;
-            }
         }
 
         AccidentDetailsDialogFragment accidentDetailsDialog =
@@ -275,7 +271,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
                                 // TODO - when markers behavior set, check this marker,
                                 // now the marker disappear when getting new markers
-                                //map.addMarker(new MarkerOptions().position(p).title("searchResult").snippet(addressList[which]));
+                                map.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
+                                nextMarkerID++;
                             }
                         });
                 adb.show();
@@ -409,13 +406,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     // add accidents from array list to map
-    private void addAccidentsToMap(boolean clearMap) {
+    private void addAccidentsToMap() {
 
-        if(clearMap) {
-            map.clear();
-        }
-
-        for(Accident a : accidentsList) {
+        for(Accident a : accidents.getAllNewAccidents()) {
 
             map.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
@@ -429,14 +422,15 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     /**
-     * set a new set of accidents and add them to the map, deleting previous accidents
-     * @param accidentsList
+     * add all the accidents from the list to the map
+     * @param accidentsToAddList
      */
-    public void setAccidentsListAndUpdateMap(List<Accident> accidentsList) {
-        this.accidentsList = accidentsList;
-
-        // currently CLEAR_MAP_AFTER_EACH_FETCH have to be true, otherwise markerID will not match the right accident
-        addAccidentsToMap(CLEAR_MAP_AFTER_EACH_FETCH);
+    public void setAccidentsListAndUpdateMap(List<Accident> accidentsToAddList) {
+        int accidentsAddedCounter = accidents.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
+        if(accidentsAddedCounter > 0) {
+            addAccidentsToMap();
+            Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");
+        }
     }
 
 }

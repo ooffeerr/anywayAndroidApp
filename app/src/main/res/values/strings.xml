@@ -4,6 +4,7 @@
     <string name="app_name" translatable="false">ANYWAY</string>
     <string name="zoom_in_to_display">רחוק מדי, מתקרב....</string>
     <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
+    <string name="search_result">תוצאת חיפוש</string>
 
     <!-- Settings -->
     <string name="action_settings">הגדרות</string>

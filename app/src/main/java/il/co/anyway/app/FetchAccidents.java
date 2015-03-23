@@ -14,9 +14,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 // fetching accidents from Anyway servers
-public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>> {
+public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = FetchAccidents.class.getSimpleName();
@@ -24,7 +25,9 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
     private MainActivity callingActivity;
 
     @Override
-    protected ArrayList<Accident> doInBackground(String... params) {
+    protected List<Accident> doInBackground(String... params) {
+
+        Log.i(LOG_TAG, "Start fetching accidents from anyway");
 
         // If there's no parameters, there's nothing to look up.  Verify size of params.
         if (params.length == 0) {
@@ -90,6 +93,7 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
                 return null;
             }
             accidentJsonStr = buffer.toString();
+            Log.i(LOG_TAG, "Fetched " + accidentJsonStr.length() + " chars");
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping to parse it.
@@ -108,7 +112,9 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
         }
 
         try {
-            return Utility.getAccidentDataFromJson(accidentJsonStr);
+            List<Accident> fetchedAccidents = Utility.getAccidentDataFromJson(accidentJsonStr);
+            Log.i(LOG_TAG, "Converted to " + fetchedAccidents.size() + " accidents");
+            return fetchedAccidents;
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
             //e.printStackTrace();
@@ -120,7 +126,7 @@ public class FetchAccidents extends AsyncTask<String, Void, ArrayList<Accident>>
 
 
     @Override
-    protected void onPostExecute(ArrayList<Accident> accidents) {
+    protected void onPostExecute(List<Accident> accidents) {
         super.onPostExecute(accidents);
 
         // remove previous markers add accidents to the map

@@ -17,6 +17,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Utility {
 
@@ -40,10 +41,10 @@ public class Utility {
     /**
      * Parse JSON string to accidents list
      * @param accidentJsonStr JSON string to parse
-     * @return all accidents from json string as ArrayList<Accident>
+     * @return all accidents from json string as List<Accident>
      * @throws JSONException
      */
-    public static ArrayList<Accident> getAccidentDataFromJson(String accidentJsonStr)
+    public static List<Accident> getAccidentDataFromJson(String accidentJsonStr)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
@@ -67,7 +68,7 @@ public class Utility {
         JSONObject accidentJson = new JSONObject(accidentJsonStr);
         JSONArray accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
 
-        ArrayList<Accident> resultList = new ArrayList<>();
+        List<Accident> resultList = new ArrayList<>();
         for(int i = 0; i < accidentsArray.length(); i++) {
 
             // Get the JSON object representing the day
@@ -89,7 +90,9 @@ public class Utility {
                 String address = accidentDetails.getString(ACCIDENT_ADDRESS);
                 String desc = accidentDetails.getString(ACCIDENT_DESC);
                 String title = accidentDetails.getString(ACCIDENT_TITLE);
-                Integer id = accidentDetails.getInt(ACCIDENT_ID);
+                Long id = accidentDetails.getLong(ACCIDENT_ID);
+
+                // Log.d(LOG_TAG, "Accident id:" + id);
 
                 Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
                 Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
@@ -111,7 +114,8 @@ public class Utility {
                         .setCreated(createdDate)
                         .setLocation(location)
                         .setAddress(address)
-                        .setLocationAccuracy(accuracy);
+                        .setLocationAccuracy(accuracy)
+                        .setMarkerID(null);
 
                 resultList.add(acc);
             }
