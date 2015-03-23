@@ -84,8 +84,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
                     // buffer for debugging.
                     buffer.append(line + "\n");
                 }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Log.e(LOG_TAG, "Could not load accidents from server, " + e);
             }
             if (buffer.length() == 0) {
@@ -130,7 +129,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
         super.onPostExecute(accidents);
 
         // remove previous markers add accidents to the map
-        if(accidents != null) {
+        if (accidents != null) {
             callingActivity.setAccidentsListAndUpdateMap(accidents);
         }
     }

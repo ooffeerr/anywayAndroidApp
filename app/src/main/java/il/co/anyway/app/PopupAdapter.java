@@ -14,16 +14,16 @@ class PopupAdapter implements GoogleMap.InfoWindowAdapter {
     @SuppressWarnings("unused")
     private final String LOG_TAG = PopupAdapter.class.getSimpleName();
 
-    private View popup=null;
-    private LayoutInflater inflater=null;
+    private View popup = null;
+    private LayoutInflater inflater = null;
 
     PopupAdapter(LayoutInflater inflater) {
-        this.inflater=inflater;
+        this.inflater = inflater;
     }
 
     @Override
     public View getInfoWindow(Marker marker) {
-        return(null);
+        return (null);
     }
 
     @SuppressLint("InflateParams")
@@ -34,11 +34,11 @@ class PopupAdapter implements GoogleMap.InfoWindowAdapter {
             popup = inflater.inflate(R.layout.popup, null);
         }
 
-        TextView tv=(TextView)popup.findViewById(R.id.title);
+        TextView tv = (TextView) popup.findViewById(R.id.title);
         tv.setText(marker.getTitle());
-        tv=(TextView)popup.findViewById(R.id.snippet);
+        tv = (TextView) popup.findViewById(R.id.snippet);
         tv.setText(marker.getSnippet());
 
-        return(popup);
+        return (popup);
     }
 }

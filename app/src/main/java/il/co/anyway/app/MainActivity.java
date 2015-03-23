@@ -237,6 +237,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }

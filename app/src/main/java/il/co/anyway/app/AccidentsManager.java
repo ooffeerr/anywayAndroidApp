@@ -20,8 +20,8 @@ public class AccidentsManager {
 
     private boolean isAccidentExist(Accident toCheck) {
 
-        for(Accident a : accidentsList)
-            if(a.getId() == toCheck.getId()) {
+        for (Accident a : accidentsList)
+            if (a.getId() == toCheck.getId()) {
 
                 return true;
             }
@@ -31,11 +31,10 @@ public class AccidentsManager {
 
     public boolean addAccident(Accident toAdd) {
 
-        if(!isAccidentExist(toAdd)) {
+        if (!isAccidentExist(toAdd)) {
             accidentsList.add(toAdd);
             //TODO updateMap();
-        }
-        else
+        } else
             return false;
 
         return true;
@@ -43,13 +42,13 @@ public class AccidentsManager {
 
     public int addAllAccidents(List<Accident> toAddList, boolean reset) {
 
-        if(reset == DO_RESET)
+        if (reset == DO_RESET)
             accidentsList.clear();
 
         int counter = 0;
 
-        for(Accident a : toAddList) {
-            if(!isAccidentExist(a)) {
+        for (Accident a : toAddList) {
+            if (!isAccidentExist(a)) {
                 accidentsList.add(a);
 
                 counter++;
@@ -63,7 +62,7 @@ public class AccidentsManager {
 
     public Accident getAccidentByMarkerID(String markerID) {
 
-        for(Accident a : accidentsList) {
+        for (Accident a : accidentsList) {
             if (a.getMarkerID().equals(markerID)) {
                 return a;
             }
@@ -80,7 +79,7 @@ public class AccidentsManager {
 
         List<Accident> newAccidents = new ArrayList<>();
 
-        for(Accident a : accidentsList) {
+        for (Accident a : accidentsList) {
             if (a.getMarkerID() == null) {
                 newAccidents.add(a);
             }

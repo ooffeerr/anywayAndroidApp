@@ -34,17 +34,17 @@ public class AccidentDetailsDialogFragment extends DialogFragment {
 
         // Add action buttons
         builder.setNeutralButton(getString(R.string.address_not_found_close), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
 
-                    }
-                });
+            }
+        });
 
         // update dialog TextViews with the accident details
-        TextView tv = (TextView)v.findViewById(R.id.accident_details_desc);
+        TextView tv = (TextView) v.findViewById(R.id.accident_details_desc);
         tv.setText(created + "\n" + address + "\n" + description);
 
-        tv = (TextView)v.findViewById(R.id.accident_details_title);
+        tv = (TextView) v.findViewById(R.id.accident_details_title);
         tv.setText(titleBySubType);
 
         return builder.create();

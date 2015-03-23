@@ -63,7 +63,7 @@ public class SettingsActivity extends PreferenceActivity {
         setupPreferencesScreen();
 
         // add action bar to preferences
-        LinearLayout root = (LinearLayout)findViewById(android.R.id.list).getParent().getParent().getParent();
+        LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
         Toolbar bar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.settings_toolbar, root, false);
         root.addView(bar, 0); // insert at top
         bar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -88,12 +88,12 @@ public class SettingsActivity extends PreferenceActivity {
         // Set the summary of the datepicker and add listener to bind the summary with the reak value
         final DatePreference dp_from = (DatePreference) findPreference(getString(R.string.pref_from_date_key));
         String current_from = dp_from.getText();
-        current_from = current_from.equals("")?getString(R.string.pref_default_from_date):current_from;
+        current_from = current_from.equals("") ? getString(R.string.pref_default_from_date) : current_from;
         dp_from.setText(current_from);
         dp_from.setSummary(current_from);
         dp_from.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference,Object newValue) {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
                 dp_from.setSummary((String) newValue);
                 return true;
             }
@@ -101,12 +101,12 @@ public class SettingsActivity extends PreferenceActivity {
 
         final DatePreference dp_to = (DatePreference) findPreference(getString(R.string.pref_to_date_key));
         String current_to = dp_to.getText();
-        current_to = current_to.equals("")?getString(R.string.pref_default_to_date):current_to;
+        current_to = current_to.equals("") ? getString(R.string.pref_default_to_date) : current_to;
         dp_to.setText(current_to);
         dp_to.setSummary(current_to);
         dp_to.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference,Object newValue) {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
                 dp_to.setSummary((String) newValue);
                 return true;
             }
@@ -134,7 +134,7 @@ public class SettingsActivity extends PreferenceActivity {
                                 ? listPreference.getEntries()[index]
                                 : null);
 
-            }  else {
+            } else {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);

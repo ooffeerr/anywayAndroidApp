@@ -59,7 +59,7 @@ public class DatePreference extends DialogPreference {
         super.onBindDialogView(v);
 
         // (-1) - month is stored as a number between 1-12, the picker save the month in range of 0-11
-        picker.updateDate(lastYear, lastMonth-1, lastDate);
+        picker.updateDate(lastYear, lastMonth - 1, lastDate);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class DatePreference extends DialogPreference {
         if (positiveResult) {
             lastYear = picker.getYear();
             // (+1) - month is stored as a number between 1-12, the picker save the month in range of 0-11
-            lastMonth = picker.getMonth()+1;
+            lastMonth = picker.getMonth() + 1;
             lastDate = picker.getDayOfMonth();
 
             String dateValue = String.valueOf(lastDate) + "/"

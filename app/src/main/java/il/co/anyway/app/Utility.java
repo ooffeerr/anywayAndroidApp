@@ -40,6 +40,7 @@ public class Utility {
 
     /**
      * Parse JSON string to accidents list
+     *
      * @param accidentJsonStr JSON string to parse
      * @return all accidents from json string as List<Accident>
      * @throws JSONException
@@ -57,7 +58,7 @@ public class Utility {
         final String ACCIDENT_LONGITUDE = "longitude";
         final String ACCIDENT_LOCATOIN_ACCURACY = "locationAccuracy";
         final String ACCIDENT_SEVERITY = "severity";
-        final String ACCIDENT_TYPE= "type";
+        final String ACCIDENT_TYPE = "type";
         final String ACCIDENT_SUBTYPE = "subtype";
         final String ACCIDENT_TITLE = "title";
 
@@ -69,7 +70,7 @@ public class Utility {
         JSONArray accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
 
         List<Accident> resultList = new ArrayList<>();
-        for(int i = 0; i < accidentsArray.length(); i++) {
+        for (int i = 0; i < accidentsArray.length(); i++) {
 
             // Get the JSON object representing the day
             JSONObject accidentDetails = accidentsArray.getJSONObject(i);
@@ -118,8 +119,7 @@ public class Utility {
                         .setMarkerID(null);
 
                 resultList.add(acc);
-            }
-            catch (JSONException e) {
+            } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getLocalizedMessage());
             }
 
@@ -129,8 +129,9 @@ public class Utility {
 
     /**
      * set all the variables needed for pulling accident data from Anyway API
-     * @param bounds map bounds
-     * @param zoomLevel map zoom level
+     *
+     * @param bounds          map bounds
+     * @param zoomLevel       map zoom level
      * @param callingActivity the calling activity(will get updates when pulling data from server end)
      */
     public static void getAccidentsFromASyncTask(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
@@ -171,16 +172,18 @@ public class Utility {
 
     /**
      * Covert date object to timestamp
+     *
      * @param date java.util.Date object
      * @return TimeStamp, formatted to Anyway API requirements
      */
     public static String getTimeStamp(Date date) {
-        Long ts = new Timestamp(date.getTime()).getTime()/1000;
+        Long ts = new Timestamp(date.getTime()).getTime() / 1000;
         return Long.toString(ts);
     }
 
     /**
      * Covert date(saved as string) to timestamp
+     *
      * @param dateStr Date as String, in dd/MM/yyyy format
      * @return TimeStamp, formatted to Anyway API requirements
      */
@@ -200,9 +203,8 @@ public class Utility {
     }
 
     /**
-     *
      * @param accidentSubType The type of the accident
-     * @param appContext Application Context
+     * @param appContext      Application Context
      * @return A string describing the accident type
      */
     public static String getAccidentTypeByIndex(int accidentSubType, Context appContext) {
@@ -281,7 +283,8 @@ public class Utility {
 
     /**
      * Choose which icon to show on the map(for the marker)
-     * @param severity The severity of the accident
+     *
+     * @param severity        The severity of the accident
      * @param accidentSubType the type of the accident
      * @return ID of a drawable icon
      */
@@ -353,8 +356,8 @@ public class Utility {
 
         // choose the icon to show by the icon type and the severity
         int icon = 0;
-        if(accidentSubType == Accident.ACCIDENT_MULTIPLE) {
-            switch(severity) {
+        if (accidentSubType == Accident.ACCIDENT_MULTIPLE) {
+            switch (severity) {
                 case Accident.SEVERITY_FATAL:
                     icon = R.drawable.multiple_lethal;
                     break;
@@ -368,9 +371,8 @@ public class Utility {
                     icon = R.drawable.multiple_various;
                     break;
             }
-        }
-        else if(severity == Accident.SEVERITY_FATAL) {
-            switch(innerType) {
+        } else if (severity == Accident.SEVERITY_FATAL) {
+            switch (innerType) {
                 case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
                     icon = R.drawable.vehicle_person_lethal;
                     break;
@@ -381,9 +383,8 @@ public class Utility {
                     icon = R.drawable.vehicle_object_lethal;
                     break;
             }
-        }
-        else if(severity == Accident.SEVERITY_SEVERE) {
-            switch(innerType) {
+        } else if (severity == Accident.SEVERITY_SEVERE) {
+            switch (innerType) {
                 case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
                     icon = R.drawable.vehicle_person_severe;
                     break;
@@ -394,9 +395,8 @@ public class Utility {
                     icon = R.drawable.vehicle_object_severe;
                     break;
             }
-        }
-        else if(severity == Accident.SEVERITY_LIGHT) {
-            switch(innerType) {
+        } else if (severity == Accident.SEVERITY_LIGHT) {
+            switch (innerType) {
                 case Accident.ACCIDENT_TYPE_CAR_TO_PEDESTRIAN:
                     icon = R.drawable.vehicle_person_medium;
                     break;
