@@ -47,7 +47,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
-    private static final boolean CLEAR_MAP_AFTER_EACH_FETCH = false;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
 
     private GoogleMap map;
@@ -62,6 +61,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        accidents = new AccidentsManager();
 
         // first run set to true only when this is the first time onCreate called
         // used to handle the case of screen rotation
@@ -91,8 +92,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
          the real marker id is set by google maps API, i'm saving the marker id in order
          to find accident by a marker
           */
-        accidents = new AccidentsManager();
-
         nextMarkerID = 0;
     }
 
@@ -172,10 +171,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        // TODO add service(?) to update map in the background, fetching only accidents not already shown
-        //
-        // when this enabled, updating happening too much, not allowing to focus on marker
-        //getAccidentsFromASyncTask();
+        getAccidentsFromServer();
     }
 
     @Override
@@ -352,7 +348,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
                     @Override
                     public void onFinish() {
-                        getAccidentsFromServer();
+                        //getAccidentsFromServer();
                     }
 
                     @Override

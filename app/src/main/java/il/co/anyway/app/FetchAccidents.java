@@ -86,7 +86,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
                 }
             }
             catch (IOException e) {
-                Log.e(LOG_TAG, "Could not load accidents from server");
+                Log.e(LOG_TAG, "Could not load accidents from server, " + e);
             }
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
@@ -95,7 +95,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
             accidentJsonStr = buffer.toString();
             Log.i(LOG_TAG, "Fetched " + accidentJsonStr.length() + " chars");
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Error ", e);
+            Log.e(LOG_TAG, "Error " + e.getLocalizedMessage());
             // If the code didn't successfully get the weather data, there's no point in attemping to parse it.
             return null;
         } finally {
