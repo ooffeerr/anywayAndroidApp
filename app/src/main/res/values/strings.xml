@@ -4,7 +4,7 @@
     <string name="app_name" translatable="false">ANYWAY</string>
     <string name="zoom_in_to_display">רחוק מדי, מתקרב....</string>
     <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
-    <string name="search_result">תוצאת חיפוש</string>
+    <string name="cancel">ביטול</string>
 
     <!-- Settings -->
     <string name="action_settings">הגדרות</string>
@@ -12,6 +12,7 @@
     <!-- Main map activity -->
     <string name="back_to_start_location">עבור למיקום הנוכחי</string>
     <string name="fetch_markers">רענן תאונות</string>
+    <string name="address_search">חפש כתובת</string>
     <string name="address_search_hint">חפש כתובת...</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
 
@@ -20,12 +21,14 @@
     <string name="address_not_found_title">לא נמצאה כתובת</string>
     <string name="address_not_found_details">אנא בדוק את הכתובת שהכנסת</string>
     <string name="address_not_found_close">סגור</string>
+    <string name="search_result">תוצאת חיפוש</string>
+    <string name="search">חפש</string>
 
     <!-- popup layout -->
     <string name="icon">אייקון תאונה</string>
 
     <!-- Enbale gps Alert dialog -->
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
-    <string name="gps_yes">כן</string>
-    <string name="gps_no">לא</string>
+    <string name="yes">כן</string>
+    <string name="no">לא</string>
 </resources>

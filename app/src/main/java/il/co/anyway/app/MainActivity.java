@@ -14,8 +14,10 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -41,7 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
-        OnMapLongClickListener, OnCameraChangeListener, LocationListener, TextView.OnEditorActionListener {
+        OnMapLongClickListener, OnCameraChangeListener, LocationListener {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -67,7 +69,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // first run set to true only when this is the first time onCreate called
         // used to handle the case of screen rotation
         boolean firstRun = false;
-        if(savedInstanceState == null)
+        if (savedInstanceState == null)
             firstRun = true;
 
         // Get the location manager
@@ -80,13 +82,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // check if gps enabled, if not - offer the user to turn it on
         boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!enabled && firstRun)
-            new EnableGpsDialogFragment().show(getSupportFragmentManager(),"");
+            new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         setUpMapIfNeeded(firstRun);
-
-        // add a listener to handle address search EditText
-        EditText address_search = (EditText) findViewById(R.id.address_search);
-        address_search.setOnEditorActionListener(this);
 
         /*
          the real marker id is set by google maps API, i'm saving the marker id in order
@@ -122,19 +120,24 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             getAccidentsFromServer();
             return true;
         }
+        if (id == R.id.action_search) {
+            showSearchDialog();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
     /**
      * when marker is clicked, find and show the accident details of this marker
+     *
      * @param marker marker clicked
      */
     @Override
     public void onInfoWindowClick(Marker marker) {
 
         // If the marker is just the search address marker, do nothing
-        if(marker.getTitle().equals(getString(R.string.search_result)))
+        if (marker.getTitle().equals(getString(R.string.search_result)))
             return;
 
         // findAccidentByMarkerID
@@ -143,7 +146,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         Bundle args = new Bundle();
 
         Accident a = accidents.getAccidentByMarkerID(markerID);
-        if(a != null) {
+        if (a != null) {
 
             args.putString("description", a.getDescription());
             args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
@@ -159,7 +162,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         AccidentDetailsDialogFragment accidentDetailsDialog =
                 new AccidentDetailsDialogFragment();
         accidentDetailsDialog.setArguments(args);
-        accidentDetailsDialog.show(getSupportFragmentManager(),"accidentDetails");
+        accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
 
     }
 
@@ -209,47 +212,63 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     // action handler for address search
-    @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        boolean handled = false;
-        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-
+    public void showSearchDialog() {
+/*
             // hide the keyboard
             v.clearFocus();
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+*/
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Get the layout inflater
+        LayoutInflater inflater = this.getLayoutInflater();
 
-            searchAddress(v);
-            handled = true;
-        }
-        return handled;
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+        final View addressDialogView = inflater.inflate(R.layout.address_search_dialog, null);
+        builder.setView(addressDialogView)
+                // Add action buttons
+                .setPositiveButton(R.string.search, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        TextView searchTextView = (TextView) addressDialogView.findViewById(R.id.address_search);
+                        searchAddress(searchTextView.getText().toString());
+
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                }).show();
     }
 
     /**
      * Search for an address, show a dialog and move the map to the searched location
-     * @param v TextView contain the address to search, in free speech
+     *
+     * @param addressToSearch The address to search, in free speech
      */
-    private void searchAddress(final TextView v) {
+    private void searchAddress(String addressToSearch) {
 
         Geocoder geoCoder = new Geocoder(this);
+        final int MAX_RESULTS = 7;
 
         try {
             // Search for the address
-            final List<Address> addresses = geoCoder.getFromLocationName(v.getText().toString(),5);
+            final List<Address> addresses = geoCoder.getFromLocationName(addressToSearch, MAX_RESULTS);
 
-            if(addresses.size() > 0)
-            {
-                // arrange all the address in String array for the AlertDialog
+            if (addresses.size() > 0) {
+                // re-arrange all the address in String array for the AlertDialog
                 final String[] addressList = new String[addresses.size()];
-                for(int i=0; i< addresses.size(); i++) {
+                for (int i = 0; i < addresses.size(); i++) {
 
                     // Address received as an address lines, join them all to one line
                     String tempAddress = "";
-                    for (int j=0; j<=addresses.get(i).getMaxAddressLineIndex(); j++)
+                    for (int j = 0; j <= addresses.get(i).getMaxAddressLineIndex(); j++)
                         tempAddress += addresses.get(i).getAddressLine(j) + ", ";
 
                     // remove the last ", " from the address
-                    tempAddress = tempAddress.substring(0, tempAddress.length()-2);
+                    tempAddress = tempAddress.substring(0, tempAddress.length() - 2);
                     // add it to the array, the index match to the address checked
                     addressList[i] = tempAddress;
                 }
@@ -262,9 +281,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                                 LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
                                 setMapToLocationAndAddMarkers(p);
 
-                                // set the address found back to the TextView
-                                v.setText(addressList[which]);
-
                                 // TODO - when markers behavior set, check this marker,
                                 // now the marker disappear when getting new markers
                                 map.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
@@ -272,14 +288,12 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                             }
                         });
                 adb.show();
-            }
-            else
-            {
+            } else {
                 // address not found, prompt user
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
                 adb.setTitle(getString(R.string.address_not_found_title));
                 adb.setMessage(getString(R.string.address_not_found_details));
-                adb.setPositiveButton(getString(R.string.address_not_found_close),null);
+                adb.setPositiveButton(getString(R.string.address_not_found_close), null);
                 adb.show();
             }
         } catch (IOException e) {
@@ -319,18 +333,17 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         map.setOnMapLongClickListener(this);
         map.setOnCameraChangeListener(this);
 
-        if(firstRun) {
+        if (firstRun) {
 
             // try to move map to user location, if not succeed go to default
             if (!setMapToMyLocationAndAddMarkers())
                 setMapToLocationAndAddMarkers(AZZA_METUDELA_LOCATION, 17);
 
-        }
-        else {
+        } else {
             // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
             // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
             LatLng currentLocation = map.getCameraPosition().target;
-            int currentZoomLevel = (int)map.getCameraPosition().zoom;
+            int currentZoomLevel = (int) map.getCameraPosition().zoom;
             setMapToLocationAndAddMarkers(currentLocation, currentZoomLevel);
         }
     }
@@ -338,12 +351,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     /**
      * move the camera to specific location, should be called on after checking map!=null
      * when camera finish moving - fetching accidents of current location
-     * @param location location to move to
+     *
+     * @param location  location to move to
      * @param zoomLevel move camera to this specific
      */
     private void setMapToLocationAndAddMarkers(LatLng location, int zoomLevel) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.latitude, location.longitude), zoomLevel),
+                        new LatLng(location.latitude, location.longitude), zoomLevel),
                 new CancelableCallback() {
 
                     @Override
@@ -355,20 +369,22 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                     public void onCancel() {
 
                     }
-            });
+                });
     }
 
     /**
      * same as setMapToLocationAndAddMarkers(LatLng location, int zoomLevel)
      * only zoom level is set to current value
+     *
      * @param location location to move to
      */
     private void setMapToLocationAndAddMarkers(LatLng location) {
-        setMapToLocationAndAddMarkers(location, (int)map.getCameraPosition().zoom);
+        setMapToLocationAndAddMarkers(location, (int) map.getCameraPosition().zoom);
     }
 
     /**
      * Move the camera to current user location(received from gps sensors)
+     *
      * @return true if location is found and set, false otherwise
      */
     private boolean setMapToMyLocationAndAddMarkers() {
@@ -376,8 +392,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         if (location != null) {
             setMapToLocationAndAddMarkers(new LatLng(location.getLatitude(), location.getLongitude()));
             return true;
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -387,7 +402,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) map.getCameraPosition().zoom;
 
-        if(zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
+        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
             // If zoom level too high, move the camera to minimum zoom level required
             Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
 
@@ -404,7 +419,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     // add accidents from array list to map
     private void addAccidentsToMap() {
 
-        for(Accident a : accidents.getAllNewAccidents()) {
+        for (Accident a : accidents.getAllNewAccidents()) {
 
             map.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
@@ -412,18 +427,19 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
-            a.setMarkerID("m"+nextMarkerID);
+            a.setMarkerID("m" + nextMarkerID);
             nextMarkerID++;
         }
     }
 
     /**
      * add all the accidents from the list to the map
+     *
      * @param accidentsToAddList
      */
     public void setAccidentsListAndUpdateMap(List<Accident> accidentsToAddList) {
         int accidentsAddedCounter = accidents.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
-        if(accidentsAddedCounter > 0) {
+        if (accidentsAddedCounter > 0) {
             addAccidentsToMap();
             Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");
         }

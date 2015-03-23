@@ -15,7 +15,7 @@ public class EnableGpsDialogFragment extends DialogFragment {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(R.string.gps_is_off)
-                .setPositiveButton(R.string.gps_yes, new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
                         // Start activity
@@ -24,7 +24,7 @@ public class EnableGpsDialogFragment extends DialogFragment {
 
                     }
                 })
-                .setNegativeButton(R.string.gps_no, new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
                     }
