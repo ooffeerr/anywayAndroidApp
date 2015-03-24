@@ -139,6 +139,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     @Override
     public void onInfoWindowClick(Marker marker) {
 
+        if (marker.isCluster())
+            return;
+
         // If the marker is just the search address marker, do nothing
         if (marker.getTitle().equals(getString(R.string.search_result)))
             return;
