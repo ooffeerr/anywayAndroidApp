@@ -56,6 +56,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private GoogleMap map;
     private SupportMapFragment mapFragment;
+    private OverlappingMarkerSpiderfier oms;
     private AccidentsManager accidents;
     private LocationManager locationManager;
     private String provider;
@@ -328,6 +329,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private void setUpMap(boolean firstRun) {
 
+        oms = new OverlappingMarkerSpiderfier(map);
+
         ClusteringSettings settings = new ClusteringSettings();
         //CLUSTERING_ENABLED_DYNAMIC
         settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
@@ -436,11 +439,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         for (Accident a : accidents.getAllNewAccidents()) {
 
-            map.addMarker(new MarkerOptions()
+            Marker m = map.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
                     .snippet(getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
+
+            // TODO - what the hell?
+            //oms.spiderListener(m);
 
             a.setMarkerID("m" + nextMarkerID);
             nextMarkerID++;
