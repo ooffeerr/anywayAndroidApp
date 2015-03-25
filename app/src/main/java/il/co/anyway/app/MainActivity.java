@@ -13,14 +13,10 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,26 +41,27 @@ import java.util.List;
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
         OnMapLongClickListener, OnCameraChangeListener, LocationListener {
 
+
+
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
 
-    private GoogleMap map;
-    //private List<Accident> accidentsList;
-    private AccidentsManager accidents;
-    private LocationManager locationManager;
-    private String provider;
-    private Location location;
-    private int nextMarkerID;
+    private GoogleMap mMap;
+    private AccidentsManager mAccidentsManager;
+    private LocationManager mLocationManager;
+    private String mProvider;
+    private Location mLocation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        accidents = new AccidentsManager();
+        mAccidentsManager = new AccidentsManager();
 
         // first run set to true only when this is the first time onCreate called
         // used to handle the case of screen rotation
@@ -73,24 +70,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             firstRun = true;
 
         // Get the location manager
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Define the criteria how to select the location provider -> use default
         Criteria criteria = new Criteria();
-        provider = locationManager.getBestProvider(criteria, false);
-        location = locationManager.getLastKnownLocation(provider);
+        mProvider = mLocationManager.getBestProvider(criteria, false);
+        mLocation = mLocationManager.getLastKnownLocation(mProvider);
 
         // check if gps enabled, if not - offer the user to turn it on
-        boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!enabled && firstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         setUpMapIfNeeded(firstRun);
-
-        /*
-         the real marker id is set by google maps API, i'm saving the marker id in order
-         to find accident by a marker
-          */
-        nextMarkerID = 0;
     }
 
     @Override
@@ -145,7 +136,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         Bundle args = new Bundle();
 
-        Accident a = accidents.getAccidentByMarkerID(markerID);
+        Accident a = mAccidentsManager.getAccidentByMarkerID(markerID);
         if (a != null) {
 
             args.putString("description", a.getDescription());
@@ -168,8 +159,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        // TODO open location based discussion
-        Toast.makeText(this, "Long pressed: " + latLng, Toast.LENGTH_LONG).show();
+
+        double latitude = latLng.latitude;
+        double longitude = latLng.longitude;
+
+        String disqusID = Double.toString(latitude).substring(0,5) + "|"
+                + Double.toString(longitude).substring(0,5);
+
+        Toast.makeText(this, "disqusID:" + disqusID, Toast.LENGTH_LONG).show();
+
+        Intent disqusIntent = new Intent(this, DisqusActivity.class);
+        disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, disqusID);
+        startActivity(disqusIntent);
     }
 
     @Override
@@ -179,7 +180,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onLocationChanged(Location location) {
-        this.location = location;
+        this.mLocation = location;
     }
 
     @Override
@@ -201,14 +202,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     @Override
     protected void onResume() {
         super.onResume();
-        locationManager.requestLocationUpdates(provider, 400, 1, this);
+        mLocationManager.requestLocationUpdates(mProvider, 400, 1, this);
     }
 
     /* Remove the location listener updates when Activity is paused */
     @Override
     protected void onPause() {
         super.onPause();
-        locationManager.removeUpdates(this);
+        mLocationManager.removeUpdates(this);
     }
 
     // action handler for address search
@@ -282,10 +283,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                                 LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
                                 setMapToLocationAndAddMarkers(p);
 
-                                // TODO - when markers behavior set, check this marker,
-                                // now the marker disappear when getting new markers
-                                map.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
-                                nextMarkerID++;
+                                mMap.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
                             }
                         });
                 adb.show();
@@ -304,14 +302,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private void setUpMapIfNeeded(boolean firstRun) {
         // Do a null check to confirm that we have not already instantiated the map.
-        if (map == null) {
+        if (mMap == null) {
 
             // Try to obtain the map from the SupportMapFragment.
-            map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
 
             // Check if we were successful in obtaining the map.
-            if (map != null) {
+            if (mMap != null) {
                 setUpMap(firstRun);
             }
         }
@@ -320,19 +318,19 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private void setUpMap(boolean firstRun) {
 
         // Enable location buttons
-        map.setMyLocationEnabled(true);
+        mMap.setMyLocationEnabled(true);
 
         // Hide My Location button
         // this because it implemented is the action bar
-        map.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         // Disable toolbar on the right bottom corner(taking user to google maps app)
-        map.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
 
-        map.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
-        map.setOnInfoWindowClickListener(this);
-        map.setOnMapLongClickListener(this);
-        map.setOnCameraChangeListener(this);
+        mMap.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
+        mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMapLongClickListener(this);
+        mMap.setOnCameraChangeListener(this);
 
         if (firstRun) {
 
@@ -343,8 +341,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         } else {
             // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
             // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
-            LatLng currentLocation = map.getCameraPosition().target;
-            int currentZoomLevel = (int) map.getCameraPosition().zoom;
+            LatLng currentLocation = mMap.getCameraPosition().target;
+            int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
             setMapToLocationAndAddMarkers(currentLocation, currentZoomLevel);
         }
     }
@@ -357,7 +355,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * @param zoomLevel move camera to this specific
      */
     private void setMapToLocationAndAddMarkers(LatLng location, int zoomLevel) {
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         new LatLng(location.latitude, location.longitude), zoomLevel),
                 new CancelableCallback() {
 
@@ -380,7 +378,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * @param location location to move to
      */
     private void setMapToLocationAndAddMarkers(LatLng location) {
-        setMapToLocationAndAddMarkers(location, (int) map.getCameraPosition().zoom);
+        setMapToLocationAndAddMarkers(location, (int) mMap.getCameraPosition().zoom);
     }
 
     /**
@@ -390,8 +388,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      */
     private boolean setMapToMyLocationAndAddMarkers() {
 
-        if (location != null) {
-            setMapToLocationAndAddMarkers(new LatLng(location.getLatitude(), location.getLongitude()));
+        if (mLocation != null) {
+            setMapToLocationAndAddMarkers(new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
             return true;
         } else {
             return false;
@@ -400,14 +398,14 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     private void getAccidentsFromServer() {
-        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-        int zoomLevel = (int) map.getCameraPosition().zoom;
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        int zoomLevel = (int) mMap.getCameraPosition().zoom;
 
         if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
             // If zoom level too high, move the camera to minimum zoom level required
             Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
 
-            LatLng currentLocation = map.getCameraPosition().target;
+            LatLng currentLocation = mMap.getCameraPosition().target;
             setMapToLocationAndAddMarkers(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
 
             // setMapToLocationAndAddMarkers calls this method again when it finish moving the camera, so no need to keep going
@@ -420,16 +418,15 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     // add accidents from array list to map
     private void addAccidentsToMap() {
 
-        for (Accident a : accidents.getAllNewAccidents()) {
+        for (Accident a : mAccidentsManager.getAllNewAccidents()) {
 
-            map.addMarker(new MarkerOptions()
+            Marker m = mMap.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
                     .snippet(getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
-            a.setMarkerID("m" + nextMarkerID);
-            nextMarkerID++;
+            a.setMarkerID(m.getId());
         }
     }
 
@@ -439,7 +436,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * @param accidentsToAddList
      */
     public void setAccidentsListAndUpdateMap(List<Accident> accidentsToAddList) {
-        int accidentsAddedCounter = accidents.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
+        int accidentsAddedCounter = mAccidentsManager.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
         if (accidentsAddedCounter > 0) {
             addAccidentsToMap();
             Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");

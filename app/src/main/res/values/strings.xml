@@ -13,8 +13,11 @@
     <string name="back_to_start_location">עבור למיקום הנוכחי</string>
     <string name="fetch_markers">רענן תאונות</string>
     <string name="address_search">חפש כתובת</string>
-    <string name="address_search_hint">חפש כתובת...</string>
+    <string name="address_search_hint">חפש כתובת&#8230;</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
+
+    <!-- Disqus activity -->
+    <string name="title_activity_disqus">דיון</string>
 
     <!-- Search Strings -->
     <string name="address_result_title">האם התכוונת ל:</string>
