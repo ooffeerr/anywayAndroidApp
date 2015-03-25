@@ -61,7 +61,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private LocationManager locationManager;
     private String provider;
     private Location location;
-    private int nextMarkerID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,11 +89,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         setUpMapIfNeeded(firstRun);
 
-        /*
-         the real marker id is set by google maps API, i'm saving the marker id in order
-         to find accident by a marker
-          */
-        nextMarkerID = 0;
     }
 
     @Override
@@ -287,10 +281,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                                 LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
                                 setMapToLocationAndAddMarkers(p);
 
-                                // TODO - when markers behavior set, check this marker,
+                                // TODO - when markers behavior set, check this marker
                                 // now the marker disappear when getting new markers
                                 map.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
-                                nextMarkerID++;
                             }
                         });
                 adb.show();
@@ -448,8 +441,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             // TODO - what the hell?
             //oms.spiderListener(m);
 
-            a.setMarkerID("m" + nextMarkerID);
-            nextMarkerID++;
+            a.setMarkerID(m.getId());
         }
     }
 
