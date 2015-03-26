@@ -38,9 +38,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
@@ -106,14 +104,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
-        if (id == R.id.action_move_to_my_location) {
-            setMapToMyLocation();
-            return true;
-        }
-        if (id == R.id.action_fetch_markers) {
-            getAccidentsFromServer();
-            return true;
-        }
         if (id == R.id.action_search) {
             showSearchDialog();
             return true;
@@ -133,6 +123,10 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Build URL to anyway map from current view for sharing
+     * @return the URL as String
+     */
     private String getCurrentStringURI() {
 
         LatLng location = mMap.getCameraPosition().target;
@@ -355,10 +349,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // Enable location buttons
         mMap.setMyLocationEnabled(true);
 
-        // Hide My Location button
-        // this because it implemented is the action bar
-        //mMap.getUiSettings().setMyLocationButtonEnabled(false);
-
         // Disable toolbar on the right bottom corner(taking user to google maps app)
         mMap.getUiSettings().setMapToolbarEnabled(false);
 
@@ -468,7 +458,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     /**
      * add all the accidents from the list to the map
      *
-     * @param accidentsToAddList
+     * @param accidentsToAddList List of Accidents objects
      */
     public void setAccidentsListAndUpdateMap(List<Accident> accidentsToAddList) {
         int accidentsAddedCounter = mAccidentsManager.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
