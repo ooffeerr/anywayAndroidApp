@@ -17,7 +17,6 @@ public class AccidentDetailsDialogFragment extends DialogFragment {
 
         // get saved accident data
         Bundle mArgs = getArguments();
-
         Long id = mArgs.getLong("id");
         String description = mArgs.getString("description");
         String titleBySubType = mArgs.getString("titleBySubType");
@@ -36,16 +35,19 @@ public class AccidentDetailsDialogFragment extends DialogFragment {
         builder.setNeutralButton(getString(R.string.address_not_found_close), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
+                dialog.cancel();
             }
         });
 
         // update dialog TextViews with the accident details
-        TextView tv = (TextView) v.findViewById(R.id.accident_details_desc);
-        tv.setText(created + "\n" + address + "\n" + description);
+        TextView tv;
+        tv = (TextView) v.findViewById(R.id.accident_details_desc);
+        if (tv != null)
+            tv.setText(created + "\n" + address + "\n" + description);
 
         tv = (TextView) v.findViewById(R.id.accident_details_title);
-        tv.setText(titleBySubType);
+        if (tv != null)
+            tv.setText(titleBySubType);
 
         return builder.create();
     }

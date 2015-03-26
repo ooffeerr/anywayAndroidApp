@@ -42,9 +42,9 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
 
         try {
             // Construct the URL for the Anyway accidents query
-            final String FORECAST_BASE_URL = "http://www.anyway.co.il/markers?";
+            final String ANYWAY_BASE_URL = "http://www.anyway.co.il/markers?";
 
-            Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+            Uri builtUri = Uri.parse(ANYWAY_BASE_URL).buildUpon()
                     .appendQueryParameter("ne_lat", params[Utility.JSON_STRING_NE_LAT])
                     .appendQueryParameter("ne_lng", params[Utility.JSON_STRING_NE_LNG])
                     .appendQueryParameter("sw_lat", params[Utility.JSON_STRING_SW_LAT])
@@ -134,6 +134,10 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
         }
     }
 
+    /**
+     * set the calling activity, this activity will be called when the accidents fetching ends
+     * @param callingActivity the calling activity (MainActivity instance)
+     */
     public void setCallingActivity(MainActivity callingActivity) {
         this.callingActivity = callingActivity;
     }

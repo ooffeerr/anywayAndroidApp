@@ -50,6 +50,7 @@ public class Utility {
 
         // These are the names of the JSON objects that need to be extracted.
         final String ACCIDENT_LIST = "markers";
+
         final String ACCIDENT_ADDRESS = "address";
         final String ACCIDENT_CREATED = "created";
         final String ACCIDENT_DESC = "description";
@@ -63,7 +64,6 @@ public class Utility {
         final String ACCIDENT_TITLE = "title";
 
         // user, following, followers - not implemented right now at anyway
-        // TODO - implement users interface
         long user = 0;
 
         JSONObject accidentJson = new JSONObject(accidentJsonStr);
@@ -75,34 +75,30 @@ public class Utility {
             // Get the JSON object representing the day
             JSONObject accidentDetails = accidentsArray.getJSONObject(i);
 
-            // Date comes as 2013-12-30T21:00:00, needs to be converted
-            String created = accidentDetails.getString(ACCIDENT_CREATED);
-            Date createdDate = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
             try {
-                createdDate = sdf.parse(created);
-            } catch (ParseException e) {
-                Log.e(LOG_TAG, e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-
-            try {
+                // Date comes as 2013-12-30T21:00:00, needs to be converted
+                String created = accidentDetails.getString(ACCIDENT_CREATED);
+                Date createdDate = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                try {
+                    createdDate = sdf.parse(created);
+                } catch (ParseException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage());
+                    e.printStackTrace();
+                }
 
                 String address = accidentDetails.getString(ACCIDENT_ADDRESS);
                 String desc = accidentDetails.getString(ACCIDENT_DESC);
                 String title = accidentDetails.getString(ACCIDENT_TITLE);
                 Long id = accidentDetails.getLong(ACCIDENT_ID);
-
-                // Log.d(LOG_TAG, "Accident id:" + id);
-
                 Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
                 Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
-                LatLng location = new LatLng(lat, lng);
-
                 Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATOIN_ACCURACY);
                 Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
                 Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
                 Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
+
+                LatLng location = new LatLng(lat, lng);
 
                 Accident acc = new Accident()
                         .setId(id)
@@ -115,8 +111,7 @@ public class Utility {
                         .setCreated(createdDate)
                         .setLocation(location)
                         .setAddress(address)
-                        .setLocationAccuracy(accuracy)
-                        .setMarkerID(null);
+                        .setLocationAccuracy(accuracy);
 
                 resultList.add(acc);
             } catch (JSONException e) {
@@ -135,6 +130,9 @@ public class Utility {
      * @param callingActivity the calling activity(will get updates when pulling data from server end)
      */
     public static void getAccidentsFromASyncTask(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
+
+        if (bounds == null || callingActivity == null)
+            return;
 
         FetchAccidents accidentTask = new FetchAccidents();
 
@@ -157,8 +155,8 @@ public class Utility {
         String toDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_to_date_key), callingActivity.getString(R.string.pref_default_to_date));
 
         // getting timestamp for Anyway API
-        params[JSON_STRING_START_DATE] = Utility.getTimeStamp(fromDate);
-        params[JSON_STRING_END_DATE] = Utility.getTimeStamp(toDate);
+        params[JSON_STRING_START_DATE] = getTimeStamp(fromDate);
+        params[JSON_STRING_END_DATE] = getTimeStamp(toDate);
 
         params[JSON_STRING_SHOW_FATAL] = show_fatal ? "1" : "0";
         params[JSON_STRING_SHOW_SEVERE] = show_severe ? "1" : "0";
@@ -174,9 +172,12 @@ public class Utility {
      * Covert date object to timestamp
      *
      * @param date java.util.Date object
-     * @return TimeStamp, formatted to Anyway API requirements
+     * @return TimeStamp, formatted to Anyway API requirements or empty String if date is null
      */
-    public static String getTimeStamp(Date date) {
+    private static String getTimeStamp(Date date) {
+        if (date == null)
+            return "";
+
         Long ts = new Timestamp(date.getTime()).getTime() / 1000;
         return Long.toString(ts);
     }
@@ -185,9 +186,9 @@ public class Utility {
      * Covert date(saved as string) to timestamp
      *
      * @param dateStr Date as String, in dd/MM/yyyy format
-     * @return TimeStamp, formatted to Anyway API requirements
+     * @return TimeStamp, formatted to Anyway API requirements or empty String if date is in the wrong format
      */
-    public static String getTimeStamp(String dateStr) {
+    private static String getTimeStamp(String dateStr) {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         Date date = null;

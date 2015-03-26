@@ -41,8 +41,6 @@ import java.util.List;
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
         OnMapLongClickListener, OnCameraChangeListener, LocationListener {
 
-
-
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
@@ -61,7 +59,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mAccidentsManager = new AccidentsManager();
+        mAccidentsManager = AccidentsManager.getInstance();
 
         // first run set to true only when this is the first time onCreate called
         // used to handle the case of screen rotation
@@ -160,16 +158,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     @Override
     public void onMapLongClick(LatLng latLng) {
 
-        double latitude = latLng.latitude;
-        double longitude = latLng.longitude;
-
-        String disqusID = Double.toString(latitude).substring(0,5) + "|"
-                + Double.toString(longitude).substring(0,5);
-
-        Toast.makeText(this, "disqusID:" + disqusID, Toast.LENGTH_LONG).show();
-
         Intent disqusIntent = new Intent(this, DisqusActivity.class);
-        disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, disqusID);
+        disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, latLng);
         startActivity(disqusIntent);
     }
 
@@ -327,7 +317,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // Disable toolbar on the right bottom corner(taking user to google maps app)
         mMap.getUiSettings().setMapToolbarEnabled(false);
 
-        mMap.setInfoWindowAdapter(new PopupAdapter(getLayoutInflater()));
+        mMap.setInfoWindowAdapter(new MarkerInfoWindowAdapter(getLayoutInflater()));
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnCameraChangeListener(this);
