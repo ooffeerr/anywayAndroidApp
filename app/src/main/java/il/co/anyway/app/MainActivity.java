@@ -113,9 +113,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             String currentStringUri = getCurrentStringURI();
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("text/plain");
-            i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_title));
+            i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
             i.putExtra(Intent.EXTRA_TEXT, currentStringUri);
-            startActivity(Intent.createChooser(i, "שיתוף"));
+            startActivity(Intent.createChooser(i, getString(R.string.share_title)));
 
             return true;
         }
