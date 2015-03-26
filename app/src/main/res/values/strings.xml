@@ -15,6 +15,8 @@
     <string name="address_search">חפש כתובת</string>
     <string name="address_search_hint">חפש כתובת&#8230;</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
+    <string name="share_screen">שתף מסך נוכחי</string>
+    <string name="share_title">שיתוף תאונות באזורך מ Anyway</string>
 
     <!-- Disqus activity -->
     <string name="title_activity_disqus">דיון</string>
@@ -35,4 +37,6 @@
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
     <string name="yes">כן</string>
     <string name="no">לא</string>
+
+
 </resources>

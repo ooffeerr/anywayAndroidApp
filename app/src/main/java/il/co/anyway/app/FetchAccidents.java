@@ -20,7 +20,9 @@ import java.util.List;
 public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
 
     @SuppressWarnings("unused")
-    private final String LOG_TAG = FetchAccidents.class.getSimpleName();
+    private final static String LOG_TAG = FetchAccidents.class.getSimpleName();
+    public final static String ANYWAY_BASE_URL = "http://www.anyway.co.il/";
+    public final static String ANYWAY_MARKERS_BASE_URL = ANYWAY_BASE_URL + "markers?";
 
     private MainActivity callingActivity;
 
@@ -42,9 +44,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
 
         try {
             // Construct the URL for the Anyway accidents query
-            final String ANYWAY_BASE_URL = "http://www.anyway.co.il/markers?";
-
-            Uri builtUri = Uri.parse(ANYWAY_BASE_URL).buildUpon()
+            Uri builtUri = Uri.parse(ANYWAY_MARKERS_BASE_URL).buildUpon()
                     .appendQueryParameter("ne_lat", params[Utility.JSON_STRING_NE_LAT])
                     .appendQueryParameter("ne_lng", params[Utility.JSON_STRING_NE_LNG])
                     .appendQueryParameter("sw_lat", params[Utility.JSON_STRING_SW_LAT])

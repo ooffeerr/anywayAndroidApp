@@ -136,6 +136,14 @@ public class Utility {
 
         FetchAccidents accidentTask = new FetchAccidents();
 
+        String[] params = getMarkersUriParams(bounds, zoomLevel, callingActivity);
+
+        accidentTask.setCallingActivity(callingActivity);
+        accidentTask.execute(params);
+    }
+
+    public static String[] getMarkersUriParams(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
+
         String[] params = new String[JSON_STRING_PARAMETERS_COUNT];
         params[JSON_STRING_NE_LAT] = Double.toString(bounds.northeast.latitude);
         params[JSON_STRING_NE_LNG] = Double.toString(bounds.northeast.longitude);
@@ -164,8 +172,7 @@ public class Utility {
         params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate ? "1" : "0";
         params[JSON_STRING_FORMAT] = "json";
 
-        accidentTask.setCallingActivity(callingActivity);
-        accidentTask.execute(params);
+        return params;
     }
 
     /**

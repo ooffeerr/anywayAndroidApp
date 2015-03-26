@@ -4,13 +4,16 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,7 +38,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
@@ -101,8 +106,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
-        if (id == R.id.action_back_to_start_location) {
-            setMapToMyLocationAndAddMarkers();
+        if (id == R.id.action_move_to_my_location) {
+            setMapToMyLocation();
             return true;
         }
         if (id == R.id.action_fetch_markers) {
@@ -113,8 +118,48 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             showSearchDialog();
             return true;
         }
+        if (id == R.id.action_share) {
+
+            String currentStringUri = getCurrentStringURI();
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("text/plain");
+            i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_title));
+            i.putExtra(Intent.EXTRA_TEXT, currentStringUri);
+            startActivity(Intent.createChooser(i, "שיתוף"));
+
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private String getCurrentStringURI() {
+
+        LatLng location = mMap.getCameraPosition().target;
+        int zoomLevel = (int) mMap.getCameraPosition().zoom;
+        String[] params = Utility.getMarkersUriParams(mMap.getProjection().getVisibleRegion().latLngBounds, zoomLevel, this);
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String fromDate = sharedPrefs.getString(getString(R.string.pref_from_date_key), getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(getString(R.string.pref_to_date_key), getString(R.string.pref_default_to_date));
+
+        // re format the dates to yyyy-MM-dd for the url sharing
+        fromDate = DatePreference.getYear(fromDate) + "-" + DatePreference.getMonth(fromDate) + "-" + DatePreference.getDate(fromDate);
+        toDate = DatePreference.getYear(toDate) + "-" + DatePreference.getMonth(toDate) + "-" + DatePreference.getDate(toDate);
+
+        Uri builtUri = Uri.parse(FetchAccidents.ANYWAY_BASE_URL).buildUpon()
+                .appendQueryParameter("start_date", fromDate)
+                .appendQueryParameter("end_date", toDate)
+                .appendQueryParameter("show_fatal", params[Utility.JSON_STRING_SHOW_FATAL])
+                .appendQueryParameter("show_severe", params[Utility.JSON_STRING_SHOW_SEVERE])
+                .appendQueryParameter("show_light", params[Utility.JSON_STRING_SHOW_LIGHT])
+                .appendQueryParameter("show_inaccurate", params[Utility.JSON_STRING_SHOW_INACCURATE])
+                .appendQueryParameter("zoom", params[Utility.JSON_STRING_ZOOM_LEVEL])
+                .appendQueryParameter("lat", Double.toString(location.latitude))
+                .appendQueryParameter("lon", Double.toString(location.longitude))
+                .build();
+
+        return builtUri.toString();
     }
 
     /**
@@ -271,7 +316,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                             public void onClick(DialogInterface dialog, int which) {
 
                                 LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
-                                setMapToLocationAndAddMarkers(p);
+                                setMapToLocation(p);
 
                                 mMap.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
                             }
@@ -312,7 +357,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         // Hide My Location button
         // this because it implemented is the action bar
-        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        //mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         // Disable toolbar on the right bottom corner(taking user to google maps app)
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -325,15 +370,15 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         if (firstRun) {
 
             // try to move map to user location, if not succeed go to default
-            if (!setMapToMyLocationAndAddMarkers())
-                setMapToLocationAndAddMarkers(AZZA_METUDELA_LOCATION, 17);
+            if (!setMapToMyLocation())
+                setMapToLocation(AZZA_METUDELA_LOCATION, 17);
 
         } else {
             // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
             // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
             LatLng currentLocation = mMap.getCameraPosition().target;
             int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
-            setMapToLocationAndAddMarkers(currentLocation, currentZoomLevel);
+            setMapToLocation(currentLocation, currentZoomLevel);
         }
     }
 
@@ -344,7 +389,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * @param location  location to move to
      * @param zoomLevel move camera to this specific
      */
-    private void setMapToLocationAndAddMarkers(LatLng location, int zoomLevel) {
+    private void setMapToLocation(LatLng location, int zoomLevel) {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         new LatLng(location.latitude, location.longitude), zoomLevel),
                 new CancelableCallback() {
@@ -362,13 +407,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     /**
-     * same as setMapToLocationAndAddMarkers(LatLng location, int zoomLevel)
+     * same as setMapToLocation(LatLng location, int zoomLevel)
      * only zoom level is set to current value
      *
      * @param location location to move to
      */
-    private void setMapToLocationAndAddMarkers(LatLng location) {
-        setMapToLocationAndAddMarkers(location, (int) mMap.getCameraPosition().zoom);
+    private void setMapToLocation(LatLng location) {
+        setMapToLocation(location, (int) mMap.getCameraPosition().zoom);
     }
 
     /**
@@ -376,10 +421,10 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      *
      * @return true if location is found and set, false otherwise
      */
-    private boolean setMapToMyLocationAndAddMarkers() {
+    private boolean setMapToMyLocation() {
 
         if (mLocation != null) {
-            setMapToLocationAndAddMarkers(new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
+            setMapToLocation(new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
             return true;
         } else {
             return false;
@@ -396,9 +441,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
 
             LatLng currentLocation = mMap.getCameraPosition().target;
-            setMapToLocationAndAddMarkers(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
+            setMapToLocation(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
 
-            // setMapToLocationAndAddMarkers calls this method again when it finish moving the camera, so no need to keep going
+            // setMapToLocation calls this method again when it finish moving the camera, so no need to keep going
             return;
         }
 
