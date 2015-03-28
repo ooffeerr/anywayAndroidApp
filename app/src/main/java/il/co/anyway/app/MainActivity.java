@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -16,10 +17,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +43,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
         OnMapLongClickListener, OnCameraChangeListener, LocationListener {
@@ -49,6 +53,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
+    private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
 
     private GoogleMap mMap;
     private AccidentsManager mAccidentsManager;
@@ -59,6 +64,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -232,6 +238,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     protected void onResume() {
         super.onResume();
         mLocationManager.requestLocationUpdates(mProvider, 400, 1, this);
+
+        // force APP_DEFAULT_LOCALE on the app
+        Locale.setDefault(APP_DEFAULT_LOCALE);
+        Configuration config = new Configuration();
+        config.locale = APP_DEFAULT_LOCALE;
+        getBaseContext().getResources().updateConfiguration(config,
+                getBaseContext().getResources().getDisplayMetrics());
     }
 
     /* Remove the location listener updates when Activity is paused */
@@ -249,29 +262,46 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 */
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        // Get the layout inflater
-        LayoutInflater inflater = this.getLayoutInflater();
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        final View addressDialogView = inflater.inflate(R.layout.address_search_dialog, null);
-        builder.setView(addressDialogView)
-                // Add action buttons
-                .setPositiveButton(R.string.search, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        TextView searchTextView = (TextView) addressDialogView.findViewById(R.id.address_search);
-                        searchAddress(searchTextView.getText().toString());
+        final View addressDialogView = getLayoutInflater().inflate(R.layout.address_search_dialog, null);
 
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+        final AlertDialog searchDialog = new AlertDialog.Builder(this)
+                .setView(addressDialogView)
+                .setPositiveButton(R.string.search, null) //Set to null. We override the onclick
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+
+        searchDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+
+            @Override
+            public void onShow(DialogInterface dialog) {
+
+                Button b = searchDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                b.setOnClickListener(new View.OnClickListener() {
+
                     @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
+                    public void onClick(View view) {
+
+                        TextView searchTextView = (TextView) addressDialogView.findViewById(R.id.address_search);
+
+                        if (searchTextView != null) {
+                            if (searchTextView.getText().toString().equals("")) {
+                                Toast t = Toast.makeText(getBaseContext(), getString(R.string.address_empty), Toast.LENGTH_SHORT);
+                                t.setGravity(Gravity.CENTER, 0, 0);
+                                t.show();
+                            }
+                            else {
+                                searchAddress(searchTextView.getText().toString());
+                                searchDialog.dismiss();
+                            }
+                        }
                     }
-                }).show();
+                });
+            }
+        });
+        searchDialog.show();
     }
 
     /**
@@ -281,7 +311,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      */
     private void searchAddress(String addressToSearch) {
 
-        Geocoder geoCoder = new Geocoder(this);
+        Geocoder geoCoder = new Geocoder(this, APP_DEFAULT_LOCALE);
         final int MAX_RESULTS = 7;
 
         try {
@@ -325,7 +355,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 adb.show();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+           Log.e(LOG_TAG, e.getLocalizedMessage());
         }
     }
 
