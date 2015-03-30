@@ -135,4 +135,12 @@ public class AccidentsManager {
 
         return newAccidents;
     }
+
+    /**
+     * set all accident's marker id to null
+     */
+    public void clearMarkersIDs() {
+        for(Accident a : accidentsList)
+            a.setMarkerID(null);
+    }
 }

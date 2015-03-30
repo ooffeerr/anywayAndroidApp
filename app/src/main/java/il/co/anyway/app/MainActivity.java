@@ -18,7 +18,6 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,15 +51,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
+
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
+
+    private static boolean ANIMATE_ON = true;
+    private static boolean ANIMATE_OFF = false;
 
     private GoogleMap mMap;
     private AccidentsManager mAccidentsManager;
     private LocationManager mLocationManager;
     private String mProvider;
     private Location mLocation;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,11 +72,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         mAccidentsManager = AccidentsManager.getInstance();
 
-        // first run set to true only when this is the first time onCreate called
-        // used to handle the case of screen rotation
-        boolean firstRun = false;
-        if (savedInstanceState == null)
-            firstRun = true;
+        Boolean firstRun = savedInstanceState==null ? true:false;
 
         // Get the location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -84,8 +82,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         mLocation = mLocationManager.getLastKnownLocation(mProvider);
 
         // check if gps enabled, if not - offer the user to turn it on
-        boolean enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        if (!enabled && firstRun)
+        boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!gpsEnabled && firstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         setUpMapIfNeeded(firstRun);
@@ -116,7 +114,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         }
         if (id == R.id.action_share) {
 
-            String currentStringUri = getCurrentStringURI();
+            String currentStringUri = getCurrentPositionStringURI();
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("text/plain");
             i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
@@ -133,7 +131,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * Build URL to anyway map from current view for sharing
      * @return the URL as String
      */
-    private String getCurrentStringURI() {
+    private String getCurrentPositionStringURI() {
 
         LatLng location = mMap.getCameraPosition().target;
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
@@ -210,7 +208,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        getAccidentsFromServer();
+
+        // TODO - currently if zoom level is too high -> just do nothing. needed server side clustering
+        int zoomLevel = (int) mMap.getCameraPosition().zoom;
+        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
+            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
+        else
+            getAccidentsFromServer();
     }
 
     @Override
@@ -340,7 +344,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                             public void onClick(DialogInterface dialog, int which) {
 
                                 LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
-                                setMapToLocation(p);
+                                setMapToLocation(p, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
 
                                 mMap.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]));
                             }
@@ -388,17 +392,16 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         mMap.setOnCameraChangeListener(this);
 
         if (firstRun) {
-
-            // try to move map to user location, if not succeed go to default
-            if (!setMapToMyLocation())
-                setMapToLocation(AZZA_METUDELA_LOCATION, 17);
-
+            // try to move map to user location, if not user location found go to default
+            if (!setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON))
+                setMapToLocation(AZZA_METUDELA_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
         } else {
-            // this happening only on screen rotation, markers have been delete so re-fetch them but do not move map
-            // calling only getAccidentsFromASyncTask is not working because it happening too fast and map is not initialized yet
-            LatLng currentLocation = mMap.getCameraPosition().target;
-            int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
-            setMapToLocation(currentLocation, currentZoomLevel);
+            /*
+            this happening only on screen rotation, markers have been delete from the map
+            because the map is re-render, clear marker's ids mark the accident as not on the map
+             */
+            mAccidentsManager.clearMarkersIDs();
+            addAccidentsToMap();
         }
     }
 
@@ -409,14 +412,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
      * @param location  location to move to
      * @param zoomLevel move camera to this specific
      */
-    private void setMapToLocation(LatLng location, int zoomLevel) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(location.latitude, location.longitude), zoomLevel),
+    private boolean setMapToLocation(Location location, int zoomLevel, boolean animate) {
+        if (location == null)
+            return false;
+
+        if (animate)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel),
                 new CancelableCallback() {
 
                     @Override
                     public void onFinish() {
-                        //getAccidentsFromServer();
+
                     }
 
                     @Override
@@ -424,49 +431,24 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
                     }
                 });
+        else
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel));
+
+        return true;
     }
 
-    /**
-     * same as setMapToLocation(LatLng location, int zoomLevel)
-     * only zoom level is set to current value
-     *
-     * @param location location to move to
-     */
-    private void setMapToLocation(LatLng location) {
-        setMapToLocation(location, (int) mMap.getCameraPosition().zoom);
-    }
+    private boolean setMapToLocation(LatLng location, int zoomLevel, boolean animate) {
+        Location l = new Location("");
+        l.setLongitude(location.longitude);
+        l.setLatitude(location.latitude);
 
-    /**
-     * Move the camera to current user location(received from gps sensors)
-     *
-     * @return true if location is found and set, false otherwise
-     */
-    private boolean setMapToMyLocation() {
-
-        if (mLocation != null) {
-            setMapToLocation(new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
-            return true;
-        } else {
-            return false;
-        }
-
+        return setMapToLocation(l, zoomLevel, animate);
     }
 
     private void getAccidentsFromServer() {
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
-
-        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
-            // If zoom level too high, move the camera to minimum zoom level required
-            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
-
-            LatLng currentLocation = mMap.getCameraPosition().target;
-            setMapToLocation(currentLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS);
-
-            // setMapToLocation calls this method again when it finish moving the camera, so no need to keep going
-            return;
-        }
-
         Utility.getAccidentsFromASyncTask(bounds, zoomLevel, this);
     }
 
@@ -497,5 +479,4 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");
         }
     }
-
 }
