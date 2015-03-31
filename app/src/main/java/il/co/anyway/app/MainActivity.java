@@ -65,7 +65,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private LocationManager mLocationManager;
     private String mProvider;
     private Location mLocation;
-    private boolean mShowUrlResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +89,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         setUpMapIfNeeded(firstRun);
-
         getDataFromSharedURL();
     }
 
@@ -278,7 +276,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             return false;
         else {
 
-            Log.i(LOG_TAG + "_URL", "query: " + data.getQuery());
+            Log.i(LOG_TAG + "Url", "query: " + data.getQuery());
 
             String start_date_str = data.getQueryParameter("start_date");
             String end_date_str = data.getQueryParameter("end_date");
@@ -344,7 +342,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 .putString(getString(R.string.pref_to_date_key), df.format(end_date))
                 .apply();
 
-        setMapToLocation(new LatLng(latitude, longitude), zoom, ANIMATE_ON);
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), zoom)));
     }
 
     // action handler for address search
