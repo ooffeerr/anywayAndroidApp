@@ -1,6 +1,7 @@
 package il.co.anyway.app;
 
 import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class AccidentsManager {
 
     /**
      * check if an accident exist in the accident manager
+     *
      * @param toCheck the Accident object to check
      * @return true if exist, false if not or toCheck is null
      */
@@ -46,6 +48,7 @@ public class AccidentsManager {
 
     /**
      * Add accident to the list
+     *
      * @param toAdd the Accident object to add
      * @return true if accident added, false if accident already exist, or toAdd is null
      */
@@ -65,8 +68,9 @@ public class AccidentsManager {
 
     /**
      * Add a list of accidents to the list
+     *
      * @param toAddList the list of Accident objects
-     * @param reset use to select if you want to reset the list before adding the new list
+     * @param reset     use to select if you want to reset the list before adding the new list
      * @return How many accidents from the list actually taken(duplicate accident will ignore)
      */
     public int addAllAccidents(List<Accident> toAddList, boolean reset) {
@@ -94,6 +98,7 @@ public class AccidentsManager {
 
     /**
      * find a accident by it's marker ID
+     *
      * @param markerID the marker id
      * @return The Accident object if found, null if not found
      */
@@ -112,7 +117,6 @@ public class AccidentsManager {
     }
 
     /**
-     *
      * @return the list of all accidents in the list
      */
     public List<Accident> getAllAccidents() {
@@ -121,6 +125,7 @@ public class AccidentsManager {
 
     /**
      * Get all the accidents that not on the map
+     *
      * @return a list of accidents that not on the map
      */
     public List<Accident> getAllNewAccidents() {
@@ -140,7 +145,7 @@ public class AccidentsManager {
      * set all accident's marker id to null
      */
     public void clearMarkersIDs() {
-        for(Accident a : accidentsList)
+        for (Accident a : accidentsList)
             a.setMarkerID(null);
     }
 }

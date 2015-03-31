@@ -40,6 +40,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -64,6 +65,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private LocationManager mLocationManager;
     private String mProvider;
     private Location mLocation;
+    private boolean mShowUrlResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +75,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         mAccidentsManager = AccidentsManager.getInstance();
 
-        Boolean firstRun = savedInstanceState==null ? true:false;
+        Boolean firstRun = savedInstanceState == null;
 
         // Get the location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -87,8 +89,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         if (!gpsEnabled && firstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
-        getDataFromSharedURL();
         setUpMapIfNeeded(firstRun);
+
+        getDataFromSharedURL();
     }
 
     @Override
@@ -131,6 +134,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     /**
      * Build URL to anyway map from current view for sharing
+     *
      * @return the URL as String
      */
     private String getCurrentPositionStringURI() {
@@ -262,6 +266,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     /**
      * check if user opened the intent from a link shared with him, like: http://www.anyway.co.il/...parameters
+     *
      * @return true if user open the app from the link and all parameters are correct, false otherwise
      */
     private boolean getDataFromSharedURL() {
@@ -269,7 +274,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // url parameters: start_date, end_date, show_fatal, show_severe, show_light, show_inaccurate, zoom, lat, lon
 
         Uri data = getIntent().getData();
-        if(data == null)
+        if (data == null)
             return false;
         else {
 
@@ -299,14 +304,47 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
                 Log.i(LOG_TAG + "Url", "All args from url parsed successfully");
 
+                setSettingsAndMoveToLocation(start_date, end_date, show_fatal, show_severe, show_light, show_inaccurate, zoom, latitude, longitude);
+
                 return true;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // NumberFormatException || ParseException
                 Log.e(LOG_TAG + "_URL", e.getMessage());
                 return false;
             }
         }
+    }
+
+    /**
+     * Save all parameters to SharedPreferences and move to lat,lng specified
+     *
+     * @param start_date
+     * @param end_date
+     * @param show_fatal
+     * @param show_severe
+     * @param show_light
+     * @param show_inaccurate
+     * @param zoom
+     * @param latitude
+     * @param longitude
+     */
+    private void setSettingsAndMoveToLocation(Date start_date, Date end_date, int show_fatal, int show_severe, int show_light, int show_inaccurate, int zoom, double latitude, double longitude) {
+
+        // TODO create a special view for links result instead of replacing use settings
+
+        // Get preferences form SharedPreferncses
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+
+        sharedPrefs.edit().putBoolean(getString(R.string.pref_accidents_fatal_key), show_fatal == 1)
+                .putBoolean(getString(R.string.pref_accidents_severe_key), show_severe == 1)
+                .putBoolean(getString(R.string.pref_accidents_light_key), show_light == 1)
+                .putBoolean(getString(R.string.pref_accidents_inaccurate_key), show_inaccurate == 1)
+                .putString(getString(R.string.pref_from_date_key), df.format(start_date))
+                .putString(getString(R.string.pref_to_date_key), df.format(end_date))
+                .apply();
+
+        setMapToLocation(new LatLng(latitude, longitude), zoom, ANIMATE_ON);
     }
 
     // action handler for address search
@@ -346,8 +384,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                                 Toast t = Toast.makeText(getBaseContext(), getString(R.string.address_empty), Toast.LENGTH_SHORT);
                                 t.setGravity(Gravity.CENTER, 0, 0);
                                 t.show();
-                            }
-                            else {
+                            } else {
                                 searchAddress(searchTextView.getText().toString());
                                 searchDialog.dismiss();
                             }
@@ -410,7 +447,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 adb.show();
             }
         } catch (IOException e) {
-           Log.e(LOG_TAG, e.getLocalizedMessage());
+            Log.e(LOG_TAG, e.getLocalizedMessage());
         }
     }
 
@@ -469,19 +506,19 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         if (animate)
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel),
-                new CancelableCallback() {
+                            new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel),
+                    new CancelableCallback() {
 
-                    @Override
-                    public void onFinish() {
+                        @Override
+                        public void onFinish() {
 
-                    }
+                        }
 
-                    @Override
-                    public void onCancel() {
+                        @Override
+                        public void onCancel() {
 
-                    }
-                });
+                        }
+                    });
         else
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel));

@@ -1,35 +1,18 @@
 package il.co.anyway.app;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
-import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.Locale;
 
 
 public class DisqusActivity extends ActionBarActivity {
@@ -37,7 +20,7 @@ public class DisqusActivity extends ActionBarActivity {
     public static final String DISQUS_LOCATION_ID = "il.co.anyway.app.DISQUS_LOCATION";
 
     private static final String DISQUS_SHORT_NAME = "testforanyway";
-    private static final String BASE_URL = "https://anywaydisqus.herokuapp.com/";
+    private static final String BASE_URL = "http://anywaydisqus.azurewebsites.net/";
     private static final int PRECISION_LEVEL_OF_LOCATION = 6;
 
     WebView mWebView;
@@ -53,12 +36,12 @@ public class DisqusActivity extends ActionBarActivity {
 
         // get the location of the discussion
         Intent intent = getIntent();
-        LatLng location = (LatLng)intent.getExtras().get(DISQUS_LOCATION_ID);
+        LatLng location = (LatLng) intent.getExtras().get(DISQUS_LOCATION_ID);
 
         // set the id of the discussion
         // it's the PRECISION_LEVEL_OF_LOCATION numbers of the latitude and then same of the longitude(without the dot)
-        mDisqusPostID = Double.toString(location.latitude).substring(0,PRECISION_LEVEL_OF_LOCATION).replace(".", "") +
-                Double.toString(location.longitude).substring(0,PRECISION_LEVEL_OF_LOCATION).replace(".", "");
+        mDisqusPostID = Double.toString(location.latitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-") +
+                "-" + Double.toString(location.longitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-");
 
         // TODO - find what the title of the page should be
         mTitle = mDisqusPostID;
@@ -72,8 +55,8 @@ public class DisqusActivity extends ActionBarActivity {
         mUrl = builtUri.toString();
 
         // get the web view
-        mWebView = (WebView)findViewById(R.id.disqus);
-        if(mWebView != null) {
+        mWebView = (WebView) findViewById(R.id.disqus);
+        if (mWebView != null) {
             showDisqus();
         }
     }
@@ -123,15 +106,15 @@ public class DisqusActivity extends ActionBarActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                if(url.indexOf("logout")>-1 || url.indexOf("disqus.com/next/login-success")>-1 ){
+                if (url.indexOf("logout") > -1 || url.indexOf("disqus.com/next/login-success") > -1) {
                     view.loadUrl(mUrl);
 
                 }
-                if(url.indexOf("disqus.com/_ax/twitter/complete")>-1||url.indexOf("disqus.com/_ax/facebook/complete")>-1||url.indexOf("disqus.com/_ax/google/complete")>-1){
+                if (url.indexOf("disqus.com/_ax/twitter/complete") > -1 || url.indexOf("disqus.com/_ax/facebook/complete") > -1 || url.indexOf("disqus.com/_ax/google/complete") > -1) {
                     view.loadUrl(BASE_URL + "login.php");
 
                 }
-                if(url.indexOf(BASE_URL + "login.php") > -1) {
+                if (url.indexOf(BASE_URL + "login.php") > -1) {
                     view.loadUrl(mUrl);
                 }
             }
