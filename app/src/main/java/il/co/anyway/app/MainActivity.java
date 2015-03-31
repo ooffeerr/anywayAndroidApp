@@ -41,6 +41,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -86,6 +87,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         if (!gpsEnabled && firstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
+        getDataFromSharedURL();
         setUpMapIfNeeded(firstRun);
     }
 
@@ -256,6 +258,55 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     protected void onPause() {
         super.onPause();
         mLocationManager.removeUpdates(this);
+    }
+
+    /**
+     * check if user opened the intent from a link shared with him, like: http://www.anyway.co.il/...parameters
+     * @return true if user open the app from the link and all parameters are correct, false otherwise
+     */
+    private boolean getDataFromSharedURL() {
+
+        // url parameters: start_date, end_date, show_fatal, show_severe, show_light, show_inaccurate, zoom, lat, lon
+
+        Uri data = getIntent().getData();
+        if(data == null)
+            return false;
+        else {
+
+            Log.i(LOG_TAG + "_URL", "query: " + data.getQuery());
+
+            String start_date_str = data.getQueryParameter("start_date");
+            String end_date_str = data.getQueryParameter("end_date");
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date start_date = null,
+                    end_date = null;
+
+
+            int show_fatal, show_severe, show_light, show_inaccurate, zoom;
+            double latitude, longitude;
+            try {
+                show_fatal = Integer.parseInt(data.getQueryParameter("show_fatal"));
+                show_severe = Integer.parseInt(data.getQueryParameter("show_severe"));
+                show_light = Integer.parseInt(data.getQueryParameter("show_light"));
+                show_inaccurate = Integer.parseInt(data.getQueryParameter("show_inaccurate"));
+                zoom = Integer.parseInt(data.getQueryParameter("zoom"));
+                latitude = Double.parseDouble(data.getQueryParameter("lat"));
+                longitude = Double.parseDouble(data.getQueryParameter("lon"));
+
+                start_date = dateFormat.parse(start_date_str);
+                end_date = dateFormat.parse(end_date_str);
+
+                Log.i(LOG_TAG + "Url", "All args from url parsed successfully");
+
+                return true;
+            }
+            catch (Exception e) {
+                // NumberFormatException || ParseException
+                Log.e(LOG_TAG + "_URL", e.getMessage());
+                return false;
+            }
+        }
     }
 
     // action handler for address search
