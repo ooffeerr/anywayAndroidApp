@@ -14,10 +14,12 @@ public class AccidentsManager {
 
     private static AccidentsManager instance = null;
     private List<Accident> accidentsList;
+    private List<AccidentsListSameLatLng> mMultipleAccidentsList;
 
     // making the default constructor private make sure there will be only one instance of the accidents manager
     private AccidentsManager() {
         accidentsList = new ArrayList<>();
+        mMultipleAccidentsList = new ArrayList<>();
     }
 
     public static AccidentsManager getInstance() {
@@ -37,13 +39,53 @@ public class AccidentsManager {
         if (toCheck == null)
             return false;
 
+        // check in regular list
         for (Accident a : accidentsList)
             if (a.getId() == toCheck.getId()) {
-
                 return true;
             }
 
+        // check in the multiple list
+        for (AccidentsListSameLatLng accList: mMultipleAccidentsList) {
+            for (Accident a : accList.getAccidentList()) {
+                if (a.getId() == toCheck.getId()) {
+                    return true;
+                }
+            }
+        }
+
         return false;
+    }
+
+    private AccidentsListSameLatLng isThereAnotherAccidentInThisLocation(Accident toCheck) {
+
+        // check for existing multiple list
+        for (AccidentsListSameLatLng accList: mMultipleAccidentsList) {
+            if (toCheck.getLocation().latitude == accList.getLatitude() &&
+                    toCheck.getLocation().longitude == accList.getLongitude()) {
+
+                return accList;
+            }
+        }
+
+        // check the accident in the accidents list
+        for (Accident a : accidentsList) {
+            if (toCheck.getLocation().latitude == a.getLocation().latitude &&
+                    toCheck.getLocation().longitude == a.getLocation().longitude) {
+
+                AccidentsListSameLatLng accList = new AccidentsListSameLatLng(a.getLocation().latitude, a.getLocation().longitude);
+                accList.addAccidentToList(a);
+                mMultipleAccidentsList.add(accList);
+
+                boolean removed = accidentsList.remove(a);
+                if (!removed)
+                    Log.e(LOG_TAG, "failed to remove accident from accident list when creating multiple list");
+
+                return accList;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -58,10 +100,17 @@ public class AccidentsManager {
             return false;
 
         if (!isAccidentExist(toAdd)) {
-            accidentsList.add(toAdd);
-            //TODO updateMap();
-        } else
+
+            AccidentsListSameLatLng accList = isThereAnotherAccidentInThisLocation(toAdd);
+            if(accList == null) {
+                accidentsList.add(toAdd);
+            }
+            else {
+                accList.addAccidentToList(toAdd);
+            }
+        } else {
             return false;
+        }
 
         return true;
     }
@@ -84,14 +133,12 @@ public class AccidentsManager {
         int counter = 0;
 
         for (Accident a : toAddList) {
-            if (!isAccidentExist(a)) {
-                accidentsList.add(a);
-
+            if (addAccident(a)) {
                 counter++;
             }
         }
 
-        //TODO updateMap();
+
         Log.i(LOG_TAG, counter + " accidents of " + toAddList.size() + " added");
         return counter;
     }
@@ -110,6 +157,14 @@ public class AccidentsManager {
         for (Accident a : accidentsList) {
             if (a.getMarkerID().equals(markerID)) {
                 return a;
+            }
+        }
+
+        for (AccidentsListSameLatLng accList : mMultipleAccidentsList) {
+            for (Accident a : accList.getAccidentList()) {
+                if (a.getMarkerID().equals(markerID)) {
+                    return a;
+                }
             }
         }
 
@@ -141,11 +196,24 @@ public class AccidentsManager {
         return newAccidents;
     }
 
+    public List<AccidentsListSameLatLng> getAllAccidentsList() {
+
+        return mMultipleAccidentsList;
+    }
+
     /**
      * set all accident's marker id to null
      */
     public void clearMarkersIDs() {
         for (Accident a : accidentsList)
             a.setMarkerID(null);
+
+        for (AccidentsListSameLatLng accList : mMultipleAccidentsList)
+            for (Accident a : accList.getAccidentList())
+                a.setMarkerID(null);
+    }
+
+    public List<AccidentsListSameLatLng> getmMultipleAccidentsList() {
+        return mMultipleAccidentsList;
     }
 }

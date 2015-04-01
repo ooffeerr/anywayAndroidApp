@@ -108,7 +108,7 @@ public class Utility {
                         .setType(type)
                         .setSubType(subtype)
                         .setSeverity(severity)
-                        .setCreated(createdDate)
+                        .setCreatedDate(createdDate)
                         .setLocation(location)
                         .setAddress(address)
                         .setLocationAccuracy(accuracy);

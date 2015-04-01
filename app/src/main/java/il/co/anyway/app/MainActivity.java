@@ -187,14 +187,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             return;
 
         // If the marker is just the search address marker, do nothing
-        if (marker.getTitle().equals(getString(R.string.search_result)))
+        if (marker.getTitle().equals(getString(R.string.search_result)) || marker.getTitle().contains("תאונות"))
             return;
-
-        // findAccidentByMarkerID
-        String markerID = marker.getId();
 
         Bundle args = new Bundle();
 
+        // findAccidentByMarkerID
+        String markerID = marker.getId();
         Accident a = mAccidentsManager.getAccidentByMarkerID(markerID);
         if (a != null) {
 
@@ -202,10 +201,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
             args.putLong("id", a.getId());
             args.putString("address", a.getAddress());
+            args.putString("created", a.getCreatedDateAsString());
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            String strCreated = dateFormat.format(a.getCreated());
-            args.putString("created", strCreated);
         }
 
         AccidentDetailsDialogFragment accidentDetailsDialog =
@@ -225,12 +222,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
 
+        TextView tv = (TextView)findViewById(R.id.textViewZoomIn);
         // TODO - currently if zoom level is too high -> just do nothing. needed server side clustering
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
-        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
-            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_SHORT).show();
-        else
+        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
+            if (tv != null)
+                tv.setVisibility(View.VISIBLE);
+        }
+        else {
+            if (tv != null)
+                tv.setVisibility(View.GONE);
             getAccidentsFromServer();
+        }
     }
 
     @Override
@@ -571,7 +574,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
             Marker m = mMap.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
-                    .snippet(getString(R.string.marker_default_desc))
+                    .snippet(a.getCreatedDateAsString() + "\n" + getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
@@ -579,6 +582,26 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             //oms.spiderListener(m);
 
             a.setMarkerID(m.getId());
+        }
+
+        for (AccidentsListSameLatLng accList : mAccidentsManager.getAllAccidentsList()) {
+
+            String title = "תאונות";
+            String desc = "";
+
+            for (Accident a : accList.getAccidentList()) {
+                desc = desc.concat(
+                        Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()) + " - "
+                                + a.getCreatedDateAsString() + "\n");
+            }
+            desc = desc.substring(0,desc.length()-1);
+            int numberOfAccidents = accList.getAccidentList().size();
+
+            mMap.addMarker(new MarkerOptions()
+                    .title(numberOfAccidents + " " + title)
+                    .snippet(desc)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.multiple_various))
+                    .position(new LatLng(accList.getLatitude(), accList.getLongitude())));
         }
     }
 
@@ -593,5 +616,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             addAccidentsToMap();
             Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");
         }
+    }
+
+    public void moveToMinimalZoomAllowed(View view) {
+        setMapToLocation(mMap.getCameraPosition().target, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
     }
 }

@@ -14,5 +14,19 @@
 
     </fragment>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/zoom_in_to_display"
+        android:id="@+id/textViewZoomIn"
+        android:clickable="true"
+        android:padding="5dp"
+        android:layout_margin="5dp"
+        android:textColor="#ff9f0a00"
+        android:background="@drawable/back"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="moveToMinimalZoomAllowed"/>
 
 </RelativeLayout>
