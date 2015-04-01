@@ -5,8 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
+import com.androidmapsextensions.GoogleMap;
+import com.androidmapsextensions.Marker;
 
 class MarkerInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 

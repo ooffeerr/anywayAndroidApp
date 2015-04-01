@@ -14,25 +14,17 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
-
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -77,7 +69,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     private static boolean ANIMATE_OFF = false;
 
     private SupportMapFragment mapFragment;
-    private OverlappingMarkerSpiderfier oms;
     private GoogleMap mMap;
     private AccidentsManager mAccidentsManager;
     private LocationManager mLocationManager;
@@ -237,7 +228,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         // TODO - currently if zoom level is too high -> just do nothing. needed server side clustering
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
         if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
-            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
+            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_SHORT).show();
         else
             getAccidentsFromServer();
     }
@@ -496,12 +487,10 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private void setUpMap(boolean firstRun) {
 
-        oms = new OverlappingMarkerSpiderfier(map);
-
         ClusteringSettings settings = new ClusteringSettings();
         //CLUSTERING_ENABLED_DYNAMIC
         settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
-        map.setClustering(settings);
+        mMap.setClustering(settings);
 
         // Enable location buttons
         mMap.setMyLocationEnabled(true);
