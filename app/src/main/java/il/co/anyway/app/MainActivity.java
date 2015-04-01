@@ -213,12 +213,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
 
+        TextView tv = (TextView)findViewById(R.id.textViewZoomIn);
         // TODO - currently if zoom level is too high -> just do nothing. needed server side clustering
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
-        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
-            Toast.makeText(getBaseContext(), getString(R.string.zoom_in_to_display), Toast.LENGTH_LONG).show();
-        else
+        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
+            if (tv != null)
+                tv.setVisibility(View.VISIBLE);
+        }
+        else {
+            if (tv != null)
+                tv.setVisibility(View.GONE);
             getAccidentsFromServer();
+        }
     }
 
     @Override
@@ -564,5 +570,9 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             addAccidentsToMap();
             Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");
         }
+    }
+
+    public void moveToMinimalZoomAllowed(View view) {
+        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
     }
 }
