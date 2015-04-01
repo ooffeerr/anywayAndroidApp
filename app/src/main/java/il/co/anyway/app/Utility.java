@@ -2,9 +2,11 @@ package il.co.anyway.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.androidmapsextensions.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
@@ -142,7 +144,7 @@ public class Utility {
         accidentTask.execute(params);
     }
 
-    public static String[] getMarkersUriParams(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
+    public static String[] getMarkersUriParams(LatLngBounds bounds, int zoomLevel, Context context) {
 
         String[] params = new String[JSON_STRING_PARAMETERS_COUNT];
         params[JSON_STRING_NE_LAT] = Double.toString(bounds.northeast.latitude);
@@ -152,15 +154,15 @@ public class Utility {
         params[JSON_STRING_ZOOM_LEVEL] = Integer.toString(zoomLevel);
 
         // Get preferences form SharedPreferncses
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        Boolean show_fatal = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_fatal_key), true);
-        Boolean show_severe = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_severe_key), true);
-        Boolean show_light = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_light_key), true);
-        Boolean show_inaccurate = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_inaccurate_key), false);
+        Boolean show_fatal = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_fatal_key), true);
+        Boolean show_severe = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_severe_key), true);
+        Boolean show_light = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_light_key), true);
+        Boolean show_inaccurate = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_inaccurate_key), false);
 
-        String fromDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_from_date_key), callingActivity.getString(R.string.pref_default_from_date));
-        String toDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_to_date_key), callingActivity.getString(R.string.pref_default_to_date));
+        String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
 
         // getting timestamp for Anyway API
         params[JSON_STRING_START_DATE] = getTimeStamp(fromDate);
@@ -280,14 +282,6 @@ public class Utility {
 
         return str;
     }
-
-    /*public static String getAccidentSeverityByIndex(int severity) {
-        String str = "";
-
-        //TODO decide if we need this method
-
-        return str;
-    }*/
 
     /**
      * Choose which icon to show on the map(for the marker)
@@ -418,6 +412,40 @@ public class Utility {
         }
 
         return icon;
+    }
+
+    /**
+     * Build URL to anyway map from current view for sharing
+     *
+     * @return the URL as String
+     */
+    public static String getCurrentPositionStringURI(GoogleMap map, Context context) {
+
+        LatLng location = map.getCameraPosition().target;
+        int zoomLevel = (int) map.getCameraPosition().zoom;
+        String[] params = getMarkersUriParams(map.getProjection().getVisibleRegion().latLngBounds, zoomLevel, context);
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
+
+        // re format the dates to yyyy-MM-dd for the url sharing
+        fromDate = DatePreference.getYear(fromDate) + "-" + DatePreference.getMonth(fromDate) + "-" + DatePreference.getDate(fromDate);
+        toDate = DatePreference.getYear(toDate) + "-" + DatePreference.getMonth(toDate) + "-" + DatePreference.getDate(toDate);
+
+        Uri builtUri = Uri.parse(FetchAccidents.ANYWAY_BASE_URL).buildUpon()
+                .appendQueryParameter("start_date", fromDate)
+                .appendQueryParameter("end_date", toDate)
+                .appendQueryParameter("show_fatal", params[Utility.JSON_STRING_SHOW_FATAL])
+                .appendQueryParameter("show_severe", params[Utility.JSON_STRING_SHOW_SEVERE])
+                .appendQueryParameter("show_light", params[Utility.JSON_STRING_SHOW_LIGHT])
+                .appendQueryParameter("show_inaccurate", params[Utility.JSON_STRING_SHOW_INACCURATE])
+                .appendQueryParameter("zoom", params[Utility.JSON_STRING_ZOOM_LEVEL])
+                .appendQueryParameter("lat", Double.toString(location.latitude))
+                .appendQueryParameter("lon", Double.toString(location.longitude))
+                .build();
+
+        return builtUri.toString();
     }
 }
 

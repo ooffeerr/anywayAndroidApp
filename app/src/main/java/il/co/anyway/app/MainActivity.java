@@ -22,7 +22,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.TextView;
@@ -37,6 +36,8 @@ import com.androidmapsextensions.GoogleMap.CancelableCallback;
 import com.androidmapsextensions.GoogleMap.OnCameraChangeListener;
 import com.androidmapsextensions.GoogleMap.OnInfoWindowClickListener;
 import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
+import com.androidmapsextensions.GoogleMap.OnMarkerClickListener;
+import com.androidmapsextensions.GoogleMap.OnMyLocationButtonClickListener;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 
@@ -54,8 +55,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends ActionBarActivity implements OnInfoWindowClickListener,
-        OnMapLongClickListener, OnCameraChangeListener, LocationListener {
+public class MainActivity extends ActionBarActivity
+        implements
+        OnInfoWindowClickListener,
+        OnMapLongClickListener,
+        OnCameraChangeListener,
+        LocationListener,
+        OnMarkerClickListener,
+        OnMyLocationButtonClickListener {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -99,8 +106,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         setUpMapIfNeeded(firstRun);
 
+        // check if app opened by a link to specific location, if so - move to that location
         getDataFromSharedURL();
-
     }
 
     @Override
@@ -128,7 +135,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         }
         if (id == R.id.action_share) {
 
-            String currentStringUri = getCurrentPositionStringURI();
+            String currentStringUri = Utility.getCurrentPositionStringURI(mMap, this);
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("text/plain");
             i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
@@ -141,74 +148,34 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Build URL to anyway map from current view for sharing
-     *
-     * @return the URL as String
-     */
-    private String getCurrentPositionStringURI() {
-
-        LatLng location = mMap.getCameraPosition().target;
-        int zoomLevel = (int) mMap.getCameraPosition().zoom;
-        String[] params = Utility.getMarkersUriParams(mMap.getProjection().getVisibleRegion().latLngBounds, zoomLevel, this);
-
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String fromDate = sharedPrefs.getString(getString(R.string.pref_from_date_key), getString(R.string.pref_default_from_date));
-        String toDate = sharedPrefs.getString(getString(R.string.pref_to_date_key), getString(R.string.pref_default_to_date));
-
-        // re format the dates to yyyy-MM-dd for the url sharing
-        fromDate = DatePreference.getYear(fromDate) + "-" + DatePreference.getMonth(fromDate) + "-" + DatePreference.getDate(fromDate);
-        toDate = DatePreference.getYear(toDate) + "-" + DatePreference.getMonth(toDate) + "-" + DatePreference.getDate(toDate);
-
-        Uri builtUri = Uri.parse(FetchAccidents.ANYWAY_BASE_URL).buildUpon()
-                .appendQueryParameter("start_date", fromDate)
-                .appendQueryParameter("end_date", toDate)
-                .appendQueryParameter("show_fatal", params[Utility.JSON_STRING_SHOW_FATAL])
-                .appendQueryParameter("show_severe", params[Utility.JSON_STRING_SHOW_SEVERE])
-                .appendQueryParameter("show_light", params[Utility.JSON_STRING_SHOW_LIGHT])
-                .appendQueryParameter("show_inaccurate", params[Utility.JSON_STRING_SHOW_INACCURATE])
-                .appendQueryParameter("zoom", params[Utility.JSON_STRING_ZOOM_LEVEL])
-                .appendQueryParameter("lat", Double.toString(location.latitude))
-                .appendQueryParameter("lon", Double.toString(location.longitude))
-                .build();
-
-        return builtUri.toString();
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return false;
     }
 
     /**
-     * when marker is clicked, find and show the accident details of this marker
+     * when InfoWindow is clicked, show the accident details of this marker
      *
      * @param marker marker clicked
      */
     @Override
     public void onInfoWindowClick(Marker marker) {
 
-        if (marker.isCluster())
-            return;
-
-        // If the marker is just the search address marker, do nothing
-        if (marker.getTitle().equals(getString(R.string.search_result)) || marker.getTitle().contains("תאונות"))
-            return;
-
         Bundle args = new Bundle();
+        if (marker.getData() instanceof Accident) {
 
-        // findAccidentByMarkerID
-        String markerID = marker.getId();
-        Accident a = mAccidentsManager.getAccidentByMarkerID(markerID);
-        if (a != null) {
-
+            Accident a = marker.getData();
             args.putString("description", a.getDescription());
             args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
             args.putLong("id", a.getId());
             args.putString("address", a.getAddress());
             args.putString("created", a.getCreatedDateAsString());
 
+            AccidentDetailsDialogFragment accidentDetailsDialog =
+                    new AccidentDetailsDialogFragment();
+            accidentDetailsDialog.setArguments(args);
+            accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
         }
-
-        AccidentDetailsDialogFragment accidentDetailsDialog =
-                new AccidentDetailsDialogFragment();
-        accidentDetailsDialog.setArguments(args);
-        accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
     }
 
     @Override
@@ -223,7 +190,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     public void onCameraChange(CameraPosition cameraPosition) {
 
         TextView tv = (TextView)findViewById(R.id.textViewZoomIn);
-        // TODO - currently if zoom level is too high -> just do nothing. needed server side clustering
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
         if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
             if (tv != null)
@@ -234,6 +200,12 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 tv.setVisibility(View.GONE);
             getAccidentsFromServer();
         }
+    }
+
+    @Override
+    public boolean onMyLocationButtonClick() {
+        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
+        return true;
     }
 
     @Override
@@ -256,10 +228,11 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         //Toast.makeText(this, "Disabled provider " + provider, Toast.LENGTH_SHORT).show();
     }
 
-    /* Request updates at startup */
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Request updates at startup
         mLocationManager.requestLocationUpdates(mProvider, 400, 1, this);
 
         // force APP_DEFAULT_LOCALE on the app
@@ -270,10 +243,11 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
                 getBaseContext().getResources().getDisplayMetrics());
     }
 
-    /* Remove the location listener updates when Activity is paused */
     @Override
     protected void onPause() {
         super.onPause();
+
+        // Remove the location listener updates when Activity is paused
         mLocationManager.removeUpdates(this);
     }
 
@@ -297,9 +271,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             String end_date_str = data.getQueryParameter("end_date");
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date start_date = null,
-                    end_date = null;
-
+            Date start_date = null;
+            Date end_date = null;
 
             int show_fatal, show_severe, show_light, show_inaccurate, zoom;
             double latitude, longitude;
@@ -490,8 +463,8 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
     private void setUpMap(boolean firstRun) {
 
+        // Set Clustering
         ClusteringSettings settings = new ClusteringSettings();
-        //CLUSTERING_ENABLED_DYNAMIC
         settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
         mMap.setClustering(settings);
 
@@ -500,11 +473,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
         // Disable toolbar on the right bottom corner(taking user to google maps app)
         mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
 
         mMap.setInfoWindowAdapter(new MarkerInfoWindowAdapter(getLayoutInflater()));
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnCameraChangeListener(this);
+        mMap.setOnMyLocationButtonClickListener(this);
 
         if (firstRun) {
             // try to move map to user location, if not user location found go to default
@@ -515,7 +490,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             this happening only on screen rotation, markers have been delete from the map
             because the map is re-render, clear marker's ids mark the accident as not on the map
              */
-            mAccidentsManager.clearMarkersIDs();
+            mAccidentsManager.setAllAccidentAsNotShownOnTheMap();
             addAccidentsToMap();
         }
     }
@@ -567,41 +542,18 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         Utility.getAccidentsFromASyncTask(bounds, zoomLevel, this);
     }
 
-    // add accidents from array list to map
     private void addAccidentsToMap() {
 
         for (Accident a : mAccidentsManager.getAllNewAccidents()) {
 
             Marker m = mMap.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
-                    .snippet(a.getCreatedDateAsString() + "\n" + getString(R.string.marker_default_desc))
+                    .snippet(getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
-            // TODO - what the hell?
-            //oms.spiderListener(m);
-
-            a.setMarkerID(m.getId());
-        }
-
-        for (AccidentsListSameLatLng accList : mAccidentsManager.getAllAccidentsList()) {
-
-            String title = "תאונות";
-            String desc = "";
-
-            for (Accident a : accList.getAccidentList()) {
-                desc = desc.concat(
-                        Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()) + " - "
-                                + a.getCreatedDateAsString() + "\n");
-            }
-            desc = desc.substring(0,desc.length()-1);
-            int numberOfAccidents = accList.getAccidentList().size();
-
-            mMap.addMarker(new MarkerOptions()
-                    .title(numberOfAccidents + " " + title)
-                    .snippet(desc)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.multiple_various))
-                    .position(new LatLng(accList.getLatitude(), accList.getLongitude())));
+            m.setData(a);
+            a.setMarkerAddedToMap(true);
         }
     }
 
@@ -614,7 +566,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
         int accidentsAddedCounter = mAccidentsManager.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
         if (accidentsAddedCounter > 0) {
             addAccidentsToMap();
-            Log.i(LOG_TAG, accidentsAddedCounter + " Added to map");
         }
     }
 

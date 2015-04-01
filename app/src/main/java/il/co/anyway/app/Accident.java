@@ -55,7 +55,7 @@ public class Accident {
     private LatLng location;
     private String address;
     private int locationAccuracy;
-    private String markerID;
+    private boolean markerAddedToMap;
 
     public Accident(long id, long user, String title, String description, int type, int subType, int severity,
                     Date created, LatLng location, String address, int locationAccuracy) {
@@ -71,11 +71,11 @@ public class Accident {
         this.location = location;
         this.address = address;
         this.locationAccuracy = locationAccuracy;
-        this.markerID = null;
+        this.markerAddedToMap = false;
     }
 
     public Accident() {
-        this.markerID = null;
+        this.markerAddedToMap = false;
     }
 
     public long getId() {
@@ -188,12 +188,12 @@ public class Accident {
         return this;
     }
 
-    public Accident setMarkerID(String markerID) {
-        this.markerID = markerID;
-        return this;
+    public boolean isMarkerAddedToMap() {
+        return markerAddedToMap;
     }
 
-    public String getMarkerID() {
-        return markerID;
+    public Accident setMarkerAddedToMap(boolean markerAddedToMap) {
+        this.markerAddedToMap = markerAddedToMap;
+        return this;
     }
 }
