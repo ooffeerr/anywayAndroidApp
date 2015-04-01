@@ -573,6 +573,6 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     }
 
     public void moveToMinimalZoomAllowed(View view) {
-        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
+        setMapToLocation(mMap.getCameraPosition().target, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
     }
 }
