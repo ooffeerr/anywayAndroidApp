@@ -2,6 +2,7 @@ package il.co.anyway.app;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Accident {
@@ -140,11 +141,22 @@ public class Accident {
         return this;
     }
 
-    public Date getCreated() {
+    public Date getCreatedDate() {
         return created;
     }
 
-    public Accident setCreated(Date created) {
+    public String getCreatedDateAsString() {
+
+        String format = "dd/MM/yyyy";
+        if (format == null || "".equals(format))
+            format = "dd/MM/yyyy";
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        return dateFormat.format(created);
+
+    }
+
+    public Accident setCreatedDate(Date created) {
         this.created = created;
         return this;
     }

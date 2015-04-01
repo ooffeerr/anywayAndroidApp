@@ -173,14 +173,13 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
     public void onInfoWindowClick(Marker marker) {
 
         // If the marker is just the search address marker, do nothing
-        if (marker.getTitle().equals(getString(R.string.search_result)))
+        if (marker.getTitle().equals(getString(R.string.search_result)) || marker.getTitle().contains("תאונות"))
             return;
-
-        // findAccidentByMarkerID
-        String markerID = marker.getId();
 
         Bundle args = new Bundle();
 
+        // findAccidentByMarkerID
+        String markerID = marker.getId();
         Accident a = mAccidentsManager.getAccidentByMarkerID(markerID);
         if (a != null) {
 
@@ -188,10 +187,7 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
             args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
             args.putLong("id", a.getId());
             args.putString("address", a.getAddress());
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            String strCreated = dateFormat.format(a.getCreated());
-            args.putString("created", strCreated);
+            args.putString("created", a.getCreatedDateAsString());
 
         }
 
@@ -551,11 +547,31 @@ public class MainActivity extends ActionBarActivity implements OnInfoWindowClick
 
             Marker m = mMap.addMarker(new MarkerOptions()
                     .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
-                    .snippet(getString(R.string.marker_default_desc))
+                    .snippet(a.getCreatedDateAsString() + "\n" + getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
             a.setMarkerID(m.getId());
+        }
+
+        for (AccidentsListSameLatLng accList : mAccidentsManager.getAllAccidentsList()) {
+
+            String title = "תאונות";
+            String desc = "";
+
+            for (Accident a : accList.getAccidentList()) {
+                desc = desc.concat(
+                        Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()) + " - "
+                                + a.getCreatedDateAsString() + "\n");
+            }
+            desc = desc.substring(0,desc.length()-1);
+            int numberOfAccidents = accList.getAccidentList().size();
+
+            mMap.addMarker(new MarkerOptions()
+                    .title(numberOfAccidents + " " + title)
+                    .snippet(desc)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.multiple_various))
+                    .position(new LatLng(accList.getLatitude(), accList.getLongitude())));
         }
     }
 
