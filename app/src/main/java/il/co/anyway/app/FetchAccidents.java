@@ -13,14 +13,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 // fetching accidents from Anyway servers
 public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
 
     @SuppressWarnings("unused")
-    private final String LOG_TAG = FetchAccidents.class.getSimpleName();
+    private final static String LOG_TAG = FetchAccidents.class.getSimpleName();
+    public final static String ANYWAY_BASE_URL = "http://www.anyway.co.il/";
+    public final static String ANYWAY_MARKERS_BASE_URL = ANYWAY_BASE_URL + "markers?";
 
     private MainActivity callingActivity;
 
@@ -42,9 +43,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
 
         try {
             // Construct the URL for the Anyway accidents query
-            final String FORECAST_BASE_URL = "http://www.anyway.co.il/markers?";
-
-            Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+            Uri builtUri = Uri.parse(ANYWAY_MARKERS_BASE_URL).buildUpon()
                     .appendQueryParameter("ne_lat", params[Utility.JSON_STRING_NE_LAT])
                     .appendQueryParameter("ne_lng", params[Utility.JSON_STRING_NE_LNG])
                     .appendQueryParameter("sw_lat", params[Utility.JSON_STRING_SW_LAT])
@@ -60,7 +59,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
                     .build();
 
             URL url = new URL(builtUri.toString());
-            //Log.i(LOG_TAG, "URL: " + url);
+            //Log.i(LOG_TAG+"_URL", url.toString());
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -134,6 +133,11 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
         }
     }
 
+    /**
+     * set the calling activity, this activity will be called when the accidents fetching ends
+     *
+     * @param callingActivity the calling activity (MainActivity instance)
+     */
     public void setCallingActivity(MainActivity callingActivity) {
         this.callingActivity = callingActivity;
     }

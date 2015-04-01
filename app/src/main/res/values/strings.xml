@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">ANYWAY</string>
-    <string name="zoom_in_to_display">רחוק מדי, מתקרב....</string>
+    <string name="zoom_in_to_display">יש להתקרב על מנת לראות תאונות</string>
     <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
     <string name="cancel">ביטול</string>
 
@@ -12,9 +12,19 @@
     <!-- Main map activity -->
     <string name="back_to_start_location">עבור למיקום הנוכחי</string>
     <string name="fetch_markers">רענן תאונות</string>
+
     <string name="address_search">חפש כתובת</string>
-    <string name="address_search_hint">חפש כתובת...</string>
+    <string name="address_search_hint">חפש כתובת&#8230;</string>
+    <string name="address_empty">יש להכניס כתובת לחיפוש</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
+
+    <string name="share_screen">שתף מסך נוכחי</string>
+    <string name="share_subject">שיתוף תאונות באזורך מ Anyway</string>
+    <string name="share_title">שיתוף מ Anyway</string>
+
+    <!-- Disqus activity -->
+    <string name="title_activity_disqus">דיון</string>
+    <string name="refresh_comments">טען מחדש</string>
 
     <!-- Search Strings -->
     <string name="address_result_title">האם התכוונת ל:</string>
@@ -24,11 +34,13 @@
     <string name="search_result">תוצאת חיפוש</string>
     <string name="search">חפש</string>
 
-    <!-- popup layout -->
+    <!-- marker_info_window layout -->
     <string name="icon">אייקון תאונה</string>
 
     <!-- Enbale gps Alert dialog -->
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
     <string name="yes">כן</string>
     <string name="no">לא</string>
+
+
 </resources>

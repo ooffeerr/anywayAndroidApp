@@ -18,7 +18,7 @@ public class EnableGpsDialogFragment extends DialogFragment {
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
-                        // Start activity
+                        // Start location settings activity
                         Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                         startActivity(intent);
 
@@ -27,6 +27,7 @@ public class EnableGpsDialogFragment extends DialogFragment {
                 .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
+                        dialog.cancel();
                     }
                 });
         // Create the AlertDialog object and return it

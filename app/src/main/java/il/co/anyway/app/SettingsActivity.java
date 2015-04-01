@@ -3,7 +3,6 @@ package il.co.anyway.app;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
@@ -33,8 +32,6 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     @Override
@@ -62,7 +59,7 @@ public class SettingsActivity extends PreferenceActivity {
 
         setupPreferencesScreen();
 
-        // add action bar to preferences
+        // add toolbar to preferences
         LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
         Toolbar bar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.settings_toolbar, root, false);
         root.addView(bar, 0); // insert at top
@@ -85,7 +82,7 @@ public class SettingsActivity extends PreferenceActivity {
         // Add 'date range' preferences.
         addPreferencesFromResource(R.xml.pref_date_range);
 
-        // Set the summary of the datepicker and add listener to bind the summary with the reak value
+        // Set the summary of the date-picker and add listener to bind the summary with the real value
         final DatePreference dp_from = (DatePreference) findPreference(getString(R.string.pref_from_date_key));
         String current_from = dp_from.getText();
         current_from = current_from.equals("") ? getString(R.string.pref_default_from_date) : current_from;

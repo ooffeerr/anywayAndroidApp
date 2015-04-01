@@ -29,7 +29,15 @@
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="http" android:host="anyway.co.il" />
+                <data android:scheme="http" android:host="www.anyway.co.il" />
             </intent-filter>
         </activity>
 
@@ -44,6 +52,15 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="il.co.anyway.app.MainActivity" />
+        </activity>
+        <activity
+            android:name=".DisqusActivity"
+            android:label="@string/title_activity_disqus"
+            android:parentActivityName=".MainActivity"
+            android:configChanges="orientation|screenSize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="il.co.anyway.app.MainActivity" />
