@@ -134,15 +134,25 @@ public class MainActivity extends ActionBarActivity
             return true;
         }
         if (id == R.id.action_share) {
-
             String currentStringUri = Utility.getCurrentPositionStringURI(mMap, this);
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("text/plain");
             i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
             i.putExtra(Intent.EXTRA_TEXT, currentStringUri);
             startActivity(Intent.createChooser(i, getString(R.string.share_title)));
-
             return true;
+        }
+        if (id == R.id.action_report_bug) {
+
+            Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                    "mailto","samuel.regev@gmail.com", null));
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, "בעייה באפליקציית Anyway");
+            emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(Intent.createChooser(emailIntent, getString(R.string.action_report_bug)));
+
+        }
+        if (id == R.id.action_about) {
+            Toast.makeText(this, "אודות", Toast.LENGTH_SHORT).show();
         }
 
         return super.onOptionsItemSelected(item);

@@ -10,15 +10,16 @@
     <string name="action_settings">הגדרות</string>
 
     <!-- Main map activity -->
-    <string name="back_to_start_location">עבור למיקום הנוכחי</string>
-    <string name="fetch_markers">רענן תאונות</string>
+    <string name="action_report_bug">דווח על תקלה</string>
+    <string name="action_about">אודות</string>
 
-    <string name="address_search">חפש כתובת</string>
+    <string name="action_address_search">חפש כתובת</string>
     <string name="address_search_hint">חפש כתובת&#8230;</string>
     <string name="address_empty">יש להכניס כתובת לחיפוש</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
 
-    <string name="share_screen">שתף מסך נוכחי</string>
+
+    <string name="action_share_screen">שתף מסך נוכחי</string>
     <string name="share_subject">שיתוף תאונות באזורך מ Anyway</string>
     <string name="share_title">שיתוף מ Anyway</string>
 
