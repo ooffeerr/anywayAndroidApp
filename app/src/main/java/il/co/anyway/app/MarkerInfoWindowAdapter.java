@@ -1,8 +1,10 @@
 package il.co.anyway.app;
 
 import android.annotation.SuppressLint;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.androidmapsextensions.GoogleMap.InfoWindowAdapter;
@@ -96,6 +98,18 @@ class MarkerInfoWindowAdapter implements InfoWindowAdapter {
                 mainSnippet.setText(marker.getSnippet());
 
                 return mInfoWindows;
+            }
+            else if (marker.getTitle().equals("תוצאת חיפוש")) {
+
+                LinearLayout searchLayout = new LinearLayout(mInflater.getContext());
+                TextView searchAddress = new TextView(mInflater.getContext());
+                searchAddress.setText(marker.getSnippet());
+                searchAddress.setTypeface(null, Typeface.BOLD);
+                searchAddress.setTextSize(20);
+
+                searchLayout.addView(searchAddress);
+
+                return searchLayout;
             }
         }
 
