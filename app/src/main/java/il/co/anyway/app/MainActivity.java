@@ -152,7 +152,7 @@ public class MainActivity extends ActionBarActivity
 
         }
         if (id == R.id.action_about) {
-            Toast.makeText(this, "אודות", Toast.LENGTH_SHORT).show();
+            showAboutInfoDialog();
         }
 
         return super.onOptionsItemSelected(item);
@@ -343,8 +343,15 @@ public class MainActivity extends ActionBarActivity
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), zoom)));
     }
 
+    private void showAboutInfoDialog() {
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setView(getLayoutInflater().inflate(R.layout.info_dialog, null));
+        adb.setPositiveButton(getString(R.string.close), null);
+        adb.show();
+    }
+
     // action handler for address search
-    public void showSearchDialog() {
+    private void showSearchDialog() {
 /*
             // hide the keyboard
             v.clearFocus();
@@ -439,7 +446,7 @@ public class MainActivity extends ActionBarActivity
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
                 adb.setTitle(getString(R.string.address_not_found_title));
                 adb.setMessage(getString(R.string.address_not_found_details));
-                adb.setPositiveButton(getString(R.string.address_not_found_close), null);
+                adb.setPositiveButton(getString(R.string.close), null);
                 adb.show();
             }
         } catch (IOException e) {

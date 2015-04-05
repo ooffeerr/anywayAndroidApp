@@ -31,7 +31,7 @@ public class AccidentDetailsDialogFragment extends DialogFragment {
         builder.setView(v);
 
         // Add action buttons
-        builder.setNeutralButton(getString(R.string.address_not_found_close), new DialogInterface.OnClickListener() {
+        builder.setNeutralButton(getString(R.string.close), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();

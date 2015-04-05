@@ -11,27 +11,28 @@
 
     <!-- Main map activity -->
     <string name="action_report_bug">דווח על תקלה</string>
-    <string name="action_about">אודות</string>
-
-    <string name="action_address_search">חפש כתובת</string>
-    <string name="address_search_hint">חפש כתובת&#8230;</string>
-    <string name="address_empty">יש להכניס כתובת לחיפוש</string>
-    <string name="address_you_searched">הכתובת שחיפשת:</string>
-
-
     <string name="action_share_screen">שתף מסך נוכחי</string>
     <string name="share_subject">שיתוף תאונות באזורך מ Anyway</string>
     <string name="share_title">שיתוף מ Anyway</string>
+    <string name="action_about">מידע נוסף</string>
+
+
+    <string name="info_dialog_title">אודות Anyway</string>
+    <string name="info_dialog_msg">\u200FAnyway היא הדרך שלנו למנוע את התאונה הבאה. ביחד, נהגים, הולכי רגל, אזרחים ומקבלי החלטות נאבק בתאונות הדרכים. \n\n\u200FAnyway מציגה על גבי מפה תאונות דרכים עם נפגעים (ע״פ נתוני הלשכה המרכזית לסטטיסטיקה). בהמשך, יתווסף מידע נוסף למפה וכן תתאפשר יכולת לפתח דיונים מבוססי מיקום על פתרונות אפשריים והתארגנות אזרחית. באמצעות ידע זמין, נגיש ושקוף אנו שואפים להעלות את המודעות לנושא תאונות הדרכים ולהעצים את יכולת ההשפעה של כל אחד ואחת על הסביבה הקרובה- הבית, השכונה, בית הספר של הילדים, מקום העבודה ועוד- על ידי פעולה משותפת בקהילה. אנחנו מאמינים שבעזרת ידע ציבורי קיים המוצג באתר יווצרו ידע ותובנות חדשים. שיתוף הידע הזה יאפשר לחברה האזרחית להתארגן לפעולה אקטיבית ולהזרים הצעות, רעיונות והתראות בחזרה אל הרשויות. </string>
 
     <!-- Disqus activity -->
     <string name="title_activity_disqus">דיון</string>
     <string name="refresh_comments">טען מחדש</string>
 
     <!-- Search Strings -->
+    <string name="action_address_search">חפש כתובת</string>
+    <string name="address_search_hint">חפש כתובת&#8230;</string>
+    <string name="address_empty">יש להכניס כתובת לחיפוש</string>
+    <string name="address_you_searched">הכתובת שחיפשת:</string>
+
     <string name="address_result_title">האם התכוונת ל:</string>
     <string name="address_not_found_title">לא נמצאה כתובת</string>
     <string name="address_not_found_details">אנא בדוק את הכתובת שהכנסת</string>
-    <string name="address_not_found_close">סגור</string>
     <string name="search_result">תוצאת חיפוש</string>
     <string name="search">חפש</string>
 
@@ -40,6 +41,8 @@
 
     <!-- Enbale gps Alert dialog -->
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
+
+    <string name="close">סגור</string>
     <string name="yes">כן</string>
     <string name="no">לא</string>
 
