@@ -61,7 +61,7 @@ public class FetchAccidents extends AsyncTask<String, Void, List<Accident>> {
             URL url = new URL(builtUri.toString());
             //Log.i(LOG_TAG+"_URL", url.toString());
 
-            // Create the request to OpenWeatherMap, and open the connection
+            // Create the request to Anyway, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();

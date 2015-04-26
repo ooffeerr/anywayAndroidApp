@@ -73,9 +73,6 @@ public class MainActivity extends ActionBarActivity
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
 
-    private static boolean ANIMATE_ON = true;
-    private static boolean ANIMATE_OFF = false;
-
     private SupportMapFragment mapFragment;
     private GoogleMap mMap;
     private AccidentsManager mAccidentsManager;
@@ -215,7 +212,7 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public boolean onMyLocationButtonClick() {
-        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
+        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
         return true;
     }
 
@@ -436,7 +433,7 @@ public class MainActivity extends ActionBarActivity
                             public void onClick(DialogInterface dialog, int which) {
 
                                 LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
-                                setMapToLocation(p, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
+                                setMapToLocation(p, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
                                 mMap.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]).clusterGroup(ClusterGroup.NOT_CLUSTERED));
                             }
@@ -501,8 +498,8 @@ public class MainActivity extends ActionBarActivity
 
         if (firstRun) {
             // try to move map to user location, if not user location found go to default
-            if (!setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON))
-                setMapToLocation(AZZA_METUDELA_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
+            if (!setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true))
+                setMapToLocation(AZZA_METUDELA_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
         } else {
             /*
             this happening only on screen rotation, markers have been delete from the map
@@ -588,6 +585,6 @@ public class MainActivity extends ActionBarActivity
     }
 
     public void moveToMinimalZoomAllowed(View view) {
-        setMapToLocation(mMap.getCameraPosition().target, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, ANIMATE_ON);
+        setMapToLocation(mMap.getCameraPosition().target, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
     }
 }
