@@ -80,6 +80,8 @@ public class MainActivity extends ActionBarActivity
     private String mProvider;
     private Location mLocation;
 
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -106,6 +108,20 @@ public class MainActivity extends ActionBarActivity
 
         // check if app opened by a link to specific location, if so - move to that location
         getDataFromSharedURL();
+
+        // add Preference changed listener int order to update map data after preference changed
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        listener =
+                new SharedPreferences.OnSharedPreferenceChangeListener() {
+                    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+
+                        mAccidentsManager.addAllAccidents(null, AccidentsManager.DO_RESET);
+                        mMap.clear();
+                        getAccidentsFromServer();
+
+                    }
+                };
+        prefs.registerOnSharedPreferenceChangeListener(listener);
     }
 
     @Override
@@ -117,9 +133,6 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -154,6 +167,13 @@ public class MainActivity extends ActionBarActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.unregisterOnSharedPreferenceChangeListener(listener);
     }
 
     @Override

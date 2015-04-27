@@ -80,26 +80,14 @@ public class SettingsActivity extends PreferenceActivity {
         current_from = current_from.equals("") ? getString(R.string.pref_default_from_date) : current_from;
         dp_from.setText(current_from);
         dp_from.setSummary(current_from);
-        dp_from.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                dp_from.setSummary((String) newValue);
-                return true;
-            }
-        });
+        bindPreferenceSummaryToValue(dp_from);
 
         final DatePreference dp_to = (DatePreference) findPreference(getString(R.string.pref_to_date_key));
         String current_to = dp_to.getText();
         current_to = current_to.equals("") ? getString(R.string.pref_default_to_date) : current_to;
         dp_to.setText(current_to);
         dp_to.setSummary(current_to);
-        dp_to.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                dp_to.setSummary((String) newValue);
-                return true;
-            }
-        });
+        bindPreferenceSummaryToValue(dp_to);
     }
 
     /**
