@@ -27,6 +27,7 @@
         android:background="@drawable/back"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:gravity="center"
         android:onClick="moveToMinimalZoomAllowed"/>
 
 </RelativeLayout>

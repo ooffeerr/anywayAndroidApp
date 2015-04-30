@@ -5,12 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,15 +28,15 @@ import android.widget.Toast;
 import com.androidmapsextensions.ClusterGroup;
 import com.androidmapsextensions.ClusteringSettings;
 import com.androidmapsextensions.GoogleMap;
+import com.androidmapsextensions.OnMapReadyCallback;
 import com.androidmapsextensions.SupportMapFragment;
 import com.androidmapsextensions.Marker;
 import com.androidmapsextensions.MarkerOptions;
-import com.androidmapsextensions.GoogleMap.CancelableCallback;
 import com.androidmapsextensions.GoogleMap.OnCameraChangeListener;
 import com.androidmapsextensions.GoogleMap.OnInfoWindowClickListener;
 import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
-import com.androidmapsextensions.GoogleMap.OnMarkerClickListener;
 import com.androidmapsextensions.GoogleMap.OnMyLocationButtonClickListener;
+import com.androidmapsextensions.GoogleMap.OnMapLoadedCallback;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 
@@ -61,57 +59,54 @@ public class MainActivity extends ActionBarActivity
         OnInfoWindowClickListener,
         OnMapLongClickListener,
         OnCameraChangeListener,
-        LocationListener,
-        OnMarkerClickListener,
-        OnMyLocationButtonClickListener {
+        OnMyLocationButtonClickListener,
+        OnMapReadyCallback,
+        OnMapLoadedCallback {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private static final LatLng AZZA_METUDELA_LOCATION = new LatLng(31.772126, 35.213678);
+    private static final LatLng ISRAEL_LOCATION = new LatLng(32.0878802,34.797246);
+    private static final int START_ZOOM_LEVEL = 8;
 
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
 
-    private SupportMapFragment mapFragment;
     private GoogleMap mMap;
     private AccidentsManager mAccidentsManager;
     private LocationManager mLocationManager;
-    private String mProvider;
-    private Location mLocation;
+    private boolean mFirstRun;
 
-    private SharedPreferences.OnSharedPreferenceChangeListener listener;
+    private SharedPreferences.OnSharedPreferenceChangeListener mSharedPrefListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // find out if this is the first instance of the activity
+        mFirstRun = (savedInstanceState == null);
+
+        // get accident manager instance
         mAccidentsManager = AccidentsManager.getInstance();
 
-        Boolean firstRun = savedInstanceState == null;
-
-        // Get the location manager
+        // get location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        // Define the criteria how to select the location provider -> use default
-        Criteria criteria = new Criteria();
-        mProvider = mLocationManager.getBestProvider(criteria, false);
-        mLocation = mLocationManager.getLastKnownLocation(mProvider);
 
         // check if gps enabled, if not - offer the user to turn it on
         boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        if (!gpsEnabled && firstRun)
+        if (!gpsEnabled && mFirstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
-        setUpMapIfNeeded(firstRun);
+        // set the map fragment and call the map settings
+        setUpMapIfNeeded();
 
         // check if app opened by a link to specific location, if so - move to that location
         getDataFromSharedURL();
 
         // add Preference changed listener int order to update map data after preference changed
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        listener =
+        mSharedPrefListener =
                 new SharedPreferences.OnSharedPreferenceChangeListener() {
                     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
@@ -121,12 +116,83 @@ public class MainActivity extends ActionBarActivity
 
                     }
                 };
-        prefs.registerOnSharedPreferenceChangeListener(listener);
+        prefs.registerOnSharedPreferenceChangeListener(mSharedPrefListener);
+    }
+
+    private void setUpMapIfNeeded() {
+        FragmentManager fm = getSupportFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();;
+            FragmentTransaction tx = fm.beginTransaction();
+            tx.add(R.id.map_container, mapFragment);
+            tx.commit();
+        }
+        mapFragment.getExtendedMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        mMap = googleMap;
+
+        // set map to start location if previous instance exist
+        if(mFirstRun)
+            setMapToLocation(ISRAEL_LOCATION, START_ZOOM_LEVEL, false);
+
+        // Set Clustering
+        ClusteringSettings settings = new ClusteringSettings();
+        settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
+        mMap.setClustering(settings);
+
+        // Enable location buttons
+        mMap.setMyLocationEnabled(true);
+
+        // Disable toolbar on the right bottom corner(taking user to google maps app)
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+
+        // set listener and layout to markers
+        mMap.setInfoWindowAdapter(new MarkerInfoWindowAdapter(getLayoutInflater()));
+        mMap.setOnInfoWindowClickListener(this);
+
+        // set listener to open Disqus on long click
+        mMap.setOnMapLongClickListener(this);
+
+        // set listener to fetch accidents from server when map change
+        mMap.setOnCameraChangeListener(this);
+
+        // set listener to force minimum zoom level when user click on MyLocation button
+        mMap.setOnMyLocationButtonClickListener(this);
+
+        // when map finish rendering - set camera to user location
+        mMap.setOnMapLoadedCallback(this);
+
+        // accident manager is static, so me need to make sure the markers of accident re-added to the map
+        mAccidentsManager.setAllAccidentAsNotShownOnTheMap();
+        addAccidentsToMap();
+    }
+
+    @Override
+    public void onMapLoaded() {
+
+        // if the user didn't opened the map before try to set the map to user location
+        if (mFirstRun) {
+
+            Location myLocation = mMap.getMyLocation();
+            if(myLocation == null)
+                myLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(new Criteria(), false));
+
+            if(myLocation != null)
+                setMapToLocation(myLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+
+            mFirstRun = false;
+        }
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -135,7 +201,6 @@ public class MainActivity extends ActionBarActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
@@ -171,14 +236,11 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     protected void onDestroy() {
+
         super.onDestroy();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        prefs.unregisterOnSharedPreferenceChangeListener(listener);
-    }
+        prefs.unregisterOnSharedPreferenceChangeListener(mSharedPrefListener);
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        return false;
     }
 
     /**
@@ -208,7 +270,6 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-
         Intent disqusIntent = new Intent(this, DisqusActivity.class);
         disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, latLng);
         startActivity(disqusIntent);
@@ -232,51 +293,8 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public boolean onMyLocationButtonClick() {
-        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+        setMapToLocation(mMap.getMyLocation(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
         return true;
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        this.mLocation = location;
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        //Toast.makeText(this, "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        //Toast.makeText(this, "Disabled provider " + provider, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Request updates at startup
-        mLocationManager.requestLocationUpdates(mProvider, 400, 1, this);
-
-        // force APP_DEFAULT_LOCALE on the app
-        Locale.setDefault(APP_DEFAULT_LOCALE);
-        Configuration config = new Configuration();
-        config.locale = APP_DEFAULT_LOCALE;
-        getBaseContext().getResources().updateConfiguration(config,
-                getBaseContext().getResources().getDisplayMetrics());
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Remove the location listener updates when Activity is paused
-        mLocationManager.removeUpdates(this);
     }
 
     /**
@@ -361,21 +379,8 @@ public class MainActivity extends ActionBarActivity
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), zoom)));
     }
 
-    private void showAboutInfoDialog() {
-        AlertDialog.Builder adb = new AlertDialog.Builder(this);
-        adb.setView(getLayoutInflater().inflate(R.layout.info_dialog, null));
-        adb.setPositiveButton(getString(R.string.close), null);
-        adb.show();
-    }
-
     // action handler for address search
     private void showSearchDialog() {
-/*
-            // hide the keyboard
-            v.clearFocus();
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-*/
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
@@ -472,70 +477,12 @@ public class MainActivity extends ActionBarActivity
         }
     }
 
-    private void setUpMapIfNeeded(boolean firstRun) {
-
-        FragmentManager fm = getSupportFragmentManager();
-        mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
-        if (mapFragment == null) {
-            mapFragment = SupportMapFragment.newInstance();;
-            FragmentTransaction tx = fm.beginTransaction();
-            tx.add(R.id.map_container, mapFragment);
-            tx.commit();
-        }
-
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-
-            // Try to obtain the map from the SupportMapFragment.
-            mMap = mapFragment.getExtendedMap();
-
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap(firstRun);
-            }
-        }
-    }
-
-    private void setUpMap(boolean firstRun) {
-
-        // Set Clustering
-        ClusteringSettings settings = new ClusteringSettings();
-        settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
-        mMap.setClustering(settings);
-
-        // Enable location buttons
-        mMap.setMyLocationEnabled(true);
-
-        // Disable toolbar on the right bottom corner(taking user to google maps app)
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-
-        mMap.setInfoWindowAdapter(new MarkerInfoWindowAdapter(getLayoutInflater()));
-        mMap.setOnInfoWindowClickListener(this);
-        mMap.setOnMapLongClickListener(this);
-        mMap.setOnCameraChangeListener(this);
-        mMap.setOnMyLocationButtonClickListener(this);
-
-        if (firstRun) {
-            // try to move map to user location, if not user location found go to default
-            if (!setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true))
-                setMapToLocation(AZZA_METUDELA_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
-        } else {
-            /*
-            this happening only on screen rotation, markers have been delete from the map
-            because the map is re-render, clear marker's ids mark the accident as not on the map
-             */
-            mAccidentsManager.setAllAccidentAsNotShownOnTheMap();
-            addAccidentsToMap();
-        }
-    }
-
     /**
-     * move the camera to specific location, should be called on after checking map!=null
-     * when camera finish moving - fetching accidents of current location
+     * move the camera to specific location, if the map is ready
      *
-     * @param location  location to move to
-     * @param zoomLevel move camera to this specific
+     * @param location location to move to
+     * @param zoomLevel zoom level of the map after new location set
+     * @param animate animate the map movement if true
      */
     private boolean setMapToLocation(Location location, int zoomLevel, boolean animate) {
         if (location == null)
@@ -543,19 +490,7 @@ public class MainActivity extends ActionBarActivity
 
         if (animate)
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel),
-                    new CancelableCallback() {
-
-                        @Override
-                        public void onFinish() {
-
-                        }
-
-                        @Override
-                        public void onCancel() {
-
-                        }
-                    });
+                            new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel), null);
         else
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel));
@@ -563,20 +498,34 @@ public class MainActivity extends ActionBarActivity
         return true;
     }
 
-    private boolean setMapToLocation(LatLng location, int zoomLevel, boolean animate) {
+    /**
+     * move the camera to specific location, if the map is ready
+     *
+     * @param latLng location to move to
+     * @param zoomLevel zoom level of the map after new location set
+     * @param animate animate the map movement if true
+     */
+    private boolean setMapToLocation(LatLng latLng, int zoomLevel, boolean animate) {
         Location l = new Location("");
-        l.setLongitude(location.longitude);
-        l.setLatitude(location.latitude);
+        l.setLongitude(latLng.longitude);
+        l.setLatitude(latLng.latitude);
 
         return setMapToLocation(l, zoomLevel, animate);
     }
 
+    /**
+     * get parameters and start fetching accidents for current view and settings
+     */
     private void getAccidentsFromServer() {
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
-        Utility.getAccidentsFromASyncTask(bounds, zoomLevel, this);
+        if (zoomLevel >= MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
+            Utility.getAccidentsFromASyncTask(bounds, zoomLevel, this);
     }
 
+    /**
+     * get all accidents that is not on the map from AccidentManager and add them to map
+     */
     private void addAccidentsToMap() {
 
         for (Accident a : mAccidentsManager.getAllNewAccidents()) {
@@ -587,6 +536,7 @@ public class MainActivity extends ActionBarActivity
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
 
+            // bind marker to accident details
             m.setData(a);
             a.setMarkerAddedToMap(true);
         }
@@ -604,7 +554,18 @@ public class MainActivity extends ActionBarActivity
         }
     }
 
+    /**
+     * zoom map to minimum zoom level for fetching new accident in current location
+     * @param view
+     */
     public void moveToMinimalZoomAllowed(View view) {
         setMapToLocation(mMap.getCameraPosition().target, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+    }
+
+    private void showAboutInfoDialog() {
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setView(getLayoutInflater().inflate(R.layout.info_dialog, null));
+        adb.setPositiveButton(getString(R.string.close), null);
+        adb.show();
     }
 }

@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">ANYWAY</string>
-    <string name="zoom_in_to_display">יש להתקרב על מנת לטעון תאונות חדשות</string>
+    <string name="zoom_in_to_display">יש להתקרב על מנת לטעון תאונות חדשות\nלחץ כאן כדי להתקרב</string>
     <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
     <string name="cancel">ביטול</string>
 
