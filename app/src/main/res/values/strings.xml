@@ -36,10 +36,11 @@
     <string name="search_result">תוצאת חיפוש</string>
     <string name="search">חפש</string>
 
-    <!-- marker_info_window layout -->
+    <!-- marker_info_window -->
     <string name="icon">אייקון תאונה</string>
+    <string name="accidents">תאונות</string>
 
-    <!-- Enbale gps Alert dialog -->
+    <!-- Enable gps Alert dialog -->
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
 
     <string name="close">סגור</string>

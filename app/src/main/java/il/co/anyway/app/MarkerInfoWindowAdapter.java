@@ -1,6 +1,7 @@
 package il.co.anyway.app;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,24 +23,6 @@ class MarkerInfoWindowAdapter implements InfoWindowAdapter {
 
     private View mInfoWindows = null;
     private LayoutInflater mInflater = null;
-
-    private Collator collator = Collator.getInstance();
-    private Comparator<Marker> comparator = new Comparator<Marker>() {
-        public int compare(Marker lhs, Marker rhs) {
-            String leftTitle = lhs.getTitle();
-            String rightTitle = rhs.getTitle();
-            if (leftTitle == null && rightTitle == null) {
-                return 0;
-            }
-            if (leftTitle == null) {
-                return 1;
-            }
-            if (rightTitle == null) {
-                return -1;
-            }
-            return collator.compare(leftTitle, rightTitle);
-        }
-    };
 
     public MarkerInfoWindowAdapter(LayoutInflater inflater) {
         this.mInflater = inflater;
@@ -64,29 +47,15 @@ class MarkerInfoWindowAdapter implements InfoWindowAdapter {
         if (mainTitle == null || mainSnippet == null)
             return null;
 
-        // TODO move strings to strings.xml
-        if (marker.isCluster()) {
-            List<Marker> markers = marker.getMarkers();
-            int i = 0;
-            String text = "";
-            while (i < 3 && markers.size() > 0) {
-                Marker m = Collections.min(markers, comparator);
-                String title = m.getTitle();
-                if (title == null) {
-                    break;
-                }
-                text += title + "\n";
-                markers.remove(m);
-                i++;
-            }
-            if  (markers.size() > 0) {
-                text += "ועוד " + markers.size() + " נוספות";
-            } else {
-                text = text.substring(0, text.length() - 1);
-            }
+        Context context = mInflater.getContext();
 
-            mainTitle.setText("ריבוי תאונות");
-            mainSnippet.setText(text);
+        if (marker.isCluster()) {
+
+            String title = marker.getMarkers().size() + " " +
+                    context.getString(R.string.accidents);
+
+            mainTitle.setText(title);
+            mainSnippet.setText(context.getString(R.string.marker_default_desc));
 
             return mInfoWindows;
 

@@ -148,9 +148,6 @@ public class Accident {
     public String getCreatedDateAsString() {
 
         String format = "dd/MM/yyyy";
-        if (format == null || "".equals(format))
-            format = "dd/MM/yyyy";
-
         SimpleDateFormat dateFormat = new SimpleDateFormat(format);
         return dateFormat.format(created);
 

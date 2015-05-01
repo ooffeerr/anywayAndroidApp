@@ -37,6 +37,7 @@ import com.androidmapsextensions.GoogleMap.OnInfoWindowClickListener;
 import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
 import com.androidmapsextensions.GoogleMap.OnMyLocationButtonClickListener;
 import com.androidmapsextensions.GoogleMap.OnMapLoadedCallback;
+import com.androidmapsextensions.GoogleMap.OnMarkerClickListener;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 
@@ -61,12 +62,13 @@ public class MainActivity extends ActionBarActivity
         OnCameraChangeListener,
         OnMyLocationButtonClickListener,
         OnMapReadyCallback,
-        OnMapLoadedCallback {
+        OnMapLoadedCallback,
+        OnMarkerClickListener {
 
     @SuppressWarnings("unused")
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private static final LatLng ISRAEL_LOCATION = new LatLng(32.0878802,34.797246);
+    private static final LatLng START_LOCATION = new LatLng(32.086753, 34.789822);
     private static final int START_ZOOM_LEVEL = 8;
 
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
@@ -138,7 +140,7 @@ public class MainActivity extends ActionBarActivity
 
         // set map to start location if previous instance exist
         if(mFirstRun)
-            setMapToLocation(ISRAEL_LOCATION, START_ZOOM_LEVEL, false);
+            setMapToLocation(START_LOCATION, START_ZOOM_LEVEL, false);
 
         // Set Clustering
         ClusteringSettings settings = new ClusteringSettings();
@@ -168,6 +170,9 @@ public class MainActivity extends ActionBarActivity
         // when map finish rendering - set camera to user location
         mMap.setOnMapLoadedCallback(this);
 
+        // set listener for marker click, enable to zoom in automatically when cluster marker is clicked
+        mMap.setOnMarkerClickListener(this);
+
         // accident manager is static, so me need to make sure the markers of accident re-added to the map
         mAccidentsManager.setAllAccidentAsNotShownOnTheMap();
         addAccidentsToMap();
@@ -185,6 +190,10 @@ public class MainActivity extends ActionBarActivity
 
             if(myLocation != null)
                 setMapToLocation(myLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+
+            // TODO after multi scale available cancel auto zoom
+            if(myLocation == null)
+                setMapToLocation(START_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
             mFirstRun = false;
         }
@@ -243,36 +252,106 @@ public class MainActivity extends ActionBarActivity
 
     }
 
-    /**
-     * when InfoWindow is clicked, show the accident details of this marker
-     *
-     * @param marker marker clicked
-     */
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        /*
+        if the marker is cluster zoom-in automatically to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS
+        and then one more level to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS+1
+        returning 'true' means no need to further handling, 'false' will cause InfoWindow to appear
+        */
+        int currentZoomLevel = (int)mMap.getCameraPosition().zoom;
+        if (marker.isCluster()) {
+            if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
+                setMapToLocation(marker.getPosition(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+                return true;
+            }
+            else if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1) {
+                setMapToLocation(marker.getPosition(), currentZoomLevel + 1, true);
+                return true;
+            }
+            else
+                return false;
+        }
+
+        return false;
+    }
+
     @Override
     public void onInfoWindowClick(Marker marker) {
 
-        Bundle args = new Bundle();
-        if (marker.getData() instanceof Accident) {
+        if (marker.getData() instanceof Accident)
+            showAccidentDetailsInDialog((Accident)marker.getData());
 
-            Accident a = marker.getData();
-            args.putString("description", a.getDescription());
-            args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()));
-            args.putLong("id", a.getId());
-            args.putString("address", a.getAddress());
-            args.putString("created", a.getCreatedDateAsString());
+        else if (marker.isCluster())
+            showAccidentsClusterAsListDialog(marker);
 
-            AccidentDetailsDialogFragment accidentDetailsDialog =
-                    new AccidentDetailsDialogFragment();
-            accidentDetailsDialog.setArguments(args);
-            accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
+    }
+
+    /**
+     * Show list dialog of accidents inside marker cluster
+     * @param marker Marker cluster
+     */
+    private void showAccidentsClusterAsListDialog(Marker marker) {
+        if(!marker.isCluster())
+            return;
+
+        // re-arrange all the accident titles in String array for the AlertDialog
+        final List<Marker> markersInCluster = marker.getMarkers();
+        final String[] accidentsList = new String[markersInCluster.size()];
+        for (int i = 0; i < markersInCluster.size(); i++) {
+
+            Object markerData = markersInCluster.get(i).getData();
+            if (markerData instanceof Accident) {
+
+                Accident accident = (Accident)markerData;
+                accidentsList[i] =
+                        Utility.getAccidentTypeByIndex(accident.getSubType(), this) +
+                                " - " +
+                                accident.getCreatedDateAsString();
+            }
         }
+
+        // show list dialog with all the accidents in the cluster
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle(accidentsList.length + " " + getString(R.string.accidents));
+        adb.setItems(accidentsList, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                if (markersInCluster.get(which).getData() instanceof Accident) {
+                    Accident a = markersInCluster.get(which).getData();
+                    showAccidentDetailsInDialog(a);
+                }
+            }
+        });
+        adb.show();
+    }
+
+    /**
+     * Show accident details in dialog
+     * @param a
+     */
+    private void showAccidentDetailsInDialog(Accident a) {
+        Bundle args = new Bundle();
+        args.putString("description", a.getDescription());
+        args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), this));
+        args.putLong("id", a.getId());
+        args.putString("address", a.getAddress());
+        args.putString("created", a.getCreatedDateAsString());
+
+        AccidentDetailsDialogFragment accidentDetailsDialog =
+                new AccidentDetailsDialogFragment();
+        accidentDetailsDialog.setArguments(args);
+        accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
+        // TODO show some kind of dialog to confirm opening new dicussion
+
+        /*
         Intent disqusIntent = new Intent(this, DisqusActivity.class);
         disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, latLng);
         startActivity(disqusIntent);
+        */
     }
 
     @Override
@@ -531,7 +610,7 @@ public class MainActivity extends ActionBarActivity
         for (Accident a : mAccidentsManager.getAllNewAccidents()) {
 
             Marker m = mMap.addMarker(new MarkerOptions()
-                    .title(Utility.getAccidentTypeByIndex(a.getSubType(), getApplicationContext()))
+                    .title(Utility.getAccidentTypeByIndex(a.getSubType(), this))
                     .snippet(getString(R.string.marker_default_desc))
                     .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
                     .position(a.getLocation()));
