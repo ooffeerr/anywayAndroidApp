@@ -379,7 +379,7 @@ public class Utility {
                     icon = R.drawable.vehicle_person_lethal;
                     break;
                 case Accident.ACCIDENT_TYPE_CAR_TO_CAR:
-                    icon = R.drawable.vehicle_person_lethal;
+                    icon = R.drawable.vehicle_vehicle_lethal;
                     break;
                 case Accident.ACCIDENT_TYPE_CAR_TO_OBJECT:
                     icon = R.drawable.vehicle_object_lethal;

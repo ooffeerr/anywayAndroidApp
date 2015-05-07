@@ -10,7 +10,7 @@ public class Accident {
     @SuppressWarnings("unused")
     private final String LOG_TAG = Accident.class.getSimpleName();
 
-    // accident seveirty
+    // accident severity
     public static final int SEVERITY_FATAL = 1; // תאונה קטלנית
     public static final int SEVERITY_SEVERE = 2; // קשה
     public static final int SEVERITY_LIGHT = 3; // קלה

@@ -36,8 +36,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="http" android:host="anyway.co.il" />
-                <data android:scheme="http" android:host="www.anyway.co.il" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="http"
+                    android:host="anyway.co.il" />
+                <data
+                    android:scheme="http"
+                    android:host="www.anyway.co.il" />
+                <data android:scheme="anyway"
+                    android:host="main" />
             </intent-filter>
         </activity>
 
@@ -64,6 +72,14 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="il.co.anyway.app.MainActivity" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="anyway"
+                    android:host="disqus" />
+            </intent-filter>
         </activity>
     </application>
 

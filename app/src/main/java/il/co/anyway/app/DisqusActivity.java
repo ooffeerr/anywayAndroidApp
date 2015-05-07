@@ -36,12 +36,22 @@ public class DisqusActivity extends ActionBarActivity {
 
         // get the location of the discussion
         Intent intent = getIntent();
-        LatLng location = (LatLng) intent.getExtras().get(DISQUS_LOCATION_ID);
 
-        // set the id of the discussion
-        // it's the PRECISION_LEVEL_OF_LOCATION numbers of the latitude and then same of the longitude(without the dot)
-        mDisqusPostID = Double.toString(location.latitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-") +
-                "-" + Double.toString(location.longitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-");
+        // check if activity accessed from anyway://disqus?id=12-123-12-123
+        Uri data = intent.getData();
+        if (data == null) {
+            // activity accessed from MainActivity, get disqus ID from extra
+            LatLng location = (LatLng) intent.getExtras().get(DISQUS_LOCATION_ID);
+
+            // set the id of the discussion
+            // it's the PRECISION_LEVEL_OF_LOCATION numbers of the latitude and then same of the longitude(without the dot)
+            mDisqusPostID = Double.toString(location.latitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-") +
+                    "-" + Double.toString(location.longitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-");
+        }
+        else {
+            String id = data.getQueryParameter("id");
+            mDisqusPostID = id!=null ? id : "";
+        }
 
         // TODO - find what the title of the page should be
         mTitle = mDisqusPostID;
