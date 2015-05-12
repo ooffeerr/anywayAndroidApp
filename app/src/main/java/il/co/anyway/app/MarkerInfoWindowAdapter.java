@@ -11,11 +11,6 @@ import android.widget.TextView;
 import com.androidmapsextensions.GoogleMap.InfoWindowAdapter;
 import com.androidmapsextensions.Marker;
 
-import java.text.Collator;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 class MarkerInfoWindowAdapter implements InfoWindowAdapter {
 
     @SuppressWarnings("unused")
@@ -67,8 +62,7 @@ class MarkerInfoWindowAdapter implements InfoWindowAdapter {
                 mainSnippet.setText(marker.getSnippet());
 
                 return mInfoWindows;
-            }
-            else if (marker.getTitle().equals("תוצאת חיפוש")) {
+            } else if (marker.getTitle().equals("תוצאת חיפוש")) {
 
                 LinearLayout searchLayout = new LinearLayout(mInflater.getContext());
                 TextView searchAddress = new TextView(mInflater.getContext());

@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.androidmapsextensions.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
@@ -25,30 +24,14 @@ public class Utility {
 
     private static final String LOG_TAG = Utility.class.getSimpleName();
 
-    // index of parameters in the parameters array for fetching accidents from server task
-    public static final int JSON_STRING_PARAMETERS_COUNT = 12;
-    public static final int JSON_STRING_NE_LAT = 0;
-    public static final int JSON_STRING_NE_LNG = 1;
-    public static final int JSON_STRING_SW_LAT = 2;
-    public static final int JSON_STRING_SW_LNG = 3;
-    public static final int JSON_STRING_ZOOM_LEVEL = 4;
-    public static final int JSON_STRING_START_DATE = 5;
-    public static final int JSON_STRING_END_DATE = 6;
-    public static final int JSON_STRING_SHOW_FATAL = 7;
-    public static final int JSON_STRING_SHOW_SEVERE = 8;
-    public static final int JSON_STRING_SHOW_LIGHT = 9;
-    public static final int JSON_STRING_SHOW_INACCURATE = 10;
-    public static final int JSON_STRING_FORMAT = 11;
-
     /**
      * Parse JSON string to accidents list
      *
-     * @param accidentJsonStr JSON string to parse
+     * @param accidentJson JSON object received from Anyway
      * @return all accidents from json string as List<Accident>
      * @throws JSONException
      */
-    public static List<Accident> getAccidentDataFromJson(String accidentJsonStr)
-            throws JSONException {
+    public static List<Accident> getAccidentDataFromJson(JSONObject accidentJson) {
 
         // These are the names of the JSON objects that need to be extracted.
         final String ACCIDENT_LIST = "markers";
@@ -65,19 +48,20 @@ public class Utility {
         final String ACCIDENT_SUBTYPE = "subtype";
         final String ACCIDENT_TITLE = "title";
 
-        // user, following, followers - not implemented right now at anyway
-        long user = 0;
-
-        JSONObject accidentJson = new JSONObject(accidentJsonStr);
-        JSONArray accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
+        JSONArray accidentsArray;
+        try {
+            accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
+        } catch (JSONException e) {
+            return null;
+        }
 
         List<Accident> resultList = new ArrayList<>();
         for (int i = 0; i < accidentsArray.length(); i++) {
 
-            // Get the JSON object representing the day
-            JSONObject accidentDetails = accidentsArray.getJSONObject(i);
-
             try {
+                // Get the JSON object representing accident
+                JSONObject accidentDetails = accidentsArray.getJSONObject(i);
+
                 // Date comes as 2013-12-30T21:00:00, needs to be converted
                 String created = accidentDetails.getString(ACCIDENT_CREATED);
                 Date createdDate = new Date();
@@ -85,10 +69,10 @@ public class Utility {
                 try {
                     createdDate = sdf.parse(created);
                 } catch (ParseException e) {
-                    Log.e(LOG_TAG, e.getLocalizedMessage());
-                    e.printStackTrace();
+                    Log.e(LOG_TAG, e.getMessage());
                 }
 
+                // get accident details from json
                 String address = accidentDetails.getString(ACCIDENT_ADDRESS);
                 String desc = accidentDetails.getString(ACCIDENT_DESC);
                 String title = accidentDetails.getString(ACCIDENT_TITLE);
@@ -100,27 +84,27 @@ public class Utility {
                 Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
                 Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
 
-                LatLng location = new LatLng(lat, lng);
-
+                // create new Accident object and set parameters
                 Accident acc = new Accident()
                         .setId(id)
-                        .setUser(user)
                         .setTitle(title)
                         .setDescription(desc)
                         .setType(type)
                         .setSubType(subtype)
                         .setSeverity(severity)
                         .setCreatedDate(createdDate)
-                        .setLocation(location)
+                        .setLocation(new LatLng(lat, lng))
                         .setAddress(address)
                         .setLocationAccuracy(accuracy);
 
                 resultList.add(acc);
+
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getLocalizedMessage());
             }
 
         }
+
         return resultList;
     }
 
@@ -131,50 +115,36 @@ public class Utility {
      * @param zoomLevel       map zoom level
      * @param callingActivity the calling activity(will get updates when pulling data from server end)
      */
-    public static void getAccidentsFromASyncTask(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
+    public static void getAccidentsByParameters(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
 
         if (bounds == null || callingActivity == null)
             return;
 
-        FetchAccidents accidentTask = new FetchAccidents();
+        AnywayRequestQueue requestQueue = AnywayRequestQueue.getInstance(callingActivity);
 
-        String[] params = getMarkersUriParams(bounds, zoomLevel, callingActivity);
+        // Get preferences form SharedPreferences
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
 
-        accidentTask.setCallingActivity(callingActivity);
-        accidentTask.execute(params);
-    }
+        Boolean show_fatal = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_fatal_key), true);
+        Boolean show_severe = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_severe_key), true);
+        Boolean show_light = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_light_key), true);
+        Boolean show_inaccurate = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_inaccurate_key), false);
+        String fromDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_from_date_key), callingActivity.getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_to_date_key), callingActivity.getString(R.string.pref_default_to_date));
 
-    public static String[] getMarkersUriParams(LatLngBounds bounds, int zoomLevel, Context context) {
-
-        String[] params = new String[JSON_STRING_PARAMETERS_COUNT];
-        params[JSON_STRING_NE_LAT] = Double.toString(bounds.northeast.latitude);
-        params[JSON_STRING_NE_LNG] = Double.toString(bounds.northeast.longitude);
-        params[JSON_STRING_SW_LAT] = Double.toString(bounds.southwest.latitude);
-        params[JSON_STRING_SW_LNG] = Double.toString(bounds.southwest.longitude);
-        params[JSON_STRING_ZOOM_LEVEL] = Integer.toString(zoomLevel);
-
-        // Get preferences form SharedPreferncses
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        Boolean show_fatal = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_fatal_key), true);
-        Boolean show_severe = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_severe_key), true);
-        Boolean show_light = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_light_key), true);
-        Boolean show_inaccurate = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_inaccurate_key), false);
-
-        String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
-        String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
-
-        // getting timestamp for Anyway API
-        params[JSON_STRING_START_DATE] = getTimeStamp(fromDate);
-        params[JSON_STRING_END_DATE] = getTimeStamp(toDate);
-
-        params[JSON_STRING_SHOW_FATAL] = show_fatal ? "1" : "0";
-        params[JSON_STRING_SHOW_SEVERE] = show_severe ? "1" : "0";
-        params[JSON_STRING_SHOW_LIGHT] = show_light ? "1" : "0";
-        params[JSON_STRING_SHOW_INACCURATE] = show_inaccurate ? "1" : "0";
-        params[JSON_STRING_FORMAT] = "json";
-
-        return params;
+        requestQueue.addRequest(
+                bounds.northeast.latitude,
+                bounds.northeast.longitude,
+                bounds.southwest.latitude,
+                bounds.southwest.longitude,
+                zoomLevel,
+                getTimeStamp(fromDate),
+                getTimeStamp(toDate),
+                show_fatal,
+                show_severe,
+                show_light,
+                show_inaccurate
+        );
     }
 
     /**
@@ -419,13 +389,13 @@ public class Utility {
      *
      * @return the URL as String
      */
-    public static String getCurrentPositionStringURI(GoogleMap map, Context context) {
-
-        LatLng location = map.getCameraPosition().target;
-        int zoomLevel = (int) map.getCameraPosition().zoom;
-        String[] params = getMarkersUriParams(map.getProjection().getVisibleRegion().latLngBounds, zoomLevel, context);
+    public static String getCurrentPositionStringURI(LatLng location, int zoomLevel, Context context) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Boolean show_fatal = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_fatal_key), true);
+        Boolean show_severe = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_severe_key), true);
+        Boolean show_light = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_light_key), true);
+        Boolean show_inaccurate = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_inaccurate_key), false);
         String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
         String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
 
@@ -433,17 +403,18 @@ public class Utility {
         fromDate = DatePreference.getYear(fromDate) + "-" + DatePreference.getMonth(fromDate) + "-" + DatePreference.getDate(fromDate);
         toDate = DatePreference.getYear(toDate) + "-" + DatePreference.getMonth(toDate) + "-" + DatePreference.getDate(toDate);
 
-        Uri builtUri = Uri.parse(FetchAccidents.ANYWAY_BASE_URL).buildUpon()
+        Uri builtUri = Uri.parse(AnywayRequestQueue.ANYWAY_BASE_URL).buildUpon()
                 .appendQueryParameter("start_date", fromDate)
                 .appendQueryParameter("end_date", toDate)
-                .appendQueryParameter("show_fatal", params[Utility.JSON_STRING_SHOW_FATAL])
-                .appendQueryParameter("show_severe", params[Utility.JSON_STRING_SHOW_SEVERE])
-                .appendQueryParameter("show_light", params[Utility.JSON_STRING_SHOW_LIGHT])
-                .appendQueryParameter("show_inaccurate", params[Utility.JSON_STRING_SHOW_INACCURATE])
-                .appendQueryParameter("zoom", params[Utility.JSON_STRING_ZOOM_LEVEL])
+                .appendQueryParameter("show_fatal", show_fatal ? "1" : "0")
+                .appendQueryParameter("show_severe", show_severe ? "1" : "0")
+                .appendQueryParameter("show_light", show_light ? "1" : "0")
+                .appendQueryParameter("show_inaccurate", show_inaccurate ? "1" : "0")
+                .appendQueryParameter("zoom", Integer.toString(zoomLevel))
                 .appendQueryParameter("lat", Double.toString(location.latitude))
                 .appendQueryParameter("lon", Double.toString(location.longitude))
                 .build();
+
 
         return builtUri.toString();
     }

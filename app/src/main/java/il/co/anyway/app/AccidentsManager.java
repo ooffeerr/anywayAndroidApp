@@ -9,15 +9,15 @@ public class AccidentsManager {
 
     public static final boolean DO_RESET = true;
     public static final boolean DO_NOT_RESET = false;
-
-    private final String LOG_TAG = AccidentsManager.class.getSimpleName();
-
     private static AccidentsManager instance = null;
+    private final String LOG_TAG = AccidentsManager.class.getSimpleName();
     private List<Accident> accidentsList;
+    private MainActivity mListenerActivity;
 
     // making the default constructor private make sure there will be only one instance of the accidents manager
     private AccidentsManager() {
         accidentsList = new ArrayList<>();
+        mListenerActivity = null;
     }
 
     public static AccidentsManager getInstance() {
@@ -58,6 +58,8 @@ public class AccidentsManager {
 
         if (!isAccidentExist(toAdd)) {
             accidentsList.add(toAdd);
+            if (mListenerActivity != null)
+                mListenerActivity.addAccidentToMap(toAdd);
         } else {
             return false;
         }
@@ -74,7 +76,7 @@ public class AccidentsManager {
      */
     public int addAllAccidents(List<Accident> toAddList, boolean reset) {
 
-        if (reset == DO_RESET)
+        if (reset)
             accidentsList.clear();
 
         if (toAddList == null)
@@ -107,6 +109,8 @@ public class AccidentsManager {
      */
     public List<Accident> getAllNewAccidents() {
 
+        Log.i(LOG_TAG, "getAllNewAccidents Called");
+
         List<Accident> newAccidents = new ArrayList<>();
 
         for (Accident a : accidentsList) {
@@ -124,6 +128,13 @@ public class AccidentsManager {
     public void setAllAccidentAsNotShownOnTheMap() {
         for (Accident a : accidentsList)
             a.setMarkerAddedToMap(false);
+    }
 
+    public void registerListenerActivity(MainActivity activity) {
+        mListenerActivity = activity;
+    }
+
+    public void unregisterListenerActivity() {
+        mListenerActivity = null;
     }
 }

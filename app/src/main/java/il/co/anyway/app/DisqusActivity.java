@@ -47,10 +47,9 @@ public class DisqusActivity extends ActionBarActivity {
             // it's the PRECISION_LEVEL_OF_LOCATION numbers of the latitude and then same of the longitude(without the dot)
             mDisqusPostID = Double.toString(location.latitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-") +
                     "-" + Double.toString(location.longitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-");
-        }
-        else {
+        } else {
             String id = data.getQueryParameter("id");
-            mDisqusPostID = id!=null ? id : "";
+            mDisqusPostID = id != null ? id : "";
         }
 
         // TODO - find what the title of the page should be

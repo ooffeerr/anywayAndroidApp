@@ -12,15 +12,15 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.preference.PreferenceManager;
-import android.view.Gravity;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,25 +28,21 @@ import android.widget.Toast;
 import com.androidmapsextensions.ClusterGroup;
 import com.androidmapsextensions.ClusteringSettings;
 import com.androidmapsextensions.GoogleMap;
-import com.androidmapsextensions.OnMapReadyCallback;
-import com.androidmapsextensions.SupportMapFragment;
-import com.androidmapsextensions.Marker;
-import com.androidmapsextensions.MarkerOptions;
 import com.androidmapsextensions.GoogleMap.OnCameraChangeListener;
 import com.androidmapsextensions.GoogleMap.OnInfoWindowClickListener;
-import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
-import com.androidmapsextensions.GoogleMap.OnMyLocationButtonClickListener;
 import com.androidmapsextensions.GoogleMap.OnMapLoadedCallback;
+import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
 import com.androidmapsextensions.GoogleMap.OnMarkerClickListener;
-
+import com.androidmapsextensions.GoogleMap.OnMyLocationButtonClickListener;
+import com.androidmapsextensions.Marker;
+import com.androidmapsextensions.MarkerOptions;
+import com.androidmapsextensions.OnMapReadyCallback;
+import com.androidmapsextensions.SupportMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
-
-
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -65,17 +61,15 @@ public class MainActivity extends ActionBarActivity
         OnMapLoadedCallback,
         OnMarkerClickListener {
 
-    @SuppressWarnings("unused")
-    private final String LOG_TAG = MainActivity.class.getSimpleName();
-
     private static final LatLng START_LOCATION = new LatLng(32.086753, 34.789822);
     private static final int START_ZOOM_LEVEL = 8;
-
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
-
+    @SuppressWarnings("unused")
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
-    private AccidentsManager mAccidentsManager;
+    private FragmentManager fm;
+    private SupportMapFragment mapFragment;
     private LocationManager mLocationManager;
     private boolean mFirstRun;
 
@@ -89,9 +83,6 @@ public class MainActivity extends ActionBarActivity
         // find out if this is the first instance of the activity
         mFirstRun = (savedInstanceState == null);
 
-        // get accident manager instance
-        mAccidentsManager = AccidentsManager.getInstance();
-
         // get location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -100,19 +91,14 @@ public class MainActivity extends ActionBarActivity
         if (!gpsEnabled && mFirstRun)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
-        // set the map fragment and call the map settings
-        setUpMapIfNeeded();
-
-        // check if app opened by a link to specific location, if so - move to that location
-        getDataFromSharedURL();
-
         // add Preference changed listener int order to update map data after preference changed
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         mSharedPrefListener =
                 new SharedPreferences.OnSharedPreferenceChangeListener() {
                     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
-                        mAccidentsManager.addAllAccidents(null, AccidentsManager.DO_RESET);
+                        // reset accident manager
+                        AccidentsManager.getInstance().addAllAccidents(null, AccidentsManager.DO_RESET);
                         mMap.clear();
                         getAccidentsFromServer();
 
@@ -121,11 +107,41 @@ public class MainActivity extends ActionBarActivity
         prefs.registerOnSharedPreferenceChangeListener(mSharedPrefListener);
     }
 
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.unregisterOnSharedPreferenceChangeListener(mSharedPrefListener);
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // set the map fragment and call the map settings
+        setUpMapIfNeeded();
+
+        // check if app opened by a link to specific location, if so - move to that location
+        getDataFromSharedURL();
+
+        AccidentsManager.getInstance().registerListenerActivity(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        AccidentsManager.getInstance().unregisterListenerActivity();
+    }
+
     private void setUpMapIfNeeded() {
-        FragmentManager fm = getSupportFragmentManager();
-        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
+        fm = getSupportFragmentManager();
+        mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
         if (mapFragment == null) {
-            mapFragment = SupportMapFragment.newInstance();;
+            mapFragment = SupportMapFragment.newInstance();
+
             FragmentTransaction tx = fm.beginTransaction();
             tx.add(R.id.map_container, mapFragment);
             tx.commit();
@@ -139,7 +155,7 @@ public class MainActivity extends ActionBarActivity
         mMap = googleMap;
 
         // set map to start location if previous instance exist
-        if(mFirstRun)
+        if (mFirstRun)
             setMapToLocation(START_LOCATION, START_ZOOM_LEVEL, false);
 
         // Set Clustering
@@ -152,7 +168,10 @@ public class MainActivity extends ActionBarActivity
 
         // Disable toolbar on the right bottom corner(taking user to google maps app)
         mMap.getUiSettings().setMapToolbarEnabled(false);
+
+        // Enable zoom +/- controls and compass
         mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
 
         // set listener and layout to markers
         mMap.setInfoWindowAdapter(new MarkerInfoWindowAdapter(getLayoutInflater()));
@@ -174,7 +193,8 @@ public class MainActivity extends ActionBarActivity
         mMap.setOnMarkerClickListener(this);
 
         // accident manager is static, so me need to make sure the markers of accident re-added to the map
-        mAccidentsManager.setAllAccidentAsNotShownOnTheMap();
+        AccidentsManager.getInstance().setAllAccidentAsNotShownOnTheMap();
+        mMap.clear();
         addAccidentsToMap();
     }
 
@@ -185,14 +205,14 @@ public class MainActivity extends ActionBarActivity
         if (mFirstRun) {
 
             Location myLocation = mMap.getMyLocation();
-            if(myLocation == null)
+            if (myLocation == null)
                 myLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(new Criteria(), false));
 
-            if(myLocation != null)
+            if (myLocation != null)
                 setMapToLocation(myLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
             // TODO after multi scale available cancel auto zoom
-            if(myLocation == null)
+            if (myLocation == null)
                 setMapToLocation(START_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
             mFirstRun = false;
@@ -219,7 +239,8 @@ public class MainActivity extends ActionBarActivity
             return true;
         }
         if (id == R.id.action_share) {
-            String currentStringUri = Utility.getCurrentPositionStringURI(mMap, this);
+            String currentStringUri = Utility.getCurrentPositionStringURI(mMap.getCameraPosition().target,
+                    (int) mMap.getCameraPosition().zoom, this);
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("text/plain");
             i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
@@ -230,7 +251,7 @@ public class MainActivity extends ActionBarActivity
         if (id == R.id.action_report_bug) {
 
             Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
-                    "mailto","samuel.regev@gmail.com", null));
+                    "mailto", "samuel.regev@gmail.com", null));
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, "בעייה באפליקציית Anyway");
             emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(Intent.createChooser(emailIntent, getString(R.string.action_report_bug)));
@@ -244,32 +265,17 @@ public class MainActivity extends ActionBarActivity
     }
 
     @Override
-    protected void onDestroy() {
-
-        super.onDestroy();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        prefs.unregisterOnSharedPreferenceChangeListener(mSharedPrefListener);
-
-    }
-
-    @Override
     public boolean onMarkerClick(Marker marker) {
         /*
-        if the marker is cluster zoom-in automatically to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS
-        and then one more level to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS+1
+        if the marker is cluster zoom-in automatically to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1
         returning 'true' means no need to further handling, 'false' will cause InfoWindow to appear
         */
-        int currentZoomLevel = (int)mMap.getCameraPosition().zoom;
+        int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
         if (marker.isCluster()) {
-            if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
-                setMapToLocation(marker.getPosition(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+            if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1) {
+                setMapToLocation(marker.getPosition(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1, true);
                 return true;
-            }
-            else if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1) {
-                setMapToLocation(marker.getPosition(), currentZoomLevel + 1, true);
-                return true;
-            }
-            else
+            } else
                 return false;
         }
 
@@ -280,7 +286,7 @@ public class MainActivity extends ActionBarActivity
     public void onInfoWindowClick(Marker marker) {
 
         if (marker.getData() instanceof Accident)
-            showAccidentDetailsInDialog((Accident)marker.getData());
+            showAccidentDetailsInDialog((Accident) marker.getData());
 
         else if (marker.isCluster())
             showAccidentsClusterAsListDialog(marker);
@@ -289,10 +295,11 @@ public class MainActivity extends ActionBarActivity
 
     /**
      * Show list dialog of accidents inside marker cluster
+     *
      * @param marker Marker cluster
      */
     private void showAccidentsClusterAsListDialog(Marker marker) {
-        if(!marker.isCluster())
+        if (!marker.isCluster())
             return;
 
         // re-arrange all the accident titles in String array for the AlertDialog
@@ -303,7 +310,7 @@ public class MainActivity extends ActionBarActivity
             Object markerData = markersInCluster.get(i).getData();
             if (markerData instanceof Accident) {
 
-                Accident accident = (Accident)markerData;
+                Accident accident = (Accident) markerData;
                 accidentsList[i] =
                         Utility.getAccidentTypeByIndex(accident.getSubType(), this) +
                                 " - " +
@@ -327,6 +334,7 @@ public class MainActivity extends ActionBarActivity
 
     /**
      * Show accident details in dialog
+     *
      * @param a
      */
     private void showAccidentDetailsInDialog(Accident a) {
@@ -345,7 +353,7 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        // TODO show some kind of dialog to confirm opening new dicussion
+        // TODO show some kind of dialog to confirm opening new discussion
 
         /*
         Intent disqusIntent = new Intent(this, DisqusActivity.class);
@@ -357,13 +365,12 @@ public class MainActivity extends ActionBarActivity
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
 
-        TextView tv = (TextView)findViewById(R.id.textViewZoomIn);
+        TextView tv = (TextView) findViewById(R.id.textViewZoomIn);
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
         if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
             if (tv != null)
                 tv.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             if (tv != null)
                 tv.setVisibility(View.GONE);
             getAccidentsFromServer();
@@ -439,7 +446,9 @@ public class MainActivity extends ActionBarActivity
      * @param latitude
      * @param longitude
      */
-    private void setSettingsAndMoveToLocation(Date start_date, Date end_date, int show_fatal, int show_severe, int show_light, int show_inaccurate, int zoom, double latitude, double longitude) {
+    private void setSettingsAndMoveToLocation(Date start_date, Date end_date,
+                                              int show_fatal, int show_severe, int show_light, int show_inaccurate,
+                                              int zoom, double latitude, double longitude) {
 
         // TODO create a special view for links result instead of replacing use settings
 
@@ -559,9 +568,9 @@ public class MainActivity extends ActionBarActivity
     /**
      * move the camera to specific location, if the map is ready
      *
-     * @param location location to move to
+     * @param location  location to move to
      * @param zoomLevel zoom level of the map after new location set
-     * @param animate animate the map movement if true
+     * @param animate   animate the map movement if true
      */
     private boolean setMapToLocation(Location location, int zoomLevel, boolean animate) {
         if (location == null)
@@ -569,7 +578,7 @@ public class MainActivity extends ActionBarActivity
 
         if (animate)
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel), null);
+                    new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel), null);
         else
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel));
@@ -580,9 +589,9 @@ public class MainActivity extends ActionBarActivity
     /**
      * move the camera to specific location, if the map is ready
      *
-     * @param latLng location to move to
+     * @param latLng    location to move to
      * @param zoomLevel zoom level of the map after new location set
-     * @param animate animate the map movement if true
+     * @param animate   animate the map movement if true
      */
     private boolean setMapToLocation(LatLng latLng, int zoomLevel, boolean animate) {
         Location l = new Location("");
@@ -599,42 +608,40 @@ public class MainActivity extends ActionBarActivity
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
         if (zoomLevel >= MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
-            Utility.getAccidentsFromASyncTask(bounds, zoomLevel, this);
+            Utility.getAccidentsByParameters(bounds, zoomLevel, this);
     }
 
     /**
      * get all accidents that is not on the map from AccidentManager and add them to map
      */
-    private void addAccidentsToMap() {
+    public void addAccidentsToMap() {
 
-        for (Accident a : mAccidentsManager.getAllNewAccidents()) {
+        List<Accident> newAccidents = AccidentsManager.getInstance().getAllNewAccidents();
 
-            Marker m = mMap.addMarker(new MarkerOptions()
-                    .title(Utility.getAccidentTypeByIndex(a.getSubType(), this))
-                    .snippet(getString(R.string.marker_default_desc))
-                    .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
-                    .position(a.getLocation()));
-
-            // bind marker to accident details
-            m.setData(a);
-            a.setMarkerAddedToMap(true);
-        }
+        for (Accident a : newAccidents)
+            addAccidentToMap(a);
     }
 
     /**
-     * add all the accidents from the list to the map
+     * Add accident marker to map
      *
-     * @param accidentsToAddList List of Accidents objects
+     * @param a Accident to add
      */
-    public void setAccidentsListAndUpdateMap(List<Accident> accidentsToAddList) {
-        int accidentsAddedCounter = mAccidentsManager.addAllAccidents(accidentsToAddList, AccidentsManager.DO_NOT_RESET);
-        if (accidentsAddedCounter > 0) {
-            addAccidentsToMap();
-        }
+    public void addAccidentToMap(Accident a) {
+
+        mMap.addMarker(new MarkerOptions()
+                .title(Utility.getAccidentTypeByIndex(a.getSubType(), this))
+                .snippet(getString(R.string.marker_default_desc))
+                .icon(BitmapDescriptorFactory.fromResource(Utility.getIconForMarker(a.getSeverity(), a.getSubType())))
+                .position(a.getLocation()))
+                .setData(a);
+
+        a.setMarkerAddedToMap(true);
     }
 
     /**
      * zoom map to minimum zoom level for fetching new accident in current location
+     *
      * @param view
      */
     public void moveToMinimalZoomAllowed(View view) {

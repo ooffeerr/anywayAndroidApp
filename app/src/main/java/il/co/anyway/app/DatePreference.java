@@ -19,6 +19,13 @@ public class DatePreference extends DialogPreference {
     private CharSequence mSummary;
     private DatePicker picker = null;
 
+    public DatePreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        setPositiveButtonText("אישור");
+        setNegativeButtonText("ביטול");
+    }
+
     public static int getYear(String dateval) {
         String[] pieces = dateval.split("/");
         return (Integer.parseInt(pieces[2]));
@@ -32,13 +39,6 @@ public class DatePreference extends DialogPreference {
     public static int getDate(String dateval) {
         String[] pieces = dateval.split("/");
         return (Integer.parseInt(pieces[0]));
-    }
-
-    public DatePreference(Context context, AttributeSet attrs) {
-        super(context, attrs);
-
-        setPositiveButtonText("אישור");
-        setNegativeButtonText("ביטול");
     }
 
     //@SuppressLint("NewApi")
@@ -108,6 +108,10 @@ public class DatePreference extends DialogPreference {
         lastDate = getDate(dateValue);
     }
 
+    public String getText() {
+        return dateValue;
+    }
+
     public void setText(String text) {
         final boolean wasBlocking = shouldDisableDependents();
 
@@ -119,10 +123,6 @@ public class DatePreference extends DialogPreference {
         if (isBlocking != wasBlocking) {
             notifyDependencyChange(isBlocking);
         }
-    }
-
-    public String getText() {
-        return dateValue;
     }
 
     public CharSequence getSummary() {

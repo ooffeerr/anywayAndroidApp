@@ -7,23 +7,17 @@ import java.util.Date;
 
 public class Accident {
 
-    @SuppressWarnings("unused")
-    private final String LOG_TAG = Accident.class.getSimpleName();
-
     // accident severity
     public static final int SEVERITY_FATAL = 1; // תאונה קטלנית
     public static final int SEVERITY_SEVERE = 2; // קשה
     public static final int SEVERITY_LIGHT = 3; // קלה
     public static final int SEVERITY_VARIOUS = 4;
-
     // accident subtype
     public static final int ACCIDENT_MULTIPLE = -10;
-
     // set finals for accident subtype
     public static final int ACCIDENT_TYPE_CAR_TO_CAR = -1; // Synthetic type
     public static final int ACCIDENT_TYPE_CAR_TO_OBJECT = -2; // Synthetic type
     public static final int ACCIDENT_TYPE_CAR_TO_PEDESTRIAN = 1;
-
     public static final int ACCIDENT_TYPE_FRONT_TO_SIDE = 2;
     public static final int ACCIDENT_TYPE_FRONT_TO_REAR = 3;
     public static final int ACCIDENT_TYPE_SIDE_TO_SIDE = 4;
@@ -42,10 +36,10 @@ public class Accident {
     public static final int ACCIDENT_TYPE_BACK_TO_SIDE = 18;
     public static final int ACCIDENT_TYPE_WITH_ANIMAL = 19;
     public static final int ACCIDENT_TYPE_WITH_VEHICLE_LOAD = 20;
-
+    @SuppressWarnings("unused")
+    private final String LOG_TAG = Accident.class.getSimpleName();
     // accident fields
     private long id;
-    private long user;
     private String title;
     private String description;
     private int type;
@@ -57,11 +51,10 @@ public class Accident {
     private int locationAccuracy;
     private boolean markerAddedToMap;
 
-    public Accident(long id, long user, String title, String description, int type, int subType, int severity,
+    public Accident(long id, String title, String description, int type, int subType, int severity,
                     Date created, LatLng location, String address, int locationAccuracy) {
 
         this.id = id;
-        this.user = user;
         this.title = title;
         this.description = description;
         this.type = type;
@@ -84,15 +77,6 @@ public class Accident {
 
     public Accident setId(long id) {
         this.id = id;
-        return this;
-    }
-
-    public long getUser() {
-        return user;
-    }
-
-    public Accident setUser(long user) {
-        this.user = user;
         return this;
     }
 
@@ -145,17 +129,17 @@ public class Accident {
         return created;
     }
 
+    public Accident setCreatedDate(Date created) {
+        this.created = created;
+        return this;
+    }
+
     public String getCreatedDateAsString() {
 
         String format = "dd/MM/yyyy";
         SimpleDateFormat dateFormat = new SimpleDateFormat(format);
         return dateFormat.format(created);
 
-    }
-
-    public Accident setCreatedDate(Date created) {
-        this.created = created;
-        return this;
     }
 
     public LatLng getLocation() {
