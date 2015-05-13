@@ -81,7 +81,8 @@ public class Utility {
                 Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
                 Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATOIN_ACCURACY);
                 Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
-                Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
+                //Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
+                int type = 1; // TODO anyway changes 'type' in json to null, which cause throwing exception
                 Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
 
                 // create new Accident object and set parameters
