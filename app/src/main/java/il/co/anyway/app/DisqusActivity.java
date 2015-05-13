@@ -3,6 +3,7 @@ package il.co.anyway.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +12,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -27,6 +29,7 @@ public class DisqusActivity extends ActionBarActivity {
     String mDisqusPostID;
     String mUrl;
     String mTitle;
+    boolean doubleBackToExitPressedOnce;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +39,9 @@ public class DisqusActivity extends ActionBarActivity {
 
         // get the location of the discussion
         Intent intent = getIntent();
+
+        // force double pressing on back key to leave discussion
+        doubleBackToExitPressedOnce = false;
 
         // check if activity accessed from anyway://disqus?id=12-123-12-123
         Uri data = intent.getData();
@@ -134,5 +140,31 @@ public class DisqusActivity extends ActionBarActivity {
         });
 
         mWebView.loadUrl(mUrl);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mWebView.canGoBack()) {
+            mWebView.goBack();
+        } else {
+
+            if (doubleBackToExitPressedOnce) {
+                super.onBackPressed();
+                return;
+            }
+
+            doubleBackToExitPressedOnce = true;
+            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+            new Handler().postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    doubleBackToExitPressedOnce=false;
+                }
+            }, 2000);
+
+            return;
+        }
     }
 }
