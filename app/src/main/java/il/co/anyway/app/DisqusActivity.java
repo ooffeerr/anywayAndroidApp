@@ -19,16 +19,15 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class DisqusActivity extends ActionBarActivity {
 
-    public static final String DISQUS_LOCATION_ID = "il.co.anyway.app.DISQUS_LOCATION";
 
-    private static final String DISQUS_SHORT_NAME = "testforanyway";
-    private static final String BASE_URL = "http://anywaydisqus.azurewebsites.net/";
-    private static final int PRECISION_LEVEL_OF_LOCATION = 6;
+    public static final String DISQUS_LOCATION_ID = "il.co.anyway.app.DISQUS_LOCATION";
+    private final String LOG_TAG = DisqusActivity.class.getSimpleName();
+
+    private static final String BASE_URL = "http://oway.org.il/discussion";
 
     WebView mWebView;
-    String mDisqusPostID;
+    double lat, lng;
     String mUrl;
-    String mTitle;
     boolean doubleBackToExitPressedOnce;
 
     @Override
@@ -43,29 +42,28 @@ public class DisqusActivity extends ActionBarActivity {
         // force double pressing on back key to leave discussion
         doubleBackToExitPressedOnce = false;
 
-        // check if activity accessed from anyway://disqus?id=12-123-12-123
+        // check if activity accessed from anyway://disqus?lat=32.32&lon=35.22
         Uri data = intent.getData();
         if (data == null) {
             // activity accessed from MainActivity, get disqus ID from extra
             LatLng location = (LatLng) intent.getExtras().get(DISQUS_LOCATION_ID);
 
-            // set the id of the discussion
-            // it's the PRECISION_LEVEL_OF_LOCATION numbers of the latitude and then same of the longitude(without the dot)
-            mDisqusPostID = Double.toString(location.latitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-") +
-                    "-" + Double.toString(location.longitude).substring(0, PRECISION_LEVEL_OF_LOCATION).replace(".", "-");
+            lat = location.latitude;
+            lng = location.longitude;
         } else {
-            String id = data.getQueryParameter("id");
-            mDisqusPostID = id != null ? id : "";
+            try {
+                lat = Double.parseDouble(data.getQueryParameter("lat"));
+                lng = Double.parseDouble(data.getQueryParameter("lon"));
+            }
+            catch (NumberFormatException e) {
+                Log.e(LOG_TAG, e.getLocalizedMessage());
+            }
         }
-
-        // TODO - find what the title of the page should be
-        mTitle = mDisqusPostID;
 
         // build url of Disqus
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
-                .appendQueryParameter("diqus_shortname", DISQUS_SHORT_NAME)
-                .appendQueryParameter("disqus_id", mDisqusPostID)
-                .appendQueryParameter("title", mTitle)
+                .appendQueryParameter("lat", Double.toString(lat))
+                .appendQueryParameter("lon", Double.toString(lng))
                 .build();
         mUrl = builtUri.toString();
 
@@ -121,15 +119,21 @@ public class DisqusActivity extends ActionBarActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                if (url.indexOf("logout") > -1 || url.indexOf("disqus.com/next/login-success") > -1) {
+                Log.i(LOG_TAG, url);
+
+                if (url.contains("logout") || url.contains("disqus.com/next/login-success")) {
                     view.loadUrl(mUrl);
 
                 }
-                if (url.indexOf("disqus.com/_ax/twitter/complete") > -1 || url.indexOf("disqus.com/_ax/facebook/complete") > -1 || url.indexOf("disqus.com/_ax/google/complete") > -1) {
-                    view.loadUrl(BASE_URL + "login.php");
+                if (url.contains("disqus.com/_ax/twitter/complete") ||
+                        url.contains("disqus.com/_ax/facebook/complete") ||
+                        url.startsWith("https://disqus.com/_ax/google/complete") ||
+                        url.startsWith("http://disqus.com/_ax/google/complete")) {
+
+                    view.loadUrl(BASE_URL + "/login");
 
                 }
-                if (url.indexOf(BASE_URL + "login.php") > -1) {
+                if (url.contains(BASE_URL + "/login")) {
                     view.loadUrl(mUrl);
                 }
             }
@@ -154,7 +158,7 @@ public class DisqusActivity extends ActionBarActivity {
             }
 
             doubleBackToExitPressedOnce = true;
-            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.press_back_again_to_exit), Toast.LENGTH_SHORT).show();
 
             new Handler().postDelayed(new Runnable() {
 

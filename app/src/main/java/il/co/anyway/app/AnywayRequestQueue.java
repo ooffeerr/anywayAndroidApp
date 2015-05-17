@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 // fetching accidents from Anyway servers
@@ -91,16 +92,22 @@ public class AnywayRequestQueue {
                     @Override
                     public void onResponse(JSONObject response) {
 
-                        List<Accident> fetchedAccidents = Utility.getAccidentDataFromJson(response);
-                        if (fetchedAccidents != null)
-                            AccidentsManager.getInstance().addAllAccidents(fetchedAccidents, AccidentsManager.DO_NOT_RESET);
+                        List<Accident> fetchedAccidents = new ArrayList<>();
+                        List<Discussion> fetchedDiscussion = new ArrayList<>();
+
+                        int fetchStatus = Utility.getAccidentDataFromJson(response, fetchedAccidents, fetchedDiscussion);
+
+                        if (fetchStatus == 0) {
+                            MarkersManager.getInstance().addAllAccidents(fetchedAccidents, MarkersManager.DO_NOT_RESET);
+                            MarkersManager.getInstance().addAllDiscussions(fetchedDiscussion, MarkersManager.DO_NOT_RESET);
+                        }
+
                     }
                 }, new Response.ErrorListener() {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-
+                        Log.e(LOG_TAG, error.getMessage());
                     }
                 });
 

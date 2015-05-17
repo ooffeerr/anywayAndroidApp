@@ -5,29 +5,32 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AccidentsManager {
+public class MarkersManager {
 
     public static final boolean DO_RESET = true;
     public static final boolean DO_NOT_RESET = false;
-    private static AccidentsManager instance = null;
-    private final String LOG_TAG = AccidentsManager.class.getSimpleName();
+    private static MarkersManager instance = null;
+    private final String LOG_TAG = MarkersManager.class.getSimpleName();
+
     private List<Accident> accidentsList;
+    private List<Discussion> discussionList;
     private MainActivity mListenerActivity;
 
     // making the default constructor private make sure there will be only one instance of the accidents manager
-    private AccidentsManager() {
+    private MarkersManager() {
         accidentsList = new ArrayList<>();
+        discussionList = new ArrayList<>();
         mListenerActivity = null;
     }
 
-    public static AccidentsManager getInstance() {
+    public static MarkersManager getInstance() {
         if (instance == null)
-            instance = new AccidentsManager();
+            instance = new MarkersManager();
         return instance;
     }
 
     /**
-     * check if an accident exist in the accident manager
+     * check if an accident exist in the markers manager
      *
      * @param toCheck the Accident object to check
      * @return true if exist, false if not or toCheck is null
@@ -39,6 +42,25 @@ public class AccidentsManager {
 
         for (Accident a : accidentsList)
             if (a.getId() == toCheck.getId()) {
+                return true;
+            }
+
+        return false;
+    }
+
+    /**
+     * check if an discussion exist in the markers manager
+     *
+     * @param toCheck the Discussion object to check
+     * @return true if exist, false if not or toCheck is null
+     */
+    private boolean isDiscussionExist(Discussion toCheck) {
+
+        if (toCheck == null)
+            return false;
+
+        for (Discussion d : discussionList)
+            if (d.getTitle().equals(toCheck.getTitle())) {
                 return true;
             }
 
@@ -60,6 +82,28 @@ public class AccidentsManager {
             accidentsList.add(toAdd);
             if (mListenerActivity != null)
                 mListenerActivity.addAccidentToMap(toAdd);
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Add discussion to the list
+     *
+     * @param toAdd the Discussion object to add
+     * @return true if discussion added, false if discussion already exist, or toAdd is null
+     */
+    public boolean addDiscussion(Discussion toAdd) {
+
+        if (toAdd == null)
+            return false;
+
+        if (!isDiscussionExist(toAdd)) {
+            discussionList.add(toAdd);
+            if (mListenerActivity != null)
+                mListenerActivity.addDiscussionToMap(toAdd);
         } else {
             return false;
         }
@@ -96,10 +140,45 @@ public class AccidentsManager {
     }
 
     /**
+     * Add a list of accidents to the list
+     *
+     * @param toAddList the list of Accident objects
+     * @param reset     use to select if you want to reset the list before adding the new list
+     * @return How many accidents from the list actually taken(duplicate accident will ignore)
+     */
+    public int addAllDiscussions(List<Discussion> toAddList, boolean reset) {
+
+        if (reset)
+            discussionList.clear();
+
+        if (toAddList == null)
+            return 0;
+
+        int counter = 0;
+
+        for (Discussion d : toAddList) {
+            if (addDiscussion(d)) {
+                counter++;
+            }
+        }
+
+
+        Log.i(LOG_TAG, counter + " discussions of " + toAddList.size() + " added");
+        return counter;
+    }
+
+    /**
      * @return the list of all accidents in the list
      */
     public List<Accident> getAllAccidents() {
         return accidentsList;
+    }
+
+    /**
+     * @return the list of all discussions in the list
+     */
+    public List<Discussion> getAllDiscussions() {
+        return discussionList;
     }
 
     /**
@@ -108,8 +187,6 @@ public class AccidentsManager {
      * @return a list of accidents that not on the map
      */
     public List<Accident> getAllNewAccidents() {
-
-        Log.i(LOG_TAG, "getAllNewAccidents Called");
 
         List<Accident> newAccidents = new ArrayList<>();
 
@@ -123,11 +200,32 @@ public class AccidentsManager {
     }
 
     /**
-     * set all accident's marker id to null
+     * Get all the discussions that not on the map
+     *
+     * @return a list of discussions that not on the map
      */
-    public void setAllAccidentAsNotShownOnTheMap() {
+    public List<Discussion> getAllNewDiscussions() {
+
+        List<Discussion> newDiscussions = new ArrayList<>();
+
+        for (Discussion d : discussionList) {
+            if (!d.isMarkerAddedToMap()) {
+                newDiscussions.add(d);
+            }
+        }
+
+        return newDiscussions;
+    }
+
+    /**
+     * set all accidents and discussions marker as not on the map
+     */
+    public void setAllMarkersAsNotShownOnTheMap() {
         for (Accident a : accidentsList)
             a.setMarkerAddedToMap(false);
+
+        for (Discussion d : discussionList)
+            d.setMarkerAddedToMap(false);
     }
 
     public void registerListenerActivity(MainActivity activity) {

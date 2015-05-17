@@ -28,10 +28,16 @@ public class Utility {
      * Parse JSON string to accidents list
      *
      * @param accidentJson JSON object received from Anyway
-     * @return all accidents from json string as List<Accident>
-     * @throws JSONException
+     * @param fetchedAccidents empty List<Accident> that all accidents will be added to
+     * @param fetchedDiscussions empty List<Discussion> that all discussion will be added to
+     * @return 0 for ok status, -1 for error in list, -2 for error in JSON
      */
-    public static List<Accident> getAccidentDataFromJson(JSONObject accidentJson) {
+    public static int getAccidentDataFromJson(JSONObject accidentJson,
+                                                         List<Accident> fetchedAccidents,
+                                                         List<Discussion> fetchedDiscussions) {
+
+        if (fetchedAccidents == null || fetchedDiscussions == null)
+            return -1;
 
         // These are the names of the JSON objects that need to be extracted.
         final String ACCIDENT_LIST = "markers";
@@ -42,7 +48,7 @@ public class Utility {
         final String ACCIDENT_ID = "id";
         final String ACCIDENT_LATITUDE = "latitude";
         final String ACCIDENT_LONGITUDE = "longitude";
-        final String ACCIDENT_LOCATOIN_ACCURACY = "locationAccuracy";
+        final String ACCIDENT_LOCATION_ACCURACY = "locationAccuracy";
         final String ACCIDENT_SEVERITY = "severity";
         final String ACCIDENT_TYPE = "type";
         final String ACCIDENT_SUBTYPE = "subtype";
@@ -52,17 +58,27 @@ public class Utility {
         try {
             accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
         } catch (JSONException e) {
-            return null;
+            return -2;
         }
 
-        List<Accident> resultList = new ArrayList<>();
         for (int i = 0; i < accidentsArray.length(); i++) {
 
             try {
-                // Get the JSON object representing accident
+                // Get the JSON object representing accident/discussion
                 JSONObject accidentDetails = accidentsArray.getJSONObject(i);
 
+                // check if array object is Accident or Discussion
+                int type;
+                try {
+                    type = accidentDetails.getInt(ACCIDENT_TYPE);
+                }
+                catch (JSONException e) {
+                    // TODO due to a temporary error Accident type is 'null' instead of 1
+                    type = 1;
+                }
+
                 // Date comes as 2013-12-30T21:00:00, needs to be converted
+                // 'created' also exist for Accident and Discussion
                 String created = accidentDetails.getString(ACCIDENT_CREATED);
                 Date createdDate = new Date();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -72,41 +88,62 @@ public class Utility {
                     Log.e(LOG_TAG, e.getMessage());
                 }
 
-                // get accident details from json
-                String address = accidentDetails.getString(ACCIDENT_ADDRESS);
-                String desc = accidentDetails.getString(ACCIDENT_DESC);
-                String title = accidentDetails.getString(ACCIDENT_TITLE);
-                Long id = accidentDetails.getLong(ACCIDENT_ID);
-                Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
-                Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
-                Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATOIN_ACCURACY);
-                Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
-                //Integer type = accidentDetails.getInt(ACCIDENT_TYPE);
-                int type = 1; // TODO anyway changes 'type' in json to null, which cause throwing exception
-                Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
+                // Accident
+                if (type == 1) {
 
-                // create new Accident object and set parameters
-                Accident acc = new Accident()
-                        .setId(id)
-                        .setTitle(title)
-                        .setDescription(desc)
-                        .setType(type)
-                        .setSubType(subtype)
-                        .setSeverity(severity)
-                        .setCreatedDate(createdDate)
-                        .setLocation(new LatLng(lat, lng))
-                        .setAddress(address)
-                        .setLocationAccuracy(accuracy);
+                    // get accident details from json
+                    String address = accidentDetails.getString(ACCIDENT_ADDRESS);
+                    String desc = accidentDetails.getString(ACCIDENT_DESC);
+                    String title = accidentDetails.getString(ACCIDENT_TITLE);
+                    Long id = accidentDetails.getLong(ACCIDENT_ID);
+                    Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
+                    Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
+                    Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATION_ACCURACY);
+                    Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
+                    Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
 
-                resultList.add(acc);
+                    // create new Accident object and set parameters
+                    Accident acc = new Accident()
+                            .setId(id)
+                            .setTitle(title)
+                            .setDescription(desc)
+                            .setType(type)
+                            .setSubType(subtype)
+                            .setSeverity(severity)
+                            .setCreatedDate(createdDate)
+                            .setLocation(new LatLng(lat, lng))
+                            .setAddress(address)
+                            .setLocationAccuracy(accuracy);
 
+                    fetchedAccidents.add(acc);
+                }
+                // Discussion
+                else if (type == 2) {
+
+                    // get discussion details from json
+                    Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
+                    Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
+                    Long id = accidentDetails.getLong(ACCIDENT_ID);
+                    String title = accidentDetails.getString(ACCIDENT_TITLE);
+
+                    // create new Discussion object and set parameters
+                    Discussion discussion = new Discussion()
+                            .setId(id)
+                            .setTitle(title)
+                            .setLocation(new LatLng(lat, lng))
+                            .setCreated(createdDate)
+                            .setType(type);
+
+                    fetchedDiscussions.add(discussion);
+
+                }
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getLocalizedMessage());
             }
 
         }
 
-        return resultList;
+        return 0;
     }
 
     /**

@@ -65,7 +65,7 @@ public class MainActivity extends ActionBarActivity
     private static final int START_ZOOM_LEVEL = 8;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
-    @SuppressWarnings("unused")
+
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
     private FragmentManager fm;
@@ -98,7 +98,7 @@ public class MainActivity extends ActionBarActivity
                     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
                         // reset accident manager
-                        AccidentsManager.getInstance().addAllAccidents(null, AccidentsManager.DO_RESET);
+                        MarkersManager.getInstance().addAllAccidents(null, MarkersManager.DO_RESET);
                         mMap.clear();
                         getAccidentsFromServer();
 
@@ -126,14 +126,14 @@ public class MainActivity extends ActionBarActivity
         // check if app opened by a link to specific location, if so - move to that location
         getDataFromSharedURL();
 
-        AccidentsManager.getInstance().registerListenerActivity(this);
+        MarkersManager.getInstance().registerListenerActivity(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
 
-        AccidentsManager.getInstance().unregisterListenerActivity();
+        MarkersManager.getInstance().unregisterListenerActivity();
     }
 
     private void setUpMapIfNeeded() {
@@ -193,9 +193,9 @@ public class MainActivity extends ActionBarActivity
         mMap.setOnMarkerClickListener(this);
 
         // accident manager is static, so me need to make sure the markers of accident re-added to the map
-        AccidentsManager.getInstance().setAllAccidentAsNotShownOnTheMap();
+        MarkersManager.getInstance().setAllMarkersAsNotShownOnTheMap();
         mMap.clear();
-        addAccidentsToMap();
+        addMarkersToMap();
     }
 
     @Override
@@ -266,6 +266,14 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+
+        if (marker.getData() instanceof Discussion) {
+            Intent disqusIntent = new Intent(this, DisqusActivity.class);
+            disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, ((Discussion) marker.getData()).getLocation());
+            startActivity(disqusIntent);
+            return true;
+        }
+
         /*
         if the marker is cluster zoom-in automatically to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1
         returning 'true' means no need to further handling, 'false' will cause InfoWindow to appear
@@ -612,14 +620,19 @@ public class MainActivity extends ActionBarActivity
     }
 
     /**
-     * get all accidents that is not on the map from AccidentManager and add them to map
+     * get all accidents and discussions that is not on the map from MarkersManager and add them to map
      */
-    public void addAccidentsToMap() {
+    public void addMarkersToMap() {
 
-        List<Accident> newAccidents = AccidentsManager.getInstance().getAllNewAccidents();
-
+        // add new accidents
+        List<Accident> newAccidents = MarkersManager.getInstance().getAllNewAccidents();
         for (Accident a : newAccidents)
             addAccidentToMap(a);
+
+        // add new discussions
+        List<Discussion> newDiscussions = MarkersManager.getInstance().getAllNewDiscussions();
+        for (Discussion d : newDiscussions)
+            addDiscussionToMap(d);
     }
 
     /**
@@ -637,6 +650,25 @@ public class MainActivity extends ActionBarActivity
                 .setData(a);
 
         a.setMarkerAddedToMap(true);
+    }
+
+    /**
+     * Add Discussion marker to map
+     *
+     * @param d Discussion to add
+     */
+    public void addDiscussionToMap(Discussion d) {
+
+        // TODO decide cluster group
+
+        Marker m = mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.discussion))
+                .position(d.getLocation()));
+
+        m.setData(d);
+        m.setClusterGroup(ClusterGroup.NOT_CLUSTERED);
+
+        d.setMarkerAddedToMap(true);
     }
 
     /**
