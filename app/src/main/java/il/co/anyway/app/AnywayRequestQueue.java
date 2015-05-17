@@ -24,7 +24,7 @@ import java.util.List;
 // fetching accidents from Anyway servers
 public class AnywayRequestQueue {
 
-    public final static String ANYWAY_BASE_URL = "http://www.anyway.co.il/";
+    public final static String ANYWAY_BASE_URL = "http://oway.org.il/";
     public final static String ANYWAY_MARKERS_BASE_URL = ANYWAY_BASE_URL + "markers?";
     private final static String LOG_TAG = AnywayRequestQueue.class.getSimpleName();
     private static AnywayRequestQueue instance = null;
