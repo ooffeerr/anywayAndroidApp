@@ -1,5 +1,6 @@
 package il.co.anyway.app;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -29,14 +30,11 @@ public class AnywayRequestQueue {
     private final static String LOG_TAG = AnywayRequestQueue.class.getSimpleName();
     private static AnywayRequestQueue instance = null;
     RequestQueue mRequestQueue;
-    private MainActivity callingActivity;
 
-    private AnywayRequestQueue(MainActivity mainActivity) {
-
-        callingActivity = mainActivity;
+    private AnywayRequestQueue(Context context) {
 
         // Instantiate the cache
-        Cache cache = new DiskBasedCache(callingActivity.getCacheDir(), 1024 * 1024 * 2); // 2MB cap
+        Cache cache = new DiskBasedCache(context.getCacheDir(), 1024 * 1024 * 2); // 2MB cap
 
         // Set up the network to use HttpURLConnection as the HTTP client.
         Network network = new BasicNetwork(new HurlStack());
@@ -48,9 +46,9 @@ public class AnywayRequestQueue {
         mRequestQueue.start();
     }
 
-    public static AnywayRequestQueue getInstance(MainActivity activity) {
+    public static AnywayRequestQueue getInstance(Context context) {
         if (instance == null)
-            instance = new AnywayRequestQueue(activity);
+            instance = new AnywayRequestQueue(context);
         return instance;
     }
 

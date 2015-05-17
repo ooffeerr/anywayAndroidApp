@@ -151,24 +151,24 @@ public class Utility {
      *
      * @param bounds          map bounds
      * @param zoomLevel       map zoom level
-     * @param callingActivity the calling activity(will get updates when pulling data from server end)
+     * @param context activity context
      */
-    public static void getAccidentsByParameters(LatLngBounds bounds, int zoomLevel, MainActivity callingActivity) {
+    public static void getAccidentsByParameters(LatLngBounds bounds, int zoomLevel, Context context) {
 
-        if (bounds == null || callingActivity == null)
+        if (bounds == null || context == null)
             return;
 
-        AnywayRequestQueue requestQueue = AnywayRequestQueue.getInstance(callingActivity);
+        AnywayRequestQueue requestQueue = AnywayRequestQueue.getInstance(context);
 
         // Get preferences form SharedPreferences
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        Boolean show_fatal = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_fatal_key), true);
-        Boolean show_severe = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_severe_key), true);
-        Boolean show_light = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_light_key), true);
-        Boolean show_inaccurate = sharedPrefs.getBoolean(callingActivity.getString(R.string.pref_accidents_inaccurate_key), false);
-        String fromDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_from_date_key), callingActivity.getString(R.string.pref_default_from_date));
-        String toDate = sharedPrefs.getString(callingActivity.getString(R.string.pref_to_date_key), callingActivity.getString(R.string.pref_default_to_date));
+        Boolean show_fatal = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_fatal_key), true);
+        Boolean show_severe = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_severe_key), true);
+        Boolean show_light = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_light_key), true);
+        Boolean show_inaccurate = sharedPrefs.getBoolean(context.getString(R.string.pref_accidents_inaccurate_key), false);
+        String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
+        String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
 
         requestQueue.addRequest(
                 bounds.northeast.latitude,
