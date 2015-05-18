@@ -21,9 +21,9 @@ import java.util.List;
 
 public class AnywayClusterOptionsProvider implements ClusterOptionsProvider {
 
-    private static final int[] res = {R.drawable.m1, R.drawable.m2, R.drawable.m3, R.drawable.m4, R.drawable.m5};
+    private static final int[] res = {R.drawable.m1, R.drawable.m2, R.drawable.m3, R.drawable.m4};
 
-    private static final int[] forCounts = {10, 100, 1000, 10000, Integer.MAX_VALUE};
+    private static final int[] forCounts = {10, 100, 1000, Integer.MAX_VALUE};
 
     private Bitmap[] baseBitmaps;
     private LruCache<Integer, BitmapDescriptor> cache = new LruCache<Integer, BitmapDescriptor>(128);
@@ -38,7 +38,7 @@ public class AnywayClusterOptionsProvider implements ClusterOptionsProvider {
         for (int i = 0; i < res.length; i++) {
             baseBitmaps[i] = BitmapFactory.decodeResource(resources, res[i]);
         }
-        paint.setColor(Color.WHITE);
+        paint.setColor(Color.BLACK);
         paint.setTextAlign(Align.CENTER);
         paint.setTextSize(resources.getDimension(R.dimen.cluster_text_size));
     }

@@ -2,6 +2,13 @@ package il.co.anyway.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -26,17 +33,66 @@ public class Utility {
 
     private static final String LOG_TAG = Utility.class.getSimpleName();
 
+    public static int getClusterImageByCountOfAccidents(int count) {
+
+        final int[] res = {R.drawable.m1, R.drawable.m2, R.drawable.m3, R.drawable.m4};
+
+        final int[] forCounts = {10, 100, 1000, Integer.MAX_VALUE};
+
+        int markerIcon;
+        int i = 0;
+        do {
+            markerIcon = res[i];
+        } while (count >= forCounts[i++]);
+
+        return markerIcon;
+    }
+
+    public static Bitmap drawTextToBitmap(Context gContext, int gResId, String gText) {
+
+        Resources resources = gContext.getResources();
+        float scale = resources.getDisplayMetrics().density;
+        Bitmap bitmap = BitmapFactory.decodeResource(resources, gResId);
+
+        android.graphics.Bitmap.Config bitmapConfig = bitmap.getConfig();
+
+        // set default bitmap config if none
+        if (bitmapConfig == null)
+            bitmapConfig = android.graphics.Bitmap.Config.ARGB_8888;
+
+        // resource bitmaps are imutable,
+        // so we need to convert it to mutable one
+        bitmap = bitmap.copy(bitmapConfig, true);
+
+        Canvas canvas = new Canvas(bitmap);
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(Color.BLACK);
+        paint.setTextSize((int) (13 * scale)); // text size in pixels
+        paint.setShadowLayer(1f, 0f, 1f, Color.WHITE); // text shadow
+
+        // draw text to the Canvas center
+        Rect bounds = new Rect();
+        paint.getTextBounds(gText, 0, gText.length(), bounds);
+        int x = (bitmap.getWidth() - bounds.width()) / 2;
+        int y = (bitmap.getHeight() + bounds.height()) / 2;
+
+        canvas.drawText(gText, x, y, paint);
+
+        return bitmap;
+    }
+
     /**
      * Parse JSON string to accidents list
      *
-     * @param accidentJson JSON object received from Anyway
-     * @param fetchedAccidents empty List<Accident> that all accidents will be added to
+     * @param accidentJson       JSON object received from Anyway
+     * @param fetchedAccidents   empty List<Accident> that all accidents will be added to
      * @param fetchedDiscussions empty List<Discussion> that all discussion will be added to
      * @return 0 for ok status, -1 for error in list, -2 for error in JSON
      */
     public static int getAccidentDataFromJson(JSONObject accidentJson,
-                                                         List<Accident> fetchedAccidents,
-                                                         List<Discussion> fetchedDiscussions) {
+                                              List<Accident> fetchedAccidents,
+                                              List<Discussion> fetchedDiscussions) {
 
         if (fetchedAccidents == null || fetchedDiscussions == null)
             return -1;
@@ -73,8 +129,7 @@ public class Utility {
                 int type;
                 try {
                     type = accidentDetails.getInt(ACCIDENT_TYPE);
-                }
-                catch (JSONException e) {
+                } catch (JSONException e) {
                     // TODO due to a temporary error Accident type is 'null' instead of 1
                     type = 1;
                 }
@@ -151,11 +206,11 @@ public class Utility {
     /**
      * set all the variables needed for pulling accident data from Anyway API
      *
-     * @param bounds          map bounds
-     * @param zoomLevel       map zoom level
-     * @param context activity context
+     * @param bounds    map bounds
+     * @param zoomLevel map zoom level
+     * @param context   activity context
      */
-    public static void getAccidentsByParameters(LatLngBounds bounds, int zoomLevel, Context context) {
+    public static void getMarkersByParameters(LatLngBounds bounds, int zoomLevel, Context context) {
 
         if (bounds == null || context == null)
             return;
@@ -207,7 +262,7 @@ public class Utility {
      * @param dateStr Date as String, in dd/MM/yyyy format
      * @return TimeStamp, formatted to Anyway API requirements or empty String if date is in the wrong format
      */
-    private static String getTimeStamp(String dateStr) {
+    public static String getTimeStamp(String dateStr) {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         Date date = null;

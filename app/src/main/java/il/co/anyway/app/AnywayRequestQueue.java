@@ -108,7 +108,7 @@ public class AnywayRequestQueue {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e(LOG_TAG, error.getMessage());
+                        Log.e(LOG_TAG, error.toString());
                     }
                 });
 

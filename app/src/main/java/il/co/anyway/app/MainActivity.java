@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Locale;
 
 import il.co.anyway.app.models.Accident;
+import il.co.anyway.app.models.AccidentCluster;
 import il.co.anyway.app.models.Discussion;
 
 public class MainActivity extends ActionBarActivity
@@ -64,8 +65,8 @@ public class MainActivity extends ActionBarActivity
         OnMapLoadedCallback,
         OnMarkerClickListener {
 
-    private static final LatLng START_LOCATION = new LatLng(32.086753, 34.789822);
-    private static final int START_ZOOM_LEVEL = 8;
+    private static final LatLng START_LOCATION = new LatLng(31.774511, 35.011642);
+    private static final int START_ZOOM_LEVEL = 7;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
     private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
 
@@ -75,6 +76,9 @@ public class MainActivity extends ActionBarActivity
     private SupportMapFragment mapFragment;
     private LocationManager mLocationManager;
     private boolean mFirstRun;
+    private boolean mMapIsInClusterMode;
+
+    private List<AccidentCluster> mLastAccidentsClusters = null;
 
     private SharedPreferences.OnSharedPreferenceChangeListener mSharedPrefListener;
 
@@ -82,6 +86,9 @@ public class MainActivity extends ActionBarActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // map start zoomed in
+        mMapIsInClusterMode = false;
 
         // find out if this is the first instance of the activity
         mFirstRun = (savedInstanceState == null);
@@ -103,7 +110,7 @@ public class MainActivity extends ActionBarActivity
                         // reset accident manager
                         MarkersManager.getInstance().addAllAccidents(null, MarkersManager.DO_RESET);
                         mMap.clear();
-                        getAccidentsFromServer();
+                        getMarkersFromServer();
 
                     }
                 };
@@ -198,7 +205,10 @@ public class MainActivity extends ActionBarActivity
         // accident manager is static, so me need to make sure the markers of accident re-added to the map
         MarkersManager.getInstance().setAllMarkersAsNotShownOnTheMap();
         mMap.clear();
+
+        // call both markers and clusters, only one of them will run, the other return
         addMarkersToMap();
+        addClustersToMap(mLastAccidentsClusters);
     }
 
     @Override
@@ -213,10 +223,6 @@ public class MainActivity extends ActionBarActivity
 
             if (myLocation != null)
                 setMapToLocation(myLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
-
-            // TODO after multi scale available cancel auto zoom
-            if (myLocation == null)
-                setMapToLocation(START_LOCATION, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
             mFirstRun = false;
         }
@@ -270,6 +276,8 @@ public class MainActivity extends ActionBarActivity
     @Override
     public boolean onMarkerClick(Marker marker) {
 
+        int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
+
         if (marker.getData() instanceof Discussion) {
             Intent disqusIntent = new Intent(this, DisqusActivity.class);
             disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, ((Discussion) marker.getData()).getLocation());
@@ -277,11 +285,16 @@ public class MainActivity extends ActionBarActivity
             return true;
         }
 
+        // zoom in one level when clicking on AccidentCluster marker
+        if (marker.getData() instanceof AccidentCluster) {
+            setMapToLocation(marker.getPosition(), currentZoomLevel + 1, true);
+            return true;
+        }
+
         /*
         if the marker is cluster zoom-in automatically to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1
         returning 'true' means no need to further handling, 'false' will cause InfoWindow to appear
         */
-        int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
         if (marker.isCluster()) {
             if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1) {
                 setMapToLocation(marker.getPosition(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1, true);
@@ -346,7 +359,7 @@ public class MainActivity extends ActionBarActivity
     /**
      * Show accident details in dialog
      *
-     * @param a
+     * @param a Accident to show
      */
     private void showAccidentDetailsInDialog(Accident a) {
         Bundle args = new Bundle();
@@ -376,16 +389,24 @@ public class MainActivity extends ActionBarActivity
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
 
-        TextView tv = (TextView) findViewById(R.id.textViewZoomIn);
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
-        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS) {
-            if (tv != null)
-                tv.setVisibility(View.VISIBLE);
-        } else {
-            if (tv != null)
-                tv.setVisibility(View.GONE);
-            getAccidentsFromServer();
+
+        if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS && !mMapIsInClusterMode) {
+
+            mMapIsInClusterMode = true;
+            mMap.clear();
+            MarkersManager.getInstance().setAllMarkersAsNotShownOnTheMap();
+
+        } else if (zoomLevel >= MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS && mMapIsInClusterMode) {
+
+            mMapIsInClusterMode = false;
+            mLastAccidentsClusters = null;
+            mMap.clear();
+            addMarkersToMap();
+
         }
+
+        getMarkersFromServer();
     }
 
     @Override
@@ -414,8 +435,8 @@ public class MainActivity extends ActionBarActivity
             String end_date_str = data.getQueryParameter("end_date");
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date start_date = null;
-            Date end_date = null;
+            Date start_date;
+            Date end_date;
 
             int show_fatal, show_severe, show_light, show_inaccurate, zoom;
             double latitude, longitude;
@@ -447,15 +468,15 @@ public class MainActivity extends ActionBarActivity
     /**
      * Save all parameters to SharedPreferences and move to lat,lng specified
      *
-     * @param start_date
-     * @param end_date
-     * @param show_fatal
-     * @param show_severe
-     * @param show_light
-     * @param show_inaccurate
-     * @param zoom
-     * @param latitude
-     * @param longitude
+     * @param start_date      start date
+     * @param end_date        end date
+     * @param show_fatal      show fatal accidents
+     * @param show_severe     show severe accidents
+     * @param show_light      show light accidents
+     * @param show_inaccurate show inaccurate location accidents
+     * @param zoom            zoom level
+     * @param latitude        latitude to move to
+     * @param longitude       longitude to move to
      */
     private void setSettingsAndMoveToLocation(Date start_date, Date end_date,
                                               int show_fatal, int show_severe, int show_light, int show_inaccurate,
@@ -615,17 +636,56 @@ public class MainActivity extends ActionBarActivity
     /**
      * get parameters and start fetching accidents for current view and settings
      */
-    private void getAccidentsFromServer() {
+    private void getMarkersFromServer() {
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
         int zoomLevel = (int) mMap.getCameraPosition().zoom;
+
+        // fetch accidents from anyway or fetch from cluster decided by zoom level
         if (zoomLevel >= MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS)
-            Utility.getAccidentsByParameters(bounds, zoomLevel, this);
+            Utility.getMarkersByParameters(bounds, zoomLevel, this);
+        else
+            new FetchClusteredAccidents(bounds, zoomLevel, this);
+    }
+
+    public void addClustersToMap(List<AccidentCluster> accidentClusterList) {
+
+        if (accidentClusterList == null)
+            return;
+
+        if (!mMapIsInClusterMode)
+            return;
+
+        mMap.clear();
+        for (AccidentCluster ac : accidentClusterList) {
+
+            // add cluster marker to map
+            Marker m = mMap.addMarker(new MarkerOptions()
+                            .anchor(0.5f, 0.5f)
+                            .position(ac.getLocation())
+                            .icon(BitmapDescriptorFactory.fromBitmap(
+                                            Utility.drawTextToBitmap(this,
+                                                    Utility.getClusterImageByCountOfAccidents(ac.getCount()),
+                                                    Integer.toString(ac.getCount())
+                                            )
+                                    )
+                            )
+            );
+
+            m.setClusterGroup(ClusterGroup.NOT_CLUSTERED);
+            m.setData(ac);
+
+        }
+
+        mLastAccidentsClusters = accidentClusterList;
     }
 
     /**
      * get all accidents and discussions that is not on the map from MarkersManager and add them to map
      */
     public void addMarkersToMap() {
+
+        if (mMapIsInClusterMode)
+            return;
 
         // add new accidents
         List<Accident> newAccidents = MarkersManager.getInstance().getAllNewAccidents();
@@ -645,6 +705,10 @@ public class MainActivity extends ActionBarActivity
      */
     public void addAccidentToMap(Accident a) {
 
+        // if map is in cluster mode, do not add accident marker
+        if (mMapIsInClusterMode)
+            return;
+
         mMap.addMarker(new MarkerOptions()
                 .title(Utility.getAccidentTypeByIndex(a.getSubType(), this))
                 .snippet(getString(R.string.marker_default_desc))
@@ -662,6 +726,10 @@ public class MainActivity extends ActionBarActivity
      */
     public void addDiscussionToMap(Discussion d) {
 
+        // if map is in cluster mode, do not add discussion marker
+        if (mMapIsInClusterMode)
+            return;
+
         // TODO decide cluster group
 
         Marker m = mMap.addMarker(new MarkerOptions()
@@ -672,15 +740,6 @@ public class MainActivity extends ActionBarActivity
         m.setClusterGroup(ClusterGroup.NOT_CLUSTERED);
 
         d.setMarkerAddedToMap(true);
-    }
-
-    /**
-     * zoom map to minimum zoom level for fetching new accident in current location
-     *
-     * @param view
-     */
-    public void moveToMinimalZoomAllowed(View view) {
-        setMapToLocation(mMap.getCameraPosition().target, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
     }
 
     private void showAboutInfoDialog() {
