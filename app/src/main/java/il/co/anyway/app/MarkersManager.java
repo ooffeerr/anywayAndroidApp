@@ -5,6 +5,9 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
+import il.co.anyway.app.models.Accident;
+import il.co.anyway.app.models.Discussion;
+
 public class MarkersManager {
 
     public static final boolean DO_RESET = true;

@@ -5,6 +5,8 @@ import android.test.AndroidTestCase;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import il.co.anyway.app.models.Accident;
+
 public class accidentTest extends AndroidTestCase {
     @SuppressWarnings("unused")
     public static final String LOG_TAG = accidentTest.class.getSimpleName();

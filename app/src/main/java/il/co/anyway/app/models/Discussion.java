@@ -1,4 +1,4 @@
-package il.co.anyway.app;
+package il.co.anyway.app.models;
 
 import com.google.android.gms.maps.model.LatLng;
 

@@ -8,6 +8,8 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.List;
 
+import il.co.anyway.app.models.Accident;
+
 public class utilityTest extends AndroidTestCase {
 
     @SuppressWarnings("unused")

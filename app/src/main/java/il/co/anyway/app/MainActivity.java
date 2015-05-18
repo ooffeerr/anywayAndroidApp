@@ -51,6 +51,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import il.co.anyway.app.models.Accident;
+import il.co.anyway.app.models.Discussion;
+
 public class MainActivity extends ActionBarActivity
         implements
         OnInfoWindowClickListener,

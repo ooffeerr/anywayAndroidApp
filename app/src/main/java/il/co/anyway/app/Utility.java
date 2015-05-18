@@ -16,9 +16,11 @@ import org.json.JSONObject;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import il.co.anyway.app.models.Accident;
+import il.co.anyway.app.models.Discussion;
 
 public class Utility {
 

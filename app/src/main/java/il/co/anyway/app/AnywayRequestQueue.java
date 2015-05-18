@@ -22,6 +22,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import il.co.anyway.app.models.Accident;
+import il.co.anyway.app.models.Discussion;
+
 // fetching accidents from Anyway servers
 public class AnywayRequestQueue {
 

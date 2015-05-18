@@ -11,6 +11,8 @@ import android.widget.TextView;
 import com.androidmapsextensions.GoogleMap.InfoWindowAdapter;
 import com.androidmapsextensions.Marker;
 
+import il.co.anyway.app.models.Accident;
+
 class MarkerInfoWindowAdapter implements InfoWindowAdapter {
 
     @SuppressWarnings("unused")
