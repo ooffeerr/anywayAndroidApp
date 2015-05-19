@@ -100,17 +100,22 @@ public class Utility {
         // These are the names of the JSON objects that need to be extracted.
         final String ACCIDENT_LIST = "markers";
 
+        // AD = Accident and discussion parameters
+        final String AD_CREATED = "created";
+        final String AD_ID = "id";
+        final String AD_LATITUDE = "latitude";
+        final String AD_LONGITUDE = "longitude";
+        final String AD_TITLE = "title";
+
+        final String DISCUSSION_IDENTIFIER = "identifier";
+
         final String ACCIDENT_ADDRESS = "address";
-        final String ACCIDENT_CREATED = "created";
         final String ACCIDENT_DESC = "description";
-        final String ACCIDENT_ID = "id";
-        final String ACCIDENT_LATITUDE = "latitude";
-        final String ACCIDENT_LONGITUDE = "longitude";
         final String ACCIDENT_LOCATION_ACCURACY = "locationAccuracy";
         final String ACCIDENT_SEVERITY = "severity";
         final String ACCIDENT_TYPE = "type";
         final String ACCIDENT_SUBTYPE = "subtype";
-        final String ACCIDENT_TITLE = "title";
+
 
         JSONArray accidentsArray;
         try {
@@ -134,9 +139,10 @@ public class Utility {
                     type = 1;
                 }
 
+                // get parameters shared between both accident and discussions
+
                 // Date comes as 2013-12-30T21:00:00, needs to be converted
-                // 'created' also exist for Accident and Discussion
-                String created = accidentDetails.getString(ACCIDENT_CREATED);
+                String created = accidentDetails.getString(AD_CREATED);
                 Date createdDate = new Date();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                 try {
@@ -145,16 +151,17 @@ public class Utility {
                     Log.e(LOG_TAG, e.getMessage());
                 }
 
+                Double lat = accidentDetails.getDouble(AD_LATITUDE);
+                Double lng = accidentDetails.getDouble(AD_LONGITUDE);
+                Long id = accidentDetails.getLong(AD_ID);
+                String title = accidentDetails.getString(AD_TITLE);
+
                 // Accident
                 if (type == 1) {
 
                     // get accident details from json
                     String address = accidentDetails.getString(ACCIDENT_ADDRESS);
                     String desc = accidentDetails.getString(ACCIDENT_DESC);
-                    String title = accidentDetails.getString(ACCIDENT_TITLE);
-                    Long id = accidentDetails.getLong(ACCIDENT_ID);
-                    Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
-                    Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
                     Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATION_ACCURACY);
                     Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
                     Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
@@ -178,10 +185,7 @@ public class Utility {
                 else if (type == 2) {
 
                     // get discussion details from json
-                    Double lat = accidentDetails.getDouble(ACCIDENT_LATITUDE);
-                    Double lng = accidentDetails.getDouble(ACCIDENT_LONGITUDE);
-                    Long id = accidentDetails.getLong(ACCIDENT_ID);
-                    String title = accidentDetails.getString(ACCIDENT_TITLE);
+                    String identifier = accidentDetails.getString(DISCUSSION_IDENTIFIER);
 
                     // create new Discussion object and set parameters
                     Discussion discussion = new Discussion()
@@ -189,7 +193,8 @@ public class Utility {
                             .setTitle(title)
                             .setLocation(new LatLng(lat, lng))
                             .setCreated(createdDate)
-                            .setType(type);
+                            .setType(type)
+                            .setIdentifier(identifier);
 
                     fetchedDiscussions.add(discussion);
 

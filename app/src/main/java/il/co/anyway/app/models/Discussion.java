@@ -11,6 +11,8 @@ public class Discussion {
     private long id;
     private Date created;
     private String title;
+    private String identifier;
+
     private boolean markerAddedToMap;
 
     public Discussion() {
@@ -23,6 +25,15 @@ public class Discussion {
 
     public Discussion setMarkerAddedToMap(boolean markerAddedToMap) {
         this.markerAddedToMap = markerAddedToMap;
+        return this;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public Discussion setIdentifier(String identifier) {
+        this.identifier = identifier;
         return this;
     }
 

@@ -280,7 +280,7 @@ public class MainActivity extends ActionBarActivity
 
         if (marker.getData() instanceof Discussion) {
             Intent disqusIntent = new Intent(this, DisqusActivity.class);
-            disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, ((Discussion) marker.getData()).getLocation());
+            disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, ((Discussion) marker.getData()).getIdentifier());
             startActivity(disqusIntent);
             return true;
         }

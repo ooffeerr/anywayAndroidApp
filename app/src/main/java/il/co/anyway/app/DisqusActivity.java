@@ -20,13 +20,13 @@ import com.google.android.gms.maps.model.LatLng;
 public class DisqusActivity extends ActionBarActivity {
 
 
-    public static final String DISQUS_LOCATION_ID = "il.co.anyway.app.DISQUS_LOCATION";
+    public static final String DISQUS_TALK_IDENTIFIER = "il.co.anyway.app.DISQUS_TALK_IDENTIFIER";
     private final String LOG_TAG = DisqusActivity.class.getSimpleName();
 
     private static final String BASE_URL = "http://oway.org.il/discussion";
 
     WebView mWebView;
-    double lat, lng;
+    String mIdentifier;
     String mUrl;
     boolean doubleBackToExitPressedOnce;
 
@@ -42,28 +42,19 @@ public class DisqusActivity extends ActionBarActivity {
         // force double pressing on back key to leave discussion
         doubleBackToExitPressedOnce = false;
 
-        // check if activity accessed from anyway://disqus?lat=32.32&lon=35.22
+        // check if activity accessed from anyway://disqus?identifier=x
         Uri data = intent.getData();
         if (data == null) {
             // activity accessed from MainActivity, get disqus ID from extra
-            LatLng location = (LatLng) intent.getExtras().get(DISQUS_LOCATION_ID);
+            mIdentifier = (String) intent.getExtras().get(DISQUS_TALK_IDENTIFIER);
 
-            lat = location.latitude;
-            lng = location.longitude;
         } else {
-            try {
-                lat = Double.parseDouble(data.getQueryParameter("lat"));
-                lng = Double.parseDouble(data.getQueryParameter("lon"));
-            }
-            catch (NumberFormatException e) {
-                Log.e(LOG_TAG, e.getLocalizedMessage());
-            }
+            mIdentifier = data.getQueryParameter("identifier");
         }
 
         // build url of Disqus
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
-                .appendQueryParameter("lat", Double.toString(lat))
-                .appendQueryParameter("lon", Double.toString(lng))
+                .appendQueryParameter("identifier", mIdentifier)
                 .build();
         mUrl = builtUri.toString();
 
