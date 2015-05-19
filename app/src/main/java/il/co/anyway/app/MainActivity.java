@@ -287,7 +287,23 @@ public class MainActivity extends ActionBarActivity
 
         // zoom in one level when clicking on AccidentCluster marker
         if (marker.getData() instanceof AccidentCluster) {
-            setMapToLocation(marker.getPosition(), currentZoomLevel + 1, true);
+
+            int requiredZoomLevel = currentZoomLevel + 2;
+
+            AccidentCluster accidentCluster = marker.getData();
+            switch(accidentCluster.getCount()) {
+                case 1:
+                    requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 2;
+                    break;
+                case 2:
+                    requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1;
+                    break;
+                case 3:
+                    requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS;
+            }
+
+            setMapToLocation(marker.getPosition(), requiredZoomLevel, true);
+
             return true;
         }
 
