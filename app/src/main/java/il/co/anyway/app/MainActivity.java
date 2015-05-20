@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.AccidentCluster;
 import il.co.anyway.app.models.Discussion;
@@ -398,13 +399,14 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        // TODO show some kind of dialog to confirm opening new discussion
 
-        /*
-        Intent disqusIntent = new Intent(this, DisqusActivity.class);
-        disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION_ID, latLng);
-        startActivity(disqusIntent);
-        */
+        // get location and show dialog confirming create discussion
+        Bundle args = new Bundle();
+        args.putParcelable("location", latLng);
+        ConfirmDiscussionCreateDialogFragment dialog = new ConfirmDiscussionCreateDialogFragment();
+        dialog.setArguments(args);
+        dialog.show(getSupportFragmentManager(), "");
+
     }
 
     @Override

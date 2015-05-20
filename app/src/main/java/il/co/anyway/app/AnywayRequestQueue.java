@@ -1,26 +1,29 @@
 package il.co.anyway.app;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
-import com.android.volley.Cache;
-import com.android.volley.Network;
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.Discussion;
@@ -30,23 +33,16 @@ public class AnywayRequestQueue {
 
     public final static String ANYWAY_BASE_URL = "http://oway.org.il/";
     public final static String ANYWAY_MARKERS_BASE_URL = ANYWAY_BASE_URL + "markers?";
+    public final static String ANYWAY_DISCUSSION_POST_URL = ANYWAY_BASE_URL + "discussion";
+
     private final static String LOG_TAG = AnywayRequestQueue.class.getSimpleName();
     private static AnywayRequestQueue instance = null;
     RequestQueue mRequestQueue;
 
     private AnywayRequestQueue(Context context) {
-
-        // Instantiate the cache
-        Cache cache = new DiskBasedCache(context.getCacheDir(), 1024 * 1024 * 2); // 2MB cap
-
-        // Set up the network to use HttpURLConnection as the HTTP client.
-        Network network = new BasicNetwork(new HurlStack());
-
-        // Instantiate the RequestQueue with the cache and network.
-        mRequestQueue = new RequestQueue(cache, network);
-
-        // Start the queue
-        mRequestQueue.start();
+        // Instantiate the RequestQueue - Volley will choose network and cache automatically.
+        // This also start the queue
+        mRequestQueue = Volley.newRequestQueue(context);
     }
 
     public static AnywayRequestQueue getInstance(Context context) {
@@ -55,9 +51,9 @@ public class AnywayRequestQueue {
         return instance;
     }
 
-    public void addRequest(double ne_lat, double ne_lng, double sw_lat, double sw_lng, int zoom,
-                           String start_date, String end_date,
-                           boolean show_fatal, boolean show_severe, boolean show_light, boolean show_inaccurate) {
+    public void addMarkersRequest(double ne_lat, double ne_lng, double sw_lat, double sw_lng, int zoom,
+                                  String start_date, String end_date,
+                                  boolean show_fatal, boolean show_severe, boolean show_light, boolean show_inaccurate) {
 
         final String DEFAULT_REQUEST_FORMAT = "json";
 
@@ -79,13 +75,13 @@ public class AnywayRequestQueue {
 
         try {
             URL url = new URL(builtUri.toString());
-            addRequest(url.toString());
+            addMarkersRequest(url.toString());
         } catch (MalformedURLException e) {
             Log.e(LOG_TAG, "Error building the URL: " + e.getMessage());
         }
     }
 
-    private void addRequest(String url) {
+    private void addMarkersRequest(String url) {
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, url, new Response.Listener<JSONObject>() {
@@ -114,6 +110,67 @@ public class AnywayRequestQueue {
 
         // Add the request to the RequestQueue.
         mRequestQueue.add(jsObjRequest);
+    }
 
+    public void createNewDisqus(final double lat, final double lng, final Context context){
+
+        if (context == null)
+            return;
+
+        // Show ProgressDialog telling user new discussion is created
+        final ProgressDialog dialog = new ProgressDialog(context);
+        dialog.setMessage(context.getString(R.string.creating_new_discussion));
+        dialog.setCancelable(false);
+        dialog.show();
+
+        String identifier = "(" + lat + ", " + lng + ")";
+        JSONObject jsonObjectData = new JSONObject();
+        try {
+            jsonObjectData.put("latitude", Double.toString((lat)));
+            jsonObjectData.put("longitude", Double.toString(lng));
+            jsonObjectData.put("title", identifier);
+            jsonObjectData.put("identifier", identifier);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Error creating json for new discussion request");
+            dialog.dismiss();
+            return;
+        }
+
+        PriorityJsonObjectRequest newDisqusRequest = new PriorityJsonObjectRequest
+                (Request.Method.POST, ANYWAY_DISCUSSION_POST_URL, jsonObjectData, new Response.Listener<JSONObject>() {
+
+            @Override
+            public void onResponse(JSONObject response) {
+
+                dialog.dismiss();
+
+                Discussion discussion = Utility.parseJsonToDiscussion(response);
+                if (discussion != null) {
+                    MarkersManager.getInstance().addDiscussion(discussion);
+                    Intent disqusIntent = new Intent(context, DisqusActivity.class);
+                    disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, discussion.getIdentifier());
+                    context.startActivity(disqusIntent);
+                }
+                else
+                    Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                dialog.dismiss();
+                Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String,String> params = new HashMap<>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+
+        newDisqusRequest.setShouldCache(false);
+        newDisqusRequest.setPriority(Request.Priority.HIGH);
+        mRequestQueue.add(newDisqusRequest);
     }
 }

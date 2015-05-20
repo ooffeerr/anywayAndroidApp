@@ -2,9 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">ANYWAY</string>
-    <string name="zoom_in_to_display">יש להתקרב על מנת לטעון תאונות חדשות\nלחץ כאן כדי להתקרב</string>
-    <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
-    <string name="cancel">ביטול</string>
+    <string name="press_back_again_to_exit">הקש בשנית על מקש החזרה כדי לצאת</string>
 
     <!-- Settings -->
     <string name="action_settings">הגדרות</string>
@@ -15,7 +13,7 @@
     <string name="share_subject">שיתוף תאונות באזורך מ ANYWAY</string>
     <string name="share_title">שיתוף מ ANYWAY</string>
     <string name="action_about">מידע נוסף</string>
-
+    <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
 
     <string name="info_dialog_title">אודות ANYWAY</string>
     <string name="info_dialog_msg">\u200FANYWAY היא הדרך שלנו למנוע את התאונה הבאה. ביחד, נהגים, הולכי רגל, אזרחים ומקבלי החלטות נאבק בתאונות הדרכים. \n\n\u200FANYWAY מציגה על גבי מפה תאונות דרכים עם נפגעים (ע״פ נתוני הלשכה המרכזית לסטטיסטיקה). בהמשך, יתווסף מידע נוסף למפה וכן תתאפשר יכולת לפתח דיונים מבוססי מיקום על פתרונות אפשריים והתארגנות אזרחית. באמצעות ידע זמין, נגיש ושקוף אנו שואפים להעלות את המודעות לנושא תאונות הדרכים ולהעצים את יכולת ההשפעה של כל אחד ואחת על הסביבה הקרובה- הבית, השכונה, בית הספר של הילדים, מקום העבודה ועוד- על ידי פעולה משותפת בקהילה. אנחנו מאמינים שבעזרת ידע ציבורי קיים המוצג באתר יווצרו ידע ותובנות חדשים. שיתוף הידע הזה יאפשר לחברה האזרחית להתארגן לפעולה אקטיבית ולהזרים הצעות, רעיונות והתראות בחזרה אל הרשויות. </string>
@@ -23,7 +21,10 @@
     <!-- Disqus activity -->
     <string name="title_activity_disqus">דיון</string>
     <string name="refresh_comments">טען מחדש</string>
-    <string name="press_back_again_to_exit">הקש בשנית על מקש החזרה כדי לצאת</string>
+    <string name="creating_new_discussion">יוצר דיון</string>
+    <string name="confirm_opening_new_discussion_title">יצירת דיון חדש</string>
+    <string name="confirm_opening_new_discussion">האם ברצונך לפתוח דיון חדש בנקודה זו?</string>
+    <string name="error_creating_discussion">התרחשה שגיאה בעת יצירת הדיון</string>
 
     <!-- Search Strings -->
     <string name="action_address_search">חפש כתובת</string>
@@ -44,6 +45,7 @@
     <!-- Enable gps Alert dialog -->
     <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
 
+    <string name="cancel">ביטול</string>
     <string name="close">סגור</string>
     <string name="yes">כן</string>
     <string name="no">לא</string>
