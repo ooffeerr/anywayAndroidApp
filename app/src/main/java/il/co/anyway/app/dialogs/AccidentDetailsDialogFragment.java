@@ -1,4 +1,4 @@
-package il.co.anyway.app;
+package il.co.anyway.app.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -8,6 +8,8 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
+
+import il.co.anyway.app.R;
 
 public class AccidentDetailsDialogFragment extends DialogFragment {
 
@@ -42,7 +44,7 @@ public class AccidentDetailsDialogFragment extends DialogFragment {
         TextView tv;
         tv = (TextView) v.findViewById(R.id.accident_details_desc);
         if (tv != null)
-            tv.setText(created + "\n" + address + "\n" + description);
+            tv.setText(address + "\n\u200F" + created + "\n\n" + description);
 
         tv = (TextView) v.findViewById(R.id.accident_details_title);
         if (tv != null)

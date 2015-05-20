@@ -52,10 +52,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
-import il.co.anyway.app.models.Accident;
-import il.co.anyway.app.models.AccidentCluster;
-import il.co.anyway.app.models.Discussion;
+import il.co.anyway.app.dialogs.*;
+import il.co.anyway.app.models.*;
 
 public class MainActivity extends ActionBarActivity
         implements
@@ -284,6 +282,7 @@ public class MainActivity extends ActionBarActivity
 
         int currentZoomLevel = (int) mMap.getCameraPosition().zoom;
 
+        // open discussion if marker represent discussion
         if (marker.getData() instanceof Discussion) {
             Intent disqusIntent = new Intent(this, DisqusActivity.class);
             disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, ((Discussion) marker.getData()).getIdentifier());
@@ -291,10 +290,12 @@ public class MainActivity extends ActionBarActivity
             return true;
         }
 
-        // zoom in one level when clicking on AccidentCluster marker
+        // zoom in when clicking on AccidentCluster marker
+        // level of zoom is decided by cluster size
         if (marker.getData() instanceof AccidentCluster) {
 
             int requiredZoomLevel = currentZoomLevel + 2;
+            requiredZoomLevel = requiredZoomLevel > 16 ? 16 : requiredZoomLevel;
 
             AccidentCluster accidentCluster = marker.getData();
             switch(accidentCluster.getCount()) {
@@ -311,18 +312,6 @@ public class MainActivity extends ActionBarActivity
             setMapToLocation(marker.getPosition(), requiredZoomLevel, true);
 
             return true;
-        }
-
-        /*
-        if the marker is cluster zoom-in automatically to MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1
-        returning 'true' means no need to further handling, 'false' will cause InfoWindow to appear
-        */
-        if (marker.isCluster()) {
-            if (currentZoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1) {
-                setMapToLocation(marker.getPosition(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1, true);
-                return true;
-            } else
-                return false;
         }
 
         return false;
