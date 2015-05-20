@@ -107,15 +107,14 @@ public class FetchClusteredAccidents {
 
                 // Read the input stream into a String
                 InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
+                StringBuilder stringBuilder = new StringBuilder();
                 reader = new BufferedReader(new InputStreamReader(inputStream));
 
                 String line;
                 while ((line = reader.readLine()) != null)
-                    buffer.append(line);
+                    stringBuilder.append(line);
 
-                String JSONResp = buffer.toString();
-                ;
+                String JSONResp = stringBuilder.toString();
 
                 Log.i(LOG_TAG, "Fetched " + JSONResp.length() + " chars");
 
