@@ -125,6 +125,7 @@ public class DisqusActivity extends ActionBarActivity {
 
                 }
                 if (url.contains(BASE_URL + "/login")) {
+                    view.clearHistory();
                     view.loadUrl(mUrl);
                 }
             }
