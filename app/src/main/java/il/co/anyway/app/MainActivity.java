@@ -12,6 +12,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -77,6 +78,7 @@ public class MainActivity extends ActionBarActivity
     private LocationManager mLocationManager;
     private boolean mFirstRun;
     private boolean mMapIsInClusterMode;
+    private boolean mDoubleBackToExitPressedOnce;
 
     private List<AccidentCluster> mLastAccidentsClusters = null;
 
@@ -87,8 +89,11 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // map start zoomed in
-        mMapIsInClusterMode = false;
+        // force double pressing on back key to leave discussion
+        mDoubleBackToExitPressedOnce = false;
+
+        // map start in START_ZOOM_LEVEL
+        mMapIsInClusterMode = true;
 
         // find out if this is the first instance of the activity
         mFirstRun = (savedInstanceState == null);
@@ -763,5 +768,26 @@ public class MainActivity extends ActionBarActivity
         adb.setView(getLayoutInflater().inflate(R.layout.info_dialog, null));
         adb.setPositiveButton(getString(R.string.close), null);
         adb.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if (mDoubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        mDoubleBackToExitPressedOnce = true;
+        Toast.makeText(this, getString(R.string.press_back_again_to_exit), Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                mDoubleBackToExitPressedOnce = false;
+            }
+        }, 2000);
+
     }
 }
