@@ -14,17 +14,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
-
 
 public class DisqusActivity extends ActionBarActivity {
 
 
     public static final String DISQUS_TALK_IDENTIFIER = "il.co.anyway.app.DISQUS_TALK_IDENTIFIER";
-    private final String LOG_TAG = DisqusActivity.class.getSimpleName();
-
     private static final String BASE_URL = "http://oway.org.il/discussion";
-
+    private final String LOG_TAG = DisqusActivity.class.getSimpleName();
     WebView mWebView;
     String mIdentifier;
     String mUrl;
@@ -156,7 +152,7 @@ public class DisqusActivity extends ActionBarActivity {
 
                 @Override
                 public void run() {
-                    doubleBackToExitPressedOnce=false;
+                    doubleBackToExitPressedOnce = false;
                 }
             }, 2000);
 

@@ -52,8 +52,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import il.co.anyway.app.dialogs.*;
-import il.co.anyway.app.models.*;
+import il.co.anyway.app.dialogs.AccidentDetailsDialogFragment;
+import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
+import il.co.anyway.app.models.Accident;
+import il.co.anyway.app.models.AccidentCluster;
+import il.co.anyway.app.models.Discussion;
 
 public class MainActivity extends ActionBarActivity
         implements
@@ -298,7 +301,7 @@ public class MainActivity extends ActionBarActivity
             requiredZoomLevel = requiredZoomLevel > 16 ? 16 : requiredZoomLevel;
 
             AccidentCluster accidentCluster = marker.getData();
-            switch(accidentCluster.getCount()) {
+            switch (accidentCluster.getCount()) {
                 case 1:
                     requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 2;
                     break;

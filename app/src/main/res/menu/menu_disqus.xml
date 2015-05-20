@@ -1,11 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context="il.co.anyway.app.DisqusActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="il.co.anyway.app.DisqusActivity">
     <item
         android:id="@+id/action_refresh_comments"
-        android:title="@string/refresh_comments"
-        android:orderInCategory="30"
         android:icon="@drawable/ic_action_refresh"
-        app:showAsAction="always"
-        />
+        android:orderInCategory="30"
+        android:title="@string/refresh_comments"
+        app:showAsAction="always" />
 </menu>

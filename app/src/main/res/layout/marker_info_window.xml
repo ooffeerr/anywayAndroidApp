@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:andorid="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
@@ -10,9 +9,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
+        android:contentDescription="@string/icon"
         android:padding="2dip"
-        android:src="@drawable/ic_lamas"
-        android:contentDescription="@string/icon"/>
+        android:src="@drawable/ic_lamas" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,16 +22,16 @@
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="right"
             android:textSize="25sp"
-            android:textStyle="bold"
-            android:layout_gravity="right"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/snippet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:layout_gravity="right"/>
+            android:layout_gravity="right"
+            android:textSize="15sp" />
 
     </LinearLayout>
 

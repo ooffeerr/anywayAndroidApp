@@ -1,6 +1,5 @@
 package il.co.anyway.app;
 
-import com.android.volley.NetworkResponse;
 import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 

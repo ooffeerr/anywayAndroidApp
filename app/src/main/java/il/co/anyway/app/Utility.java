@@ -54,6 +54,7 @@ public class Utility {
 
     /**
      * Match AccidentCluster an icon by the number of accidents
+     *
      * @param count the number of accident
      * @return id of drawable icon
      */
@@ -74,9 +75,10 @@ public class Utility {
 
     /**
      * Draw text on image, used to draw the number of AccidentCluster marker
+     *
      * @param gContext context
-     * @param gResId id of image to draw on
-     * @param gText text to draw
+     * @param gResId   id of image to draw on
+     * @param gText    text to draw
      * @return Bitmap image with text draw on it
      */
     public static Bitmap drawTextToBitmap(Context gContext, int gResId, String gText) {
@@ -159,9 +161,7 @@ public class Utility {
                     if (accident != null)
                         fetchedAccidents.add(accident);
 
-                }
-
-                else if (type == MARKER_TYPE_DISCUSSION) {
+                } else if (type == MARKER_TYPE_DISCUSSION) {
 
                     Discussion discussion = parseJsonToDiscussion(markerDetails);
                     if (discussion != null)
@@ -179,6 +179,7 @@ public class Utility {
 
     /**
      * Parse JSONobject to Discussion object
+     *
      * @param discussionJsonObject the json object to parse
      * @return Discussion or null on error
      */
@@ -220,6 +221,7 @@ public class Utility {
 
     /**
      * Parse JSONobject to Accident object
+     *
      * @param accidentJsonObject the json object to parse
      * @return Accident or null on error
      */

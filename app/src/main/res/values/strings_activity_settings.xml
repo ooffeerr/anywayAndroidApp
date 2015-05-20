@@ -16,7 +16,6 @@
     <string name="pref_accidents_inaccurate_key" translatable="false">checkbox_accidents_inaccurate</string>
 
 
-
     <string name="pref_header_date_range">סינון לפי טווח תאריכים</string>
 
     <string name="pref_title_from_date">מתאריך</string>

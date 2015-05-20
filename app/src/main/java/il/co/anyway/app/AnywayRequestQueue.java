@@ -112,7 +112,7 @@ public class AnywayRequestQueue {
         mRequestQueue.add(jsObjRequest);
     }
 
-    public void createNewDisqus(final double lat, final double lng, final Context context){
+    public void createNewDisqus(final double lat, final double lng, final Context context) {
 
         if (context == null)
             return;
@@ -139,31 +139,30 @@ public class AnywayRequestQueue {
         PriorityJsonObjectRequest newDisqusRequest = new PriorityJsonObjectRequest
                 (Request.Method.POST, ANYWAY_DISCUSSION_POST_URL, jsonObjectData, new Response.Listener<JSONObject>() {
 
-            @Override
-            public void onResponse(JSONObject response) {
+                    @Override
+                    public void onResponse(JSONObject response) {
 
-                dialog.dismiss();
+                        dialog.dismiss();
 
-                Discussion discussion = Utility.parseJsonToDiscussion(response);
-                if (discussion != null) {
-                    MarkersManager.getInstance().addDiscussion(discussion);
-                    Intent disqusIntent = new Intent(context, DisqusActivity.class);
-                    disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, discussion.getIdentifier());
-                    context.startActivity(disqusIntent);
-                }
-                else
-                    Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                dialog.dismiss();
-                Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
-            }
-        }){
+                        Discussion discussion = Utility.parseJsonToDiscussion(response);
+                        if (discussion != null) {
+                            MarkersManager.getInstance().addDiscussion(discussion);
+                            Intent disqusIntent = new Intent(context, DisqusActivity.class);
+                            disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, discussion.getIdentifier());
+                            context.startActivity(disqusIntent);
+                        } else
+                            Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        dialog.dismiss();
+                        Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
+                    }
+                }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("Content-Type", "application/json");
                 return params;
             }
