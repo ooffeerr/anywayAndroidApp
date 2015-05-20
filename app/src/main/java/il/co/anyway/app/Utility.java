@@ -33,6 +33,30 @@ public class Utility {
 
     private static final String LOG_TAG = Utility.class.getSimpleName();
 
+    // AD = Accident and discussion parameters
+    private static final String AD_CREATED = "created";
+    private static final String AD_ID = "id";
+    private static final String AD_LATITUDE = "latitude";
+    private static final String AD_LONGITUDE = "longitude";
+    private static final String AD_TITLE = "title";
+    private static final String AD_TYPE = "type";
+
+    private static final String DISCUSSION_IDENTIFIER = "identifier";
+
+    private static final String ACCIDENT_ADDRESS = "address";
+    private static final String ACCIDENT_DESC = "description";
+    private static final String ACCIDENT_LOCATION_ACCURACY = "locationAccuracy";
+    private static final String ACCIDENT_SEVERITY = "severity";
+    private static final String ACCIDENT_SUBTYPE = "subtype";
+
+    private static final int MARKER_TYPE_ACCIDENT = 1;
+    private static final int MARKER_TYPE_DISCUSSION = 2;
+
+    /**
+     * Match AccidentCluster an icon by the number of accidents
+     * @param count the number of accident
+     * @return id of drawable icon
+     */
     public static int getClusterImageByCountOfAccidents(int count) {
 
         final int[] res = {R.drawable.m1, R.drawable.m2, R.drawable.m3, R.drawable.m4};
@@ -48,6 +72,13 @@ public class Utility {
         return markerIcon;
     }
 
+    /**
+     * Draw text on image, used to draw the number of AccidentCluster marker
+     * @param gContext context
+     * @param gResId id of image to draw on
+     * @param gText text to draw
+     * @return Bitmap image with text draw on it
+     */
     public static Bitmap drawTextToBitmap(Context gContext, int gResId, String gText) {
 
         Resources resources = gContext.getResources();
@@ -98,28 +129,11 @@ public class Utility {
             return -1;
 
         // These are the names of the JSON objects that need to be extracted.
-        final String ACCIDENT_LIST = "markers";
-
-        // AD = Accident and discussion parameters
-        final String AD_CREATED = "created";
-        final String AD_ID = "id";
-        final String AD_LATITUDE = "latitude";
-        final String AD_LONGITUDE = "longitude";
-        final String AD_TITLE = "title";
-
-        final String DISCUSSION_IDENTIFIER = "identifier";
-
-        final String ACCIDENT_ADDRESS = "address";
-        final String ACCIDENT_DESC = "description";
-        final String ACCIDENT_LOCATION_ACCURACY = "locationAccuracy";
-        final String ACCIDENT_SEVERITY = "severity";
-        final String ACCIDENT_TYPE = "type";
-        final String ACCIDENT_SUBTYPE = "subtype";
-
+        final String MARKERS_LIST = "markers";
 
         JSONArray accidentsArray;
         try {
-            accidentsArray = accidentJson.getJSONArray(ACCIDENT_LIST);
+            accidentsArray = accidentJson.getJSONArray(MARKERS_LIST);
         } catch (JSONException e) {
             return -2;
         }
@@ -128,75 +142,30 @@ public class Utility {
 
             try {
                 // Get the JSON object representing accident/discussion
-                JSONObject accidentDetails = accidentsArray.getJSONObject(i);
+                JSONObject markerDetails = accidentsArray.getJSONObject(i);
 
                 // check if array object is Accident or Discussion
                 int type;
                 try {
-                    type = accidentDetails.getInt(ACCIDENT_TYPE);
+                    type = markerDetails.getInt(AD_TYPE);
                 } catch (JSONException e) {
-                    // TODO due to a temporary error Accident type is 'null' instead of 1
-                    type = 1;
+                    // TODO due to a temporary error in server Accident type is 'null' instead of 1
+                    type = MARKER_TYPE_ACCIDENT;
                 }
 
-                // get parameters shared between both accident and discussions
+                if (type == MARKER_TYPE_ACCIDENT) {
 
-                // Date comes as 2013-12-30T21:00:00, needs to be converted
-                String created = accidentDetails.getString(AD_CREATED);
-                Date createdDate = new Date();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-                try {
-                    createdDate = sdf.parse(created);
-                } catch (ParseException e) {
-                    Log.e(LOG_TAG, e.getMessage());
+                    Accident accident = parseJsonToAccident(markerDetails);
+                    if (accident != null)
+                        fetchedAccidents.add(accident);
+
                 }
 
-                Double lat = accidentDetails.getDouble(AD_LATITUDE);
-                Double lng = accidentDetails.getDouble(AD_LONGITUDE);
-                Long id = accidentDetails.getLong(AD_ID);
-                String title = accidentDetails.getString(AD_TITLE);
+                else if (type == MARKER_TYPE_DISCUSSION) {
 
-                // Accident
-                if (type == 1) {
-
-                    // get accident details from json
-                    String address = accidentDetails.getString(ACCIDENT_ADDRESS);
-                    String desc = accidentDetails.getString(ACCIDENT_DESC);
-                    Integer accuracy = accidentDetails.getInt(ACCIDENT_LOCATION_ACCURACY);
-                    Integer severity = accidentDetails.getInt(ACCIDENT_SEVERITY);
-                    Integer subtype = accidentDetails.getInt(ACCIDENT_SUBTYPE);
-
-                    // create new Accident object and set parameters
-                    Accident acc = new Accident()
-                            .setId(id)
-                            .setTitle(title)
-                            .setDescription(desc)
-                            .setType(type)
-                            .setSubType(subtype)
-                            .setSeverity(severity)
-                            .setCreatedDate(createdDate)
-                            .setLocation(new LatLng(lat, lng))
-                            .setAddress(address)
-                            .setLocationAccuracy(accuracy);
-
-                    fetchedAccidents.add(acc);
-                }
-                // Discussion
-                else if (type == 2) {
-
-                    // get discussion details from json
-                    String identifier = accidentDetails.getString(DISCUSSION_IDENTIFIER);
-
-                    // create new Discussion object and set parameters
-                    Discussion discussion = new Discussion()
-                            .setId(id)
-                            .setTitle(title)
-                            .setLocation(new LatLng(lat, lng))
-                            .setCreated(createdDate)
-                            .setType(type)
-                            .setIdentifier(identifier);
-
-                    fetchedDiscussions.add(discussion);
+                    Discussion discussion = parseJsonToDiscussion(markerDetails);
+                    if (discussion != null)
+                        fetchedDiscussions.add(discussion);
 
                 }
             } catch (JSONException e) {
@@ -206,6 +175,95 @@ public class Utility {
         }
 
         return 0;
+    }
+
+    /**
+     * Parse JSONobject to Discussion object
+     * @param discussionJsonObject the json object to parse
+     * @return Discussion or null on error
+     */
+    public static Discussion parseJsonToDiscussion(JSONObject discussionJsonObject) {
+
+        // get discussion details from json
+        try {
+            String created = discussionJsonObject.getString(AD_CREATED);
+            // Date comes as 2013-12-30T21:00:00, needs to be converted
+            Date createdDate;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            try {
+                createdDate = sdf.parse(created);
+            } catch (ParseException e) {
+                Log.e(LOG_TAG, e.getMessage());
+                return null;
+            }
+
+            String identifier = discussionJsonObject.getString(DISCUSSION_IDENTIFIER);
+            Double lat = discussionJsonObject.getDouble(AD_LATITUDE);
+            Double lng = discussionJsonObject.getDouble(AD_LONGITUDE);
+            Long id = discussionJsonObject.getLong(AD_ID);
+            String title = discussionJsonObject.getString(AD_TITLE);
+
+            // create new Discussion object and set parameters
+            return new Discussion()
+                    .setId(id)
+                    .setTitle(title)
+                    .setLocation(new LatLng(lat, lng))
+                    .setCreated(createdDate)
+                    .setType(MARKER_TYPE_DISCUSSION)
+                    .setIdentifier(identifier);
+
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Parse JSONobject to Accident object
+     * @param accidentJsonObject the json object to parse
+     * @return Accident or null on error
+     */
+    public static Accident parseJsonToAccident(JSONObject accidentJsonObject) {
+
+        // get accident details from json
+        try {
+            // Date comes as 2013-12-30T21:00:00, needs to be converted
+            String created = accidentJsonObject.getString(AD_CREATED);
+            Date createdDate = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            try {
+                createdDate = sdf.parse(created);
+            } catch (ParseException e) {
+                Log.e(LOG_TAG, e.getMessage());
+            }
+
+            Double lat = accidentJsonObject.getDouble(AD_LATITUDE);
+            Double lng = accidentJsonObject.getDouble(AD_LONGITUDE);
+            Long id = accidentJsonObject.getLong(AD_ID);
+            String title = accidentJsonObject.getString(AD_TITLE);
+            String address = accidentJsonObject.getString(ACCIDENT_ADDRESS);
+            String desc = accidentJsonObject.getString(ACCIDENT_DESC);
+            Integer accuracy = accidentJsonObject.getInt(ACCIDENT_LOCATION_ACCURACY);
+            Integer severity = accidentJsonObject.getInt(ACCIDENT_SEVERITY);
+            Integer subtype = accidentJsonObject.getInt(ACCIDENT_SUBTYPE);
+
+            // create new Accident object and set parameters
+            return new Accident()
+                    .setId(id)
+                    .setTitle(title)
+                    .setDescription(desc)
+                    .setType(MARKER_TYPE_DISCUSSION)
+                    .setSubType(subtype)
+                    .setSeverity(severity)
+                    .setCreatedDate(createdDate)
+                    .setLocation(new LatLng(lat, lng))
+                    .setAddress(address)
+                    .setLocationAccuracy(accuracy);
+
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -232,7 +290,7 @@ public class Utility {
         String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
         String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
 
-        requestQueue.addRequest(
+        requestQueue.addMarkersRequest(
                 bounds.northeast.latitude,
                 bounds.northeast.longitude,
                 bounds.southwest.latitude,
