@@ -8,7 +8,7 @@ import android.support.v4.app.DialogFragment;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import il.co.anyway.app.AnywayRequestQueue;
+import il.co.anyway.app.singletons.AnywayRequestQueue;
 import il.co.anyway.app.R;
 
 

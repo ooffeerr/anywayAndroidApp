@@ -1,10 +1,11 @@
-package il.co.anyway.app;
+package il.co.anyway.app.singletons;
 
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import il.co.anyway.app.MainActivity;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.Discussion;
 

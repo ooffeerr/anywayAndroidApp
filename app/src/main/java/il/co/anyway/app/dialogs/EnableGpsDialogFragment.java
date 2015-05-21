@@ -1,4 +1,4 @@
-package il.co.anyway.app;
+package il.co.anyway.app.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.DialogFragment;
+
+import il.co.anyway.app.R;
 
 public class EnableGpsDialogFragment extends DialogFragment {
 

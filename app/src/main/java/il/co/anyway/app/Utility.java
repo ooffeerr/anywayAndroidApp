@@ -28,6 +28,7 @@ import java.util.List;
 
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.Discussion;
+import il.co.anyway.app.singletons.AnywayRequestQueue;
 
 public class Utility {
 
@@ -151,7 +152,7 @@ public class Utility {
                 try {
                     type = markerDetails.getInt(AD_TYPE);
                 } catch (JSONException e) {
-                    // TODO due to a temporary error in server Accident type is 'null' instead of 1
+                    // due to a temporary error in server Accident type is 'null' instead of 1
                     type = MARKER_TYPE_ACCIDENT;
                 }
 

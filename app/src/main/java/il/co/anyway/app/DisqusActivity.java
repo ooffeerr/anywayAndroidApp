@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,11 +15,10 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 
-public class DisqusActivity extends ActionBarActivity {
-
+public class DisqusActivity extends AppCompatActivity {
 
     public static final String DISQUS_TALK_IDENTIFIER = "il.co.anyway.app.DISQUS_TALK_IDENTIFIER";
-    private static final String BASE_URL = "http://oway.org.il/discussion";
+    private static final String BASE_URL = "http://www.anyway.co.il/discussion";
     private final String LOG_TAG = DisqusActivity.class.getSimpleName();
     WebView mWebView;
     String mIdentifier;

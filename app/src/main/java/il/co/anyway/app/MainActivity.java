@@ -16,7 +16,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -53,12 +53,16 @@ import java.util.List;
 import java.util.Locale;
 
 import il.co.anyway.app.dialogs.AccidentDetailsDialogFragment;
+import il.co.anyway.app.dialogs.AccidentsDialogs;
 import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
+import il.co.anyway.app.dialogs.EnableGpsDialogFragment;
+import il.co.anyway.app.dialogs.SearchDialogs;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.AccidentCluster;
 import il.co.anyway.app.models.Discussion;
+import il.co.anyway.app.singletons.MarkersManager;
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends AppCompatActivity
         implements
         OnInfoWindowClickListener,
         OnMapLongClickListener,
@@ -71,7 +75,6 @@ public class MainActivity extends ActionBarActivity
     private static final LatLng START_LOCATION = new LatLng(31.774511, 35.011642);
     private static final int START_ZOOM_LEVEL = 7;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
-    private static final Locale APP_DEFAULT_LOCALE = new Locale("he_IL");
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -251,7 +254,7 @@ public class MainActivity extends ActionBarActivity
             return true;
         }
         if (id == R.id.action_search) {
-            showSearchDialog();
+            SearchDialogs.showSearchDialog(this);
             return true;
         }
         if (id == R.id.action_share) {
@@ -324,69 +327,12 @@ public class MainActivity extends ActionBarActivity
     public void onInfoWindowClick(Marker marker) {
 
         if (marker.getData() instanceof Accident)
-            showAccidentDetailsInDialog((Accident) marker.getData());
+            AccidentsDialogs.showAccidentDetailsInDialog((Accident) marker.getData(), this);
 
         else if (marker.isCluster())
-            showAccidentsClusterAsListDialog(marker);
+            AccidentsDialogs.showAccidentsClusterAsListDialog(marker, this);
 
-    }
 
-    /**
-     * Show list dialog of accidents inside marker cluster
-     *
-     * @param marker Marker cluster
-     */
-    private void showAccidentsClusterAsListDialog(Marker marker) {
-        if (!marker.isCluster())
-            return;
-
-        // re-arrange all the accident titles in String array for the AlertDialog
-        final List<Marker> markersInCluster = marker.getMarkers();
-        final String[] accidentsList = new String[markersInCluster.size()];
-        for (int i = 0; i < markersInCluster.size(); i++) {
-
-            Object markerData = markersInCluster.get(i).getData();
-            if (markerData instanceof Accident) {
-
-                Accident accident = (Accident) markerData;
-                accidentsList[i] =
-                        Utility.getAccidentTypeByIndex(accident.getSubType(), this) +
-                                " - " +
-                                accident.getCreatedDateAsString();
-            }
-        }
-
-        // show list dialog with all the accidents in the cluster
-        AlertDialog.Builder adb = new AlertDialog.Builder(this);
-        adb.setTitle(accidentsList.length + " " + getString(R.string.accidents));
-        adb.setItems(accidentsList, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                if (markersInCluster.get(which).getData() instanceof Accident) {
-                    Accident a = markersInCluster.get(which).getData();
-                    showAccidentDetailsInDialog(a);
-                }
-            }
-        });
-        adb.show();
-    }
-
-    /**
-     * Show accident details in dialog
-     *
-     * @param a Accident to show
-     */
-    private void showAccidentDetailsInDialog(Accident a) {
-        Bundle args = new Bundle();
-        args.putString("description", a.getDescription());
-        args.putString("titleBySubType", Utility.getAccidentTypeByIndex(a.getSubType(), this));
-        args.putLong("id", a.getId());
-        args.putString("address", a.getAddress());
-        args.putString("created", a.getCreatedDateAsString());
-
-        AccidentDetailsDialogFragment accidentDetailsDialog =
-                new AccidentDetailsDialogFragment();
-        accidentDetailsDialog.setArguments(args);
-        accidentDetailsDialog.show(getSupportFragmentManager(), "accidentDetails");
     }
 
     @Override
@@ -511,105 +457,7 @@ public class MainActivity extends ActionBarActivity
                 .putString(getString(R.string.pref_to_date_key), df.format(end_date))
                 .apply();
 
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), zoom)));
-    }
-
-    // action handler for address search
-    private void showSearchDialog() {
-
-        // Inflate and set the layout for the dialog
-        // Pass null as the parent view because its going in the dialog layout
-        final View addressDialogView = getLayoutInflater().inflate(R.layout.address_search_dialog, null);
-
-        final AlertDialog searchDialog = new AlertDialog.Builder(this)
-                .setView(addressDialogView)
-                .setPositiveButton(R.string.search, null) //Set to null. We override the onclick
-                .setNegativeButton(R.string.cancel, null)
-                .create();
-
-        searchDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-
-            @Override
-            public void onShow(DialogInterface dialog) {
-
-                Button b = searchDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View view) {
-
-                        TextView searchTextView = (TextView) addressDialogView.findViewById(R.id.address_search);
-
-                        if (searchTextView != null) {
-                            if (searchTextView.getText().toString().equals("")) {
-                                Toast t = Toast.makeText(getBaseContext(), getString(R.string.address_empty), Toast.LENGTH_SHORT);
-                                t.setGravity(Gravity.CENTER, 0, 0);
-                                t.show();
-                            } else {
-                                searchAddress(searchTextView.getText().toString());
-                                searchDialog.dismiss();
-                            }
-                        }
-                    }
-                });
-            }
-        });
-        searchDialog.show();
-    }
-
-    /**
-     * Search for an address, show a dialog and move the map to the searched location
-     *
-     * @param addressToSearch The address to search, in free speech
-     */
-    private void searchAddress(String addressToSearch) {
-
-        Geocoder geoCoder = new Geocoder(this, APP_DEFAULT_LOCALE);
-        final int MAX_RESULTS = 7;
-
-        try {
-            // Search for the address
-            final List<Address> addresses = geoCoder.getFromLocationName(addressToSearch, MAX_RESULTS);
-
-            if (addresses.size() > 0) {
-                // re-arrange all the address in String array for the AlertDialog
-                final String[] addressList = new String[addresses.size()];
-                for (int i = 0; i < addresses.size(); i++) {
-
-                    // Address received as an address lines, join them all to one line
-                    String tempAddress = "";
-                    for (int j = 0; j <= addresses.get(i).getMaxAddressLineIndex(); j++)
-                        tempAddress += addresses.get(i).getAddressLine(j) + ", ";
-
-                    // remove the last ", " from the address
-                    tempAddress = tempAddress.substring(0, tempAddress.length() - 2);
-                    // add it to the array, the index match to the address checked
-                    addressList[i] = tempAddress;
-                }
-
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
-                adb.setTitle(getString(R.string.address_result_title))
-                        .setItems(addressList, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                LatLng p = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
-                                setMapToLocation(p, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
-
-                                mMap.addMarker(new MarkerOptions().position(p).title(getString(R.string.search_result)).snippet(addressList[which]).clusterGroup(ClusterGroup.NOT_CLUSTERED));
-                            }
-                        });
-                adb.show();
-            } else {
-                // address not found, prompt user
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
-                adb.setTitle(getString(R.string.address_not_found_title));
-                adb.setMessage(getString(R.string.address_not_found_details));
-                adb.setPositiveButton(getString(R.string.close), null);
-                adb.show();
-            }
-        } catch (IOException e) {
-            Log.e(LOG_TAG, e.getLocalizedMessage());
-        }
+        setMapToLocation(new LatLng(latitude, longitude), zoom, false);
     }
 
     /**
@@ -662,6 +510,10 @@ public class MainActivity extends ActionBarActivity
             new FetchClusteredAccidents(bounds, zoomLevel, this);
     }
 
+    /**
+     * Add all AccidentCluster list as markers to map
+     * @param accidentClusterList List to add
+     */
     public void addClustersToMap(List<AccidentCluster> accidentClusterList) {
 
         if (accidentClusterList == null)
@@ -745,8 +597,6 @@ public class MainActivity extends ActionBarActivity
         if (mMapIsInClusterMode)
             return;
 
-        // TODO decide cluster group
-
         Marker m = mMap.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.discussion))
                 .position(d.getLocation()));
@@ -757,6 +607,7 @@ public class MainActivity extends ActionBarActivity
         d.setMarkerAddedToMap(true);
     }
 
+    // show information about Anyway in dialog
     private void showAboutInfoDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setView(getLayoutInflater().inflate(R.layout.info_dialog, null));
@@ -764,6 +615,26 @@ public class MainActivity extends ActionBarActivity
         adb.show();
     }
 
+    /**
+     * Move map to location and add marker to specify searched location
+     * When search result selected in the result dialog(@dialogs.SearchDialogs.searchAddress) it call this method
+     * @param searchResultLocation Location of search result
+     * @param searchResultAddress Address of search result
+     */
+    public void updateMapFromSearchResult(LatLng searchResultLocation, String searchResultAddress) {
+
+        setMapToLocation(searchResultLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+
+        mMap.addMarker(new MarkerOptions().
+                position(searchResultLocation)
+                .title(getString(R.string.search_result))
+                .snippet(searchResultAddress)
+                .clusterGroup(ClusterGroup.NOT_CLUSTERED)
+        );
+
+    }
+
+    // force double click to exit app
     @Override
     public void onBackPressed() {
 

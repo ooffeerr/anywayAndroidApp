@@ -1,4 +1,4 @@
-package il.co.anyway.app;
+package il.co.anyway.app.singletons;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -25,6 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import il.co.anyway.app.DisqusActivity;
+import il.co.anyway.app.PriorityJsonObjectRequest;
+import il.co.anyway.app.R;
+import il.co.anyway.app.Utility;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.Discussion;
 
