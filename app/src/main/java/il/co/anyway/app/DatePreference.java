@@ -5,13 +5,22 @@ import android.content.res.TypedArray;
 import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class DatePreference extends DialogPreference {
+
+    private final String LOG_TAG = DatePreference.class.getSimpleName();
+
+    public static String MINIMUM_DATE = "01/01/2005";
+    public static String MAXIMUM_DATE = "31/12/2013";
+
     private int lastDate = 0;
     private int lastMonth = 0;
     private int lastYear = 0;
@@ -41,14 +50,22 @@ public class DatePreference extends DialogPreference {
         return (Integer.parseInt(pieces[0]));
     }
 
-    //@SuppressLint("NewApi")
     @Override
     protected View onCreateDialogView() {
         picker = new DatePicker(getContext());
+        picker.setCalendarViewShown(false);
 
-        // Make sure we're running on Honeycomb or higher to disable the calendar
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            picker.setCalendarViewShown(false);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date minDate, maxDate;
+        try {
+            minDate = sdf.parse(MINIMUM_DATE);
+            maxDate = sdf.parse(MAXIMUM_DATE);
+
+            picker.setMinDate(minDate.getTime());
+            picker.setMaxDate(maxDate.getTime());
+
+        } catch (ParseException e) {
+            Log.e(LOG_TAG, "Error: " + e.getMessage());
         }
 
         return (picker);
