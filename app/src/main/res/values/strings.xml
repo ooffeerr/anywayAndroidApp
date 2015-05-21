@@ -35,7 +35,6 @@
     <string name="address_result_title">האם התכוונת ל:</string>
     <string name="address_not_found_title">לא נמצאה כתובת</string>
     <string name="address_not_found_details">אנא בדוק את הכתובת שהכנסת</string>
-    <string name="search_result">תוצאת חיפוש</string>
     <string name="search">חפש</string>
 
     <!-- marker_info_window -->
@@ -49,6 +48,7 @@
     <string name="close">סגור</string>
     <string name="yes">כן</string>
     <string name="no">לא</string>
+    <string name="my_location">המיקום שלי</string>
 
 
 </resources>

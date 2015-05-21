@@ -21,6 +21,8 @@ class MarkerInfoWindowAdapter implements InfoWindowAdapter {
     private View mInfoWindows = null;
     private LayoutInflater mInflater = null;
 
+    public static final String FORCE_SIMPLE_SNIPPET_SHOW = "no-layout-marker-only-sniipet";
+
     public MarkerInfoWindowAdapter(LayoutInflater inflater) {
         this.mInflater = inflater;
     }
@@ -64,15 +66,15 @@ class MarkerInfoWindowAdapter implements InfoWindowAdapter {
                 mainSnippet.setText(marker.getSnippet());
 
                 return mInfoWindows;
-            } else if (marker.getTitle().equals("תוצאת חיפוש")) {
+            } else if (marker.getTitle().equals(FORCE_SIMPLE_SNIPPET_SHOW)) {
 
                 LinearLayout searchLayout = new LinearLayout(mInflater.getContext());
-                TextView searchAddress = new TextView(mInflater.getContext());
-                searchAddress.setText(marker.getSnippet());
-                searchAddress.setTypeface(null, Typeface.BOLD);
-                searchAddress.setTextSize(20);
+                TextView snippetTV = new TextView(mInflater.getContext());
+                snippetTV.setText(marker.getSnippet());
+                snippetTV.setTypeface(null, Typeface.BOLD);
+                snippetTV.setTextSize(20);
 
-                searchLayout.addView(searchAddress);
+                searchLayout.addView(snippetTV);
 
                 return searchLayout;
             }

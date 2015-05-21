@@ -24,4 +24,16 @@
         android:indeterminateDrawable="@drawable/my_progress_indeterminate"
         android:visibility="gone" />
 
+    <ImageButton
+        android:contentDescription="@string/my_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_action_location_found"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="10dp"
+        android:onClick="onMyLocationButtonClick"/>
+
 </RelativeLayout>

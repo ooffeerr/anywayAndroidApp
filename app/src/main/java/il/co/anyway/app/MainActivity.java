@@ -2,13 +2,11 @@ package il.co.anyway.app;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Address;
 import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,12 +16,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidmapsextensions.ClusterGroup;
@@ -34,25 +29,22 @@ import com.androidmapsextensions.GoogleMap.OnInfoWindowClickListener;
 import com.androidmapsextensions.GoogleMap.OnMapLoadedCallback;
 import com.androidmapsextensions.GoogleMap.OnMapLongClickListener;
 import com.androidmapsextensions.GoogleMap.OnMarkerClickListener;
-import com.androidmapsextensions.GoogleMap.OnMyLocationButtonClickListener;
 import com.androidmapsextensions.Marker;
 import com.androidmapsextensions.MarkerOptions;
 import com.androidmapsextensions.OnMapReadyCallback;
 import com.androidmapsextensions.SupportMapFragment;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
-import il.co.anyway.app.dialogs.AccidentDetailsDialogFragment;
 import il.co.anyway.app.dialogs.AccidentsDialogs;
 import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
 import il.co.anyway.app.dialogs.EnableGpsDialogFragment;
@@ -64,10 +56,10 @@ import il.co.anyway.app.singletons.MarkersManager;
 
 public class MainActivity extends AppCompatActivity
         implements
+        LocationListener,
         OnInfoWindowClickListener,
         OnMapLongClickListener,
         OnCameraChangeListener,
-        OnMyLocationButtonClickListener,
         OnMapReadyCallback,
         OnMapLoadedCallback,
         OnMarkerClickListener {
@@ -80,7 +72,12 @@ public class MainActivity extends AppCompatActivity
     private GoogleMap mMap;
     private FragmentManager fm;
     private SupportMapFragment mapFragment;
+
     private LocationManager mLocationManager;
+    private Location mLocation;
+    private String mProvider;
+    private Marker mPositionMarker;
+
     private boolean mFirstRun;
     private boolean mMapIsInClusterMode;
     private boolean mDoubleBackToExitPressedOnce;
@@ -106,6 +103,16 @@ public class MainActivity extends AppCompatActivity
         // get location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        // Define the criteria how to select the location provider -> use default
+        final Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setAltitudeRequired(true);
+        criteria.setBearingRequired(false);
+        criteria.setCostAllowed(true);
+        criteria.setPowerRequirement(Criteria.POWER_HIGH);
+
+        mProvider = mLocationManager.getBestProvider(criteria, false);
+
         // check if gps enabled, if not - offer the user to turn it on
         boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!gpsEnabled && mFirstRun)
@@ -119,7 +126,7 @@ public class MainActivity extends AppCompatActivity
 
                         // reset accident manager
                         MarkersManager.getInstance().addAllAccidents(null, MarkersManager.DO_RESET);
-                        mMap.clear();
+                        clearMap();
                         getMarkersFromServer();
 
                     }
@@ -140,12 +147,20 @@ public class MainActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
 
+        final long GPS_LOCATION_UPDATE_INTERVAL = 1000; // update every second
+        final int GPS_LOCATION_UPDATE_DISTANCE = 1; // update if one meter moved
+
         // set the map fragment and call the map settings
         setUpMapIfNeeded();
 
         // check if app opened by a link to specific location, if so - move to that location
         getDataFromSharedURL();
 
+        // register location listerner
+        mLocationManager.requestLocationUpdates(mProvider,
+                GPS_LOCATION_UPDATE_INTERVAL, GPS_LOCATION_UPDATE_DISTANCE, this);
+
+        // register activity updates from MarkersManager
         MarkersManager.getInstance().registerListenerActivity(this);
     }
 
@@ -153,6 +168,10 @@ public class MainActivity extends AppCompatActivity
     protected void onStop() {
         super.onStop();
 
+        // unregister location listener
+        mLocationManager.removeUpdates(this);
+
+        // unregister activity updates from MarkersManager
         MarkersManager.getInstance().unregisterListenerActivity();
     }
 
@@ -183,8 +202,8 @@ public class MainActivity extends AppCompatActivity
         settings.clusterOptionsProvider(new AnywayClusterOptionsProvider(getResources())).addMarkersDynamically(true);
         mMap.setClustering(settings);
 
-        // Enable location buttons
-        mMap.setMyLocationEnabled(true);
+        // Disable location button and blue dot
+        mMap.setMyLocationEnabled(false);
 
         // Disable toolbar on the right bottom corner(taking user to google maps app)
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -203,9 +222,6 @@ public class MainActivity extends AppCompatActivity
         // set listener to fetch accidents from server when map change
         mMap.setOnCameraChangeListener(this);
 
-        // set listener to force minimum zoom level when user click on MyLocation button
-        mMap.setOnMyLocationButtonClickListener(this);
-
         // when map finish rendering - set camera to user location
         mMap.setOnMapLoadedCallback(this);
 
@@ -214,7 +230,7 @@ public class MainActivity extends AppCompatActivity
 
         // accident manager is static, so me need to make sure the markers of accident re-added to the map
         MarkersManager.getInstance().setAllMarkersAsNotShownOnTheMap();
-        mMap.clear();
+        clearMap();
 
         // call both markers and clusters, only one of them will run, the other return
         addMarkersToMap();
@@ -226,18 +242,47 @@ public class MainActivity extends AppCompatActivity
 
         // if the user didn't opened the map before try to set the map to user location
         if (mFirstRun) {
-
-            Location myLocation = mMap.getMyLocation();
-            if (myLocation == null)
-                myLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(new Criteria(), false));
-
-            if (myLocation != null)
-                setMapToLocation(myLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
-
+            setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
             mFirstRun = false;
         }
 
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLocation = location;
+
+        if (location == null)
+            return;
+
+        if (mPositionMarker == null) {
+
+            mPositionMarker = mMap.addMarker(new MarkerOptions()
+                    .flat(true)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.position_indicator))
+                    .title(MarkerInfoWindowAdapter.FORCE_SIMPLE_SNIPPET_SHOW)
+                    .snippet(getString(R.string.my_location))
+                    .position(
+                            new LatLng(location.getLatitude(), location
+                                    .getLongitude())));
+            mPositionMarker.setClusterGroup(ClusterGroup.NOT_CLUSTERED);
+
+        } else {
+
+            mPositionMarker.setPosition(new LatLng(location.getLatitude(), location
+                    .getLongitude()));
+        }
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) { }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) { }
+
+    @Override
+    public void onProviderEnabled(String provider) { }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -355,25 +400,19 @@ public class MainActivity extends AppCompatActivity
         if (zoomLevel < MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS && !mMapIsInClusterMode) {
 
             mMapIsInClusterMode = true;
-            mMap.clear();
+            clearMap();
             MarkersManager.getInstance().setAllMarkersAsNotShownOnTheMap();
 
         } else if (zoomLevel >= MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS && mMapIsInClusterMode) {
 
             mMapIsInClusterMode = false;
             mLastAccidentsClusters = null;
-            mMap.clear();
+            clearMap();
             addMarkersToMap();
 
         }
 
         getMarkersFromServer();
-    }
-
-    @Override
-    public boolean onMyLocationButtonClick() {
-        setMapToLocation(mMap.getMyLocation(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
-        return true;
     }
 
     /**
@@ -522,7 +561,7 @@ public class MainActivity extends AppCompatActivity
         if (!mMapIsInClusterMode)
             return;
 
-        mMap.clear();
+        clearMap();
         for (AccidentCluster ac : accidentClusterList) {
 
             // add cluster marker to map
@@ -626,10 +665,10 @@ public class MainActivity extends AppCompatActivity
         setMapToLocation(searchResultLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
         mMap.addMarker(new MarkerOptions().
-                position(searchResultLocation)
-                .title(getString(R.string.search_result))
-                .snippet(searchResultAddress)
-                .clusterGroup(ClusterGroup.NOT_CLUSTERED)
+                        position(searchResultLocation)
+                        .title(MarkerInfoWindowAdapter.FORCE_SIMPLE_SNIPPET_SHOW)
+                        .snippet(searchResultAddress)
+                        .clusterGroup(ClusterGroup.NOT_CLUSTERED)
         );
 
     }
@@ -654,5 +693,17 @@ public class MainActivity extends AppCompatActivity
             }
         }, 2000);
 
+    }
+
+    // When clearing map needed to re-add current location marker
+    private void clearMap() {
+        mMap.clear();
+        mPositionMarker = null;
+        onLocationChanged(mLocation);
+    }
+
+    // take user to location
+    public void onMyLocationButtonClick(View view) {
+        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
     }
 }
