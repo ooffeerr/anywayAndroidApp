@@ -124,9 +124,9 @@ public class Utility {
      * @param fetchedDiscussions empty List<Discussion> that all discussion will be added to
      * @return 0 for ok status, -1 for error in list, -2 for error in JSON
      */
-    public static int getAccidentDataFromJson(JSONObject accidentJson,
-                                              List<Accident> fetchedAccidents,
-                                              List<Discussion> fetchedDiscussions) {
+    public static int getMarkersDataFromJson(JSONObject accidentJson,
+                                             List<Accident> fetchedAccidents,
+                                             List<Discussion> fetchedDiscussions) {
 
         if (fetchedAccidents == null || fetchedDiscussions == null)
             return -1;
@@ -281,8 +281,6 @@ public class Utility {
         if (bounds == null || context == null)
             return;
 
-        AnywayRequestQueue requestQueue = AnywayRequestQueue.getInstance(context);
-
         // Get preferences form SharedPreferences
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -293,7 +291,7 @@ public class Utility {
         String fromDate = sharedPrefs.getString(context.getString(R.string.pref_from_date_key), context.getString(R.string.pref_default_from_date));
         String toDate = sharedPrefs.getString(context.getString(R.string.pref_to_date_key), context.getString(R.string.pref_default_to_date));
 
-        requestQueue.addMarkersRequest(
+        AnywayRequestQueue.getInstance(context).addMarkersRequest(
                 bounds.northeast.latitude,
                 bounds.northeast.longitude,
                 bounds.southwest.latitude,

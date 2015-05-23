@@ -100,7 +100,7 @@ public class AnywayRequestQueue {
                         List<Accident> fetchedAccidents = new ArrayList<>();
                         List<Discussion> fetchedDiscussion = new ArrayList<>();
 
-                        int fetchStatus = Utility.getAccidentDataFromJson(response, fetchedAccidents, fetchedDiscussion);
+                        int fetchStatus = Utility.getMarkersDataFromJson(response, fetchedAccidents, fetchedDiscussion);
 
                         if (fetchStatus == 0) {
                             MarkersManager.getInstance().addAllAccidents(fetchedAccidents, MarkersManager.DO_NOT_RESET);
