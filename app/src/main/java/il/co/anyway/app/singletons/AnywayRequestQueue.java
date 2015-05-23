@@ -38,6 +38,10 @@ public class AnywayRequestQueue {
     public final static String ANYWAY_BASE_URL = "http://oway.org.il/";
     public final static String ANYWAY_MARKERS_BASE_URL = ANYWAY_BASE_URL + "markers?";
     public final static String ANYWAY_DISCUSSION_POST_URL = ANYWAY_BASE_URL + "discussion";
+    public final static String ANYWAY_HIGHLIGHT_POINTS = ANYWAY_BASE_URL + "highlightpoints";
+
+    public final static int HIGHLIGHT_TYPE_USER_SEARCH = 1;
+    public final static int HIGHLIGHT_TYPE_USER_GPS = 2;
 
     private final static String LOG_TAG = AnywayRequestQueue.class.getSimpleName();
     private static AnywayRequestQueue instance = null;
@@ -175,5 +179,44 @@ public class AnywayRequestQueue {
         newDisqusRequest.setShouldCache(false);
         newDisqusRequest.setPriority(Request.Priority.HIGH);
         mRequestQueue.add(newDisqusRequest);
+    }
+
+    public void sendUserAndSearchedLocation(double lat, double lng, int type) {
+
+        JSONObject jsonObjectData = new JSONObject();
+        try {
+            jsonObjectData.put("latitude", Double.toString((lat)));
+            jsonObjectData.put("longitude", Double.toString(lng));
+            jsonObjectData.put("type", Integer.toString(type));
+        } catch (JSONException e) {
+            //Log.e(LOG_TAG, "Error parsing statistics");
+            return;
+        }
+
+        PriorityJsonObjectRequest newLocationRequest = new PriorityJsonObjectRequest
+                (Request.Method.POST, ANYWAY_HIGHLIGHT_POINTS, jsonObjectData, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //Log.i(LOG_TAG, "Statistics sent");
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //Log.e(LOG_TAG, "Error sending statistics");
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+
+        newLocationRequest.setShouldCache(false);
+        newLocationRequest.setPriority(Request.Priority.LOW);
+        mRequestQueue.add(newLocationRequest);
+
     }
 }

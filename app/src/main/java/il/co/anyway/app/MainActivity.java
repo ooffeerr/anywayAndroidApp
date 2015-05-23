@@ -52,6 +52,7 @@ import il.co.anyway.app.dialogs.SearchDialogs;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.AccidentCluster;
 import il.co.anyway.app.models.Discussion;
+import il.co.anyway.app.singletons.AnywayRequestQueue;
 import il.co.anyway.app.singletons.MarkersManager;
 
 public class MainActivity extends AppCompatActivity
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity
     private boolean mFirstRun;
     private boolean mMapIsInClusterMode;
     private boolean mDoubleBackToExitPressedOnce;
+    private boolean sentUserLocation;
 
     private List<AccidentCluster> mLastAccidentsClusters = null;
 
@@ -90,6 +92,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // flag to send user location to anyway when opening app
+        // location update taking place in onLocationChange
+        sentUserLocation = false;
 
         // force double pressing on back key to leave discussion
         mDoubleBackToExitPressedOnce = false;
@@ -254,6 +260,15 @@ public class MainActivity extends AppCompatActivity
 
         if (location == null)
             return;
+
+        if (!sentUserLocation) {
+            AnywayRequestQueue.getInstance(this)
+                    .sendUserAndSearchedLocation(
+                            location.getLatitude(), location.getLongitude(),
+                            AnywayRequestQueue.HIGHLIGHT_TYPE_USER_GPS
+                    );
+            sentUserLocation = true;
+        }
 
         if (mPositionMarker == null) {
 

@@ -20,6 +20,7 @@ import java.util.Locale;
 
 import il.co.anyway.app.MainActivity;
 import il.co.anyway.app.R;
+import il.co.anyway.app.singletons.AnywayRequestQueue;
 
 public class SearchDialogs {
 
@@ -110,6 +111,13 @@ public class SearchDialogs {
 
                                         LatLng resultLocation = new LatLng(addresses.get(which).getLatitude(), addresses.get(which).getLongitude());
                                         ((MainActivity) activity).updateMapFromSearchResult(resultLocation, addressList[which]);
+
+                                        AnywayRequestQueue.getInstance(activity)
+                                                .sendUserAndSearchedLocation(
+                                                        resultLocation.latitude,
+                                                        resultLocation.longitude,
+                                                        AnywayRequestQueue.HIGHLIGHT_TYPE_USER_SEARCH
+                                                );
 
                                     }
                                 }
