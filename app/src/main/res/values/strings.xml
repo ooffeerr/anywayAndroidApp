@@ -31,6 +31,7 @@
     <string name="address_search_hint">חפש כתובת&#8230;</string>
     <string name="address_empty">יש להכניס כתובת לחיפוש</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
+    <string name="address_searching">מחפש&#8230;</string>
 
     <string name="address_result_title">האם התכוונת ל:</string>
     <string name="address_not_found_title">לא נמצאה כתובת</string>

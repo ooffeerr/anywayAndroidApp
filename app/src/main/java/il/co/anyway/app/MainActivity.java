@@ -48,7 +48,7 @@ import java.util.List;
 import il.co.anyway.app.dialogs.AccidentsDialogs;
 import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
 import il.co.anyway.app.dialogs.EnableGpsDialogFragment;
-import il.co.anyway.app.dialogs.SearchDialogs;
+import il.co.anyway.app.dialogs.SearchAddress;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.AccidentCluster;
 import il.co.anyway.app.models.Discussion;
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity
     private LocationManager mLocationManager;
     private Location mLocation;
     private String mProvider;
-    private Marker mPositionMarker;
+    private Marker mPositionMarker, mSearchResultMarker;
 
     private boolean mFirstRun;
     private boolean mMapIsInClusterMode;
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         if (id == R.id.action_search) {
-            SearchDialogs.showSearchDialog(this);
+            new SearchAddress(this);
             return true;
         }
         if (id == R.id.action_share) {
@@ -679,12 +679,17 @@ public class MainActivity extends AppCompatActivity
 
         setMapToLocation(searchResultLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
 
-        mMap.addMarker(new MarkerOptions().
-                        position(searchResultLocation)
-                        .title(MarkerInfoWindowAdapter.FORCE_SIMPLE_SNIPPET_SHOW)
-                        .snippet(searchResultAddress)
-                        .clusterGroup(ClusterGroup.NOT_CLUSTERED)
-        );
+        if (mSearchResultMarker == null) {
+            mSearchResultMarker = mMap.addMarker(new MarkerOptions()
+                    .position(searchResultLocation)
+                    .title(MarkerInfoWindowAdapter.FORCE_SIMPLE_SNIPPET_SHOW)
+                    .snippet(searchResultAddress)
+                    .clusterGroup(ClusterGroup.NOT_CLUSTERED));
+        }
+        else {
+            mSearchResultMarker.setPosition(searchResultLocation);
+            mSearchResultMarker.setSnippet(searchResultAddress);
+        }
 
     }
 
@@ -713,6 +718,15 @@ public class MainActivity extends AppCompatActivity
     // When clearing map needed to re-add current location marker
     private void clearMap() {
         mMap.clear();
+
+        // force re-adding my location marker and search result marker
+        if(mSearchResultMarker != null)
+            mSearchResultMarker = mMap.addMarker(new MarkerOptions()
+                    .snippet(mSearchResultMarker.getSnippet())
+                    .position(mSearchResultMarker.getPosition())
+                    .title(mSearchResultMarker.getTitle())
+                    .clusterGroup(ClusterGroup.NOT_CLUSTERED));
+
         mPositionMarker = null;
         onLocationChanged(mLocation);
     }
