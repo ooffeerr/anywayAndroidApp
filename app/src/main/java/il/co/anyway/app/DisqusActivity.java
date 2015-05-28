@@ -138,24 +138,7 @@ public class DisqusActivity extends AppCompatActivity {
         if (mWebView.canGoBack()) {
             mWebView.goBack();
         } else {
-
-            if (doubleBackToExitPressedOnce) {
-                super.onBackPressed();
-                return;
-            }
-
-            doubleBackToExitPressedOnce = true;
-            Toast.makeText(this, getString(R.string.press_back_again_to_exit), Toast.LENGTH_SHORT).show();
-
-            new Handler().postDelayed(new Runnable() {
-
-                @Override
-                public void run() {
-                    doubleBackToExitPressedOnce = false;
-                }
-            }, 2000);
-
-            return;
+            super.onBackPressed();
         }
     }
 }
