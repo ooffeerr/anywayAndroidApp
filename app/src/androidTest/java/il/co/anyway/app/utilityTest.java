@@ -105,7 +105,7 @@ public class UtilityTest extends AndroidTestCase {
         LatLng latLng = new LatLng(33.21, 34.65);
         String url = Utility.getCurrentPositionStringURI(latLng, 15, getContext());
 
-        assertEquals("http://oway.org.il/?start_date=2013-1-1&end_date=2013-12-31&show_fatal=1&show_severe=1&show_light=1&show_inaccurate=0&zoom=15&lat=33.21&lon=34.65", url);
+        assertEquals("http://www.anyway.co.il/?start_date=2013-1-1&end_date=2013-12-31&show_fatal=1&show_severe=1&show_light=1&show_inaccurate=0&zoom=15&lat=33.21&lon=34.65", url);
 
     }
 }
