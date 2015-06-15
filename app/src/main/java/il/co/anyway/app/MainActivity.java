@@ -1,13 +1,10 @@
 package il.co.anyway.app;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,6 +30,17 @@ import com.androidmapsextensions.Marker;
 import com.androidmapsextensions.MarkerOptions;
 import com.androidmapsextensions.OnMapReadyCallback;
 import com.androidmapsextensions.SupportMapFragment;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -46,7 +54,6 @@ import java.util.List;
 
 import il.co.anyway.app.dialogs.AccidentsDialogs;
 import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
-import il.co.anyway.app.dialogs.EnableGpsDialogFragment;
 import il.co.anyway.app.dialogs.InternetRequiredDialogFragment;
 import il.co.anyway.app.dialogs.SearchAddress;
 import il.co.anyway.app.models.Accident;
@@ -57,13 +64,15 @@ import il.co.anyway.app.singletons.MarkersManager;
 
 public class MainActivity extends AppCompatActivity
         implements
-        LocationListener,
         OnInfoWindowClickListener,
         OnMapLongClickListener,
         OnCameraChangeListener,
         OnMapReadyCallback,
         OnMapLoadedCallback,
-        OnMarkerClickListener {
+        OnMarkerClickListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
     private static final LatLng START_LOCATION = new LatLng(31.774511, 35.011642);
     private static final int START_ZOOM_LEVEL = 7;
@@ -74,11 +83,6 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager fm;
     private SupportMapFragment mapFragment;
 
-    private LocationManager mLocationManager;
-    private Location mLocation;
-    private String mProvider;
-    private Marker mPositionMarker, mSearchResultMarker;
-
     private boolean mNewInstance;
     private boolean mMapIsInClusterMode;
     private boolean mDoubleBackToExitPressedOnce;
@@ -88,6 +92,13 @@ public class MainActivity extends AppCompatActivity
     private List<AccidentCluster> mLastAccidentsClusters = null;
 
     private SharedPreferences.OnSharedPreferenceChangeListener mSharedPrefListener;
+
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLocation;
+    private Marker mPositionMarker, mSearchResultMarker;
+    private LocationRequest mLocationRequest;
+    private LocationSettingsRequest mLocationSettingsRequest;
+    private boolean mGpsDialogNeverShowed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,25 +121,13 @@ public class MainActivity extends AppCompatActivity
         // find out if this is the first instance of the activity
         mNewInstance = (savedInstanceState == null);
 
-        // get location manager
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // Kick off the process of building the GoogleApiClient, LocationRequest, and
+        // LocationSettingsRequest objects.
+        buildGoogleApiClient();
+        createLocationRequest();
+        buildLocationSettingsRequest();
+        mGpsDialogNeverShowed = true;
 
-        // Define the criteria how to select the location provider -> use default
-        final Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setAltitudeRequired(false);
-        criteria.setBearingRequired(false);
-        criteria.setCostAllowed(true);
-        criteria.setPowerRequirement(Criteria.POWER_HIGH);
-
-        mProvider = mLocationManager.getBestProvider(criteria, false);
-
-        // check if gps enabled, if not - offer the user to turn it on
-        // also verify that the user didn't choose 'never ask again' in the past
-        boolean showGpsAlertDialog = !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(EnableGpsDialogFragment.DONT_SHOW_GPS_DIALOG_KEY, false);
-        boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        if (!gpsEnabled && mNewInstance && showGpsAlertDialog)
-            new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         // add Preference changed listener int order to update map data after preference changed
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -144,33 +143,27 @@ public class MainActivity extends AppCompatActivity
                     }
                 };
         prefs.registerOnSharedPreferenceChangeListener(mSharedPrefListener);
+
+        // check if app opened by a link to specific location, if so - move to that location
+        getDataFromSharedURL();
+
     }
 
     @Override
     protected void onDestroy() {
-
         super.onDestroy();
+
+        // remove shared preferences listener
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.unregisterOnSharedPreferenceChangeListener(mSharedPrefListener);
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        final long GPS_LOCATION_UPDATE_INTERVAL = 1000; // update every second
-        final int GPS_LOCATION_UPDATE_DISTANCE = 1; // update if one meter moved
-
         // set the map fragment and call the map settings
         setUpMapIfNeeded();
-
-        // check if app opened by a link to specific location, if so - move to that location
-        getDataFromSharedURL();
-
-        // register location listener
-        mLocationManager.requestLocationUpdates(mProvider,
-                GPS_LOCATION_UPDATE_INTERVAL, GPS_LOCATION_UPDATE_DISTANCE, this);
 
         // register activity updates from MarkersManager
         MarkersManager.getInstance().registerListenerActivity(this);
@@ -189,17 +182,40 @@ public class MainActivity extends AppCompatActivity
             // don't show again
             mShowedDialogAboutInternetConnection = true;
         }
+
+        mGoogleApiClient.connect();
+        checkLocationSettings();
     }
 
     @Override
     protected void onStop() {
-        // unregister location listener
-        mLocationManager.removeUpdates(this);
+
+        mGoogleApiClient.disconnect();
 
         // unregister activity updates from MarkersManager
         MarkersManager.getInstance().unregisterListenerActivity();
 
         super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Within {@code onPause()}, we pause location updates, but leave the
+        // connection to GoogleApiClient intact.  Here, we resume receiving
+        // location updates if the user has requested them.
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
+        if (mGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+        }
     }
 
     private void setUpMapIfNeeded() {
@@ -275,6 +291,134 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    /**
+     * Builds a GoogleApiClient. Uses the {@code #addApi} method to request the
+     * LocationServices API.
+     */
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    /**
+     * Sets up the location request.
+     */
+    protected void createLocationRequest() {
+
+        final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+        final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+        mLocationRequest = new LocationRequest();
+        // Sets the desired interval for active location updates. This interval is inexact.
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        // Sets the fastest rate for active location updates. This interval is exact, and the
+        // application will never receive updates faster than this value.
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    /**
+     * Requests location updates from the FusedLocationApi.
+     */
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient,
+                mLocationRequest,
+                this
+        );
+
+    }
+
+    /**
+     * Removes location updates from the FusedLocationApi.
+     */
+    protected void stopLocationUpdates() {
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient,
+                this
+        );
+    }
+
+    /**
+     * Uses a {@link com.google.android.gms.location.LocationSettingsRequest.Builder} to build
+     * a {@link com.google.android.gms.location.LocationSettingsRequest} that is used for checking
+     * if a device has the needed location settings.
+     */
+    protected void buildLocationSettingsRequest() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(mLocationRequest);
+        mLocationSettingsRequest = builder.build();
+    }
+
+    /**
+     * Check if the device's location settings are adequate for the app's needs using the
+     * {@link com.google.android.gms.location.SettingsApi#checkLocationSettings(GoogleApiClient,
+     * LocationSettingsRequest)} method, with the results provided through a {@code PendingResult}.
+     */
+    protected void checkLocationSettings() {
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(
+                        mGoogleApiClient,
+                        mLocationSettingsRequest
+                );
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Log.i(LOG_TAG, "All location settings are satisfied.");
+                        startLocationUpdates();
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        //Location settings are not satisfied. Show the user a dialog to upgrade location settings
+
+                        // show the use a dialog to enable GPS in location settings and show it only once
+                        if (mGpsDialogNeverShowed) {
+                            mGpsDialogNeverShowed = false;
+                            try {
+                                // Show the dialog by calling startResolutionForResult(), and check the result
+                                // in onActivityResult().
+
+                                status.startResolutionForResult(MainActivity.this, 0x1);
+                            } catch (IntentSender.SendIntentException e) {
+                                Log.i(LOG_TAG, "PendingIntent unable to execute request.");
+                            }
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.i(LOG_TAG, "Location settings are inadequate, and cannot be fixed here. Dialog not created.");
+                        break;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        // If the initial location was never previously requested, we use
+        // FusedLocationApi.getLastLocation() to get it.
+        if (mLocation == null)
+            mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         mLocation = location;
@@ -310,15 +454,6 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
-    @Override
-    public void onProviderDisabled(String provider) { }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) { }
-
-    @Override
-    public void onProviderEnabled(String provider) { }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -757,6 +892,11 @@ public class MainActivity extends AppCompatActivity
 
     // take user to location
     public void onMyLocationButtonClick(View view) {
+        if (mLocation == null) {
+            mGpsDialogNeverShowed = true;
+            checkLocationSettings();
+        }
+
         setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
     }
 }

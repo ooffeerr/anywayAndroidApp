@@ -40,9 +40,6 @@
     <string name="icon">אייקון תאונה</string>
     <string name="accidents">תאונות</string>
 
-    <!-- Enable gps Alert dialog -->
-    <string name="gps_is_off">שירותי המיקום מכובים, האם ברצונך להפעיל אותם?</string>
-
     <string name="cancel">ביטול</string>
     <string name="close">סגור</string>
     <string name="yes">כן</string>
