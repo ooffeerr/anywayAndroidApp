@@ -124,8 +124,10 @@ public class MainActivity extends AppCompatActivity
         mProvider = mLocationManager.getBestProvider(criteria, false);
 
         // check if gps enabled, if not - offer the user to turn it on
+        // also verify that the user didn't choose 'never ask again' in the past
+        boolean showGpsAlertDialog = !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(EnableGpsDialogFragment.DONT_SHOW_GPS_DIALOG_KEY, false);
         boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        if (!gpsEnabled && mNewInstance)
+        if (!gpsEnabled && mNewInstance && showGpsAlertDialog)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         // add Preference changed listener int order to update map data after preference changed
