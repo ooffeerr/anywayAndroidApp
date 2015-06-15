@@ -9,6 +9,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -577,5 +579,14 @@ public class Utility {
 
         return builtUri.toString();
     }
+
+    public static boolean isNetworkConnectionAvailable(Context context) {
+
+        NetworkInfo info = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE))
+                .getActiveNetworkInfo();
+
+        return info != null && info.isConnected();
+    }
+
 }
 

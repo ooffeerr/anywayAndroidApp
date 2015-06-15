@@ -33,7 +33,6 @@ import com.androidmapsextensions.Marker;
 import com.androidmapsextensions.MarkerOptions;
 import com.androidmapsextensions.OnMapReadyCallback;
 import com.androidmapsextensions.SupportMapFragment;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -48,6 +47,7 @@ import java.util.List;
 import il.co.anyway.app.dialogs.AccidentsDialogs;
 import il.co.anyway.app.dialogs.ConfirmDiscussionCreateDialogFragment;
 import il.co.anyway.app.dialogs.EnableGpsDialogFragment;
+import il.co.anyway.app.dialogs.InternetRequiredDialogFragment;
 import il.co.anyway.app.dialogs.SearchAddress;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.AccidentCluster;
@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity
     private boolean mMapIsInClusterMode;
     private boolean mDoubleBackToExitPressedOnce;
     private boolean sentUserLocation;
+    private boolean mShowedDialogAboutInternetConnection;
 
     private List<AccidentCluster> mLastAccidentsClusters = null;
 
@@ -102,6 +103,9 @@ public class MainActivity extends AppCompatActivity
 
         // map start in START_ZOOM_LEVEL
         mMapIsInClusterMode = true;
+
+        // Dialog informing the user this app need internet connection never shown before
+        mShowedDialogAboutInternetConnection = false;
 
         // find out if this is the first instance of the activity
         mNewInstance = (savedInstanceState == null);
@@ -173,17 +177,27 @@ public class MainActivity extends AppCompatActivity
         // back from from discussion to fetch new discussion marker
         if (mMap != null && !mMapIsInClusterMode)
             getMarkersFromServer();
+
+        // check for available network connection
+        if(!Utility.isNetworkConnectionAvailable(this) && !mShowedDialogAboutInternetConnection) {
+
+            // show dialog
+            new InternetRequiredDialogFragment().show(getSupportFragmentManager(), "InternetDialog");
+
+            // don't show again
+            mShowedDialogAboutInternetConnection = true;
+        }
     }
 
     @Override
     protected void onStop() {
-        super.onStop();
-
         // unregister location listener
         mLocationManager.removeUpdates(this);
 
         // unregister activity updates from MarkersManager
         MarkersManager.getInstance().unregisterListenerActivity();
+
+        super.onStop();
     }
 
     private void setUpMapIfNeeded() {
