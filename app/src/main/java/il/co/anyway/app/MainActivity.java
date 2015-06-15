@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity
     private String mProvider;
     private Marker mPositionMarker, mSearchResultMarker;
 
-    private boolean mFirstRun;
+    private boolean mNewInstance;
     private boolean mMapIsInClusterMode;
     private boolean mDoubleBackToExitPressedOnce;
     private boolean sentUserLocation;
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity
         mMapIsInClusterMode = true;
 
         // find out if this is the first instance of the activity
-        mFirstRun = (savedInstanceState == null);
+        mNewInstance = (savedInstanceState == null);
 
         // get location manager
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity
         // Define the criteria how to select the location provider -> use default
         final Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setAltitudeRequired(true);
+        criteria.setAltitudeRequired(false);
         criteria.setBearingRequired(false);
         criteria.setCostAllowed(true);
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity
 
         // check if gps enabled, if not - offer the user to turn it on
         boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        if (!gpsEnabled && mFirstRun)
+        if (!gpsEnabled && mNewInstance)
             new EnableGpsDialogFragment().show(getSupportFragmentManager(), "");
 
         // add Preference changed listener int order to update map data after preference changed
@@ -162,12 +162,17 @@ public class MainActivity extends AppCompatActivity
         // check if app opened by a link to specific location, if so - move to that location
         getDataFromSharedURL();
 
-        // register location listerner
+        // register location listener
         mLocationManager.requestLocationUpdates(mProvider,
                 GPS_LOCATION_UPDATE_INTERVAL, GPS_LOCATION_UPDATE_DISTANCE, this);
 
         // register activity updates from MarkersManager
         MarkersManager.getInstance().registerListenerActivity(this);
+
+        // re-call fetching markers from server, needed when coming
+        // back from from discussion to fetch new discussion marker
+        if (mMap != null && !mMapIsInClusterMode)
+            getMarkersFromServer();
     }
 
     @Override
@@ -200,7 +205,7 @@ public class MainActivity extends AppCompatActivity
         mMap = googleMap;
 
         // set map to start location if previous instance exist
-        if (mFirstRun)
+        if (mNewInstance)
             setMapToLocation(START_LOCATION, START_ZOOM_LEVEL, false);
 
         // Set Clustering
@@ -247,9 +252,9 @@ public class MainActivity extends AppCompatActivity
     public void onMapLoaded() {
 
         // if the user didn't opened the map before try to set the map to user location
-        if (mFirstRun) {
+        if (mNewInstance) {
             setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
-            mFirstRun = false;
+            mNewInstance = false;
         }
 
     }
@@ -352,6 +357,9 @@ public class MainActivity extends AppCompatActivity
         if (marker.getData() instanceof Discussion) {
             Intent disqusIntent = new Intent(this, DisqusActivity.class);
             disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, ((Discussion) marker.getData()).getIdentifier());
+            disqusIntent.putExtra(DisqusActivity.DISQUS_LOCATION, ((Discussion) marker.getData()).getLocation());
+            disqusIntent.putExtra(DisqusActivity.DISQUS_NEW, false);
+
             startActivity(disqusIntent);
             return true;
         }

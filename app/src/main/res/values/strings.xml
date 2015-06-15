@@ -21,17 +21,15 @@
     <!-- Disqus activity -->
     <string name="title_activity_disqus">דיון</string>
     <string name="refresh_comments">טען מחדש</string>
-    <string name="creating_new_discussion">יוצר דיון</string>
-    <string name="confirm_opening_new_discussion_title">יצירת דיון חדש</string>
+    <string name="confirm_opening_new_discussion_title">רק מוודאים…</string>
     <string name="confirm_opening_new_discussion">האם ברצונך לפתוח דיון חדש בנקודה זו?</string>
-    <string name="error_creating_discussion">התרחשה שגיאה בעת יצירת הדיון</string>
 
     <!-- Search Strings -->
     <string name="action_address_search">חפש כתובת</string>
-    <string name="address_search_hint">חפש כתובת&#8230;</string>
+    <string name="address_search_hint">חפש כתובת…</string>
     <string name="address_empty">יש להכניס כתובת לחיפוש</string>
     <string name="address_you_searched">הכתובת שחיפשת:</string>
-    <string name="address_searching">מחפש&#8230;</string>
+    <string name="address_searching">מחפש…</string>
 
     <string name="address_result_title">האם התכוונת ל:</string>
     <string name="address_not_found_title">לא נמצאה כתובת</string>

@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -52,6 +53,8 @@ public class Utility {
 
     private static final int MARKER_TYPE_ACCIDENT = 1;
     private static final int MARKER_TYPE_DISCUSSION = 2;
+
+    private static final String ANYWAY_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
     /**
      * Match AccidentCluster an icon by the number of accidents
@@ -124,12 +127,9 @@ public class Utility {
      * @param fetchedDiscussions empty List<Discussion> that all discussion will be added to
      * @return 0 for ok status, -1 for error in list, -2 for error in JSON
      */
-    public static int getMarkersDataFromJson(JSONObject accidentJson,
-                                             List<Accident> fetchedAccidents,
-                                             List<Discussion> fetchedDiscussions) {
-
-        if (fetchedAccidents == null || fetchedDiscussions == null)
-            return -1;
+    public static int getMarkersDataFromJson(@NonNull JSONObject accidentJson,
+                                             @NonNull List<Accident> fetchedAccidents,
+                                             @NonNull List<Discussion> fetchedDiscussions) {
 
         // These are the names of the JSON objects that need to be extracted.
         final String MARKERS_LIST = "markers";
@@ -191,7 +191,7 @@ public class Utility {
             String created = discussionJsonObject.getString(AD_CREATED);
             // Date comes as 2013-12-30T21:00:00, needs to be converted
             Date createdDate;
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat(ANYWAY_DATE_FORMAT);
             try {
                 createdDate = sdf.parse(created);
             } catch (ParseException e) {
@@ -233,7 +233,7 @@ public class Utility {
             // Date comes as 2013-12-30T21:00:00, needs to be converted
             String created = accidentJsonObject.getString(AD_CREATED);
             Date createdDate = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat(ANYWAY_DATE_FORMAT);
             try {
                 createdDate = sdf.parse(created);
             } catch (ParseException e) {

@@ -1,11 +1,8 @@
 package il.co.anyway.app.singletons;
 
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -25,9 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import il.co.anyway.app.DisqusActivity;
 import il.co.anyway.app.PriorityJsonObjectRequest;
-import il.co.anyway.app.R;
 import il.co.anyway.app.Utility;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.Discussion;
@@ -125,12 +120,6 @@ public class AnywayRequestQueue {
         if (context == null)
             return;
 
-        // Show ProgressDialog telling user new discussion is created
-        final ProgressDialog dialog = new ProgressDialog(context);
-        dialog.setMessage(context.getString(R.string.creating_new_discussion));
-        dialog.setCancelable(false);
-        dialog.show();
-
         String identifier = "(" + lat + ", " + lng + ")";
         JSONObject jsonObjectData = new JSONObject();
         try {
@@ -140,7 +129,6 @@ public class AnywayRequestQueue {
             jsonObjectData.put("identifier", identifier);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Error creating json for new discussion request");
-            dialog.dismiss();
             return;
         }
 
@@ -150,24 +138,18 @@ public class AnywayRequestQueue {
                     @Override
                     public void onResponse(JSONObject response) {
 
-                        dialog.dismiss();
-
                         Discussion discussion = Utility.parseJsonToDiscussion(response);
-                        if (discussion != null) {
+                        if (discussion != null)
                             MarkersManager.getInstance().addDiscussion(discussion);
-                            Intent disqusIntent = new Intent(context, DisqusActivity.class);
-                            disqusIntent.putExtra(DisqusActivity.DISQUS_TALK_IDENTIFIER, discussion.getIdentifier());
-                            context.startActivity(disqusIntent);
-                        } else
-                            Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
+
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        dialog.dismiss();
-                        Toast.makeText(context, R.string.error_creating_discussion, Toast.LENGTH_LONG).show();
+                        Log.e(LOG_TAG, "Error on creating discussion", error);
                     }
                 }) {
+
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();

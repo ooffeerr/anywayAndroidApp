@@ -1,9 +1,9 @@
 package il.co.anyway.app;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -12,18 +12,26 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
+
+import com.google.android.gms.maps.model.LatLng;
+
+import il.co.anyway.app.singletons.AnywayRequestQueue;
 
 
 public class DisqusActivity extends AppCompatActivity {
 
     public static final String DISQUS_TALK_IDENTIFIER = "il.co.anyway.app.DISQUS_TALK_IDENTIFIER";
-    private static final String BASE_URL = "http://www.anyway.co.il/discussion";
+    public static final String DISQUS_LOCATION = "il.co.anyway.app.DISQUS_TALK_LOCATION";
+    public static final String DISQUS_NEW = "il.co.anyway.app.DISQUS_TALK_NEW";
+
+    private static final String BASE_URL = "http://anywaycluster.azurewebsites.net/disqus/anyway-feedback";
     private final String LOG_TAG = DisqusActivity.class.getSimpleName();
-    WebView mWebView;
-    String mIdentifier;
-    String mUrl;
-    boolean doubleBackToExitPressedOnce;
+
+    private WebView mWebView;
+    private String mIdentifier, mUrl;
+    private LatLng mLocation;
+    private boolean mNewDiscussion;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,24 +42,19 @@ public class DisqusActivity extends AppCompatActivity {
         // get the location of the discussion
         Intent intent = getIntent();
 
-        // force double pressing on back key to leave discussion
-        doubleBackToExitPressedOnce = false;
-
         // check if activity accessed from anyway://disqus?identifier=x
         Uri data = intent.getData();
         if (data == null) {
             // activity accessed from MainActivity, get disqus ID from extra
-            mIdentifier = (String) intent.getExtras().get(DISQUS_TALK_IDENTIFIER);
+            mIdentifier = intent.getExtras().getString(DISQUS_TALK_IDENTIFIER);
+            mLocation = (LatLng) intent.getExtras().get(DISQUS_LOCATION);
+            mNewDiscussion = intent.getExtras().getBoolean(DISQUS_NEW);
 
         } else {
             mIdentifier = data.getQueryParameter("identifier");
+            mLocation = null;
+            mNewDiscussion = false;
         }
-
-        // build url of Disqus
-        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
-                .appendQueryParameter("identifier", mIdentifier)
-                .build();
-        mUrl = builtUri.toString();
 
         // get the web view
         mWebView = (WebView) findViewById(R.id.disqus);
@@ -77,13 +80,41 @@ public class DisqusActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh_comments) {
             mWebView.loadUrl(mUrl);
+            mWebView.clearHistory();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Build and set disqus url and parameters
+     */
+    private void buildDisqusUrl() {
+        // build url of Disqus
+        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
+                .appendQueryParameter("identifier", mIdentifier)
+                .appendQueryParameter("newDiscussion", Boolean.toString(mNewDiscussion))
+                .build();
+        mUrl = builtUri.toString();
+    }
+
+    /**
+     * Add new discussion marker in the server, called after first comment
+     */
+    private void addNewDiscussion() {
+        AnywayRequestQueue.getInstance(this).createNewDisqus(
+                mLocation.latitude, mLocation.longitude, this
+        );
+    }
+
+    /**
+     * Set WebView parameters and load discussion
+     */
     private void showDisqus() {
+
+        // set the discussion url
+        buildDisqusUrl();
 
         WebSettings webSettings = mWebView.getSettings();
 
@@ -102,10 +133,35 @@ public class DisqusActivity extends AppCompatActivity {
         // here we catch that situation and handle it
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+
+                // catch url forwarding that mark new comment, stop it and add new discussion marker
+                if (url.contains("new-discussion")) {
+
+                    view.stopLoading();
+
+                    // make sure that user is commenting on the same discussion opened and not
+                    // on another discussion (that can be reached from the discussion page
+                    boolean sameDiscussion = false;
+                    String previousUrl = view.getUrl();
+                    if (previousUrl != null) {
+                        sameDiscussion = previousUrl.contains(Double.toString(mLocation.latitude)) &&
+                                previousUrl.contains(Double.toString(mLocation.longitude));
+                    }
+
+                    if (sameDiscussion && mNewDiscussion) {
+                        addNewDiscussion();
+                        mNewDiscussion = false; // mark this discussion as exist
+                        buildDisqusUrl(); // re-build url
+                    }
+                }
+
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-
-                Log.i(LOG_TAG, url);
 
                 if (url.contains("logout") || url.contains("disqus.com/next/login-success")) {
                     view.loadUrl(mUrl);
@@ -135,6 +191,9 @@ public class DisqusActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+
+        // go back inside WebView, only if WebView can't go back let
+        // the system handle back action (go back to map)
         if (mWebView.canGoBack()) {
             mWebView.goBack();
         } else {
