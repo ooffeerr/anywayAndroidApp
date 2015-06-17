@@ -138,6 +138,12 @@ public class MainActivity extends AppCompatActivity
                         // reset accident manager
                         MarkersManager.getInstance().addAllAccidents(null, MarkersManager.DO_RESET);
                         clearMap();
+
+                        // map is being cleared, so we need to re add all discussion markers
+                        MarkersManager.getInstance().setAllMarkersAsNotShownOnTheMap(); // for discussions
+                        addMarkersToMap();
+
+                        // fetch markers by new preferences
                         getMarkersFromServer();
 
                     }

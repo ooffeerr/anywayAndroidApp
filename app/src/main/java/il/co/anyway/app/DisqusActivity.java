@@ -24,7 +24,8 @@ public class DisqusActivity extends AppCompatActivity {
     public static final String DISQUS_LOCATION = "il.co.anyway.app.DISQUS_TALK_LOCATION";
     public static final String DISQUS_NEW = "il.co.anyway.app.DISQUS_TALK_NEW";
 
-    private static final String BASE_URL = "http://anywaycluster.azurewebsites.net/disqus/anyway-feedback";
+    private static final String BASE_URL = "http://anywaycluster.azurewebsites.net/disqus";
+    private static final String BASE_URL_WITH_SHORT_NAME = BASE_URL + "/anyway-feedback";
     private final String LOG_TAG = DisqusActivity.class.getSimpleName();
 
     private WebView mWebView;
@@ -92,7 +93,7 @@ public class DisqusActivity extends AppCompatActivity {
      */
     private void buildDisqusUrl() {
         // build url of Disqus
-        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
+        Uri builtUri = Uri.parse(BASE_URL_WITH_SHORT_NAME).buildUpon()
                 .appendQueryParameter("identifier", mIdentifier)
                 .appendQueryParameter("newDiscussion", Boolean.toString(mNewDiscussion))
                 .build();
