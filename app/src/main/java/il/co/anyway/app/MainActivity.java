@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity
             getMarkersFromServer();
 
         // check for available network connection
-        if(!Utility.isNetworkConnectionAvailable(this) && !mShowedDialogAboutInternetConnection) {
+        if (!Utility.isNetworkConnectionAvailable(this) && !mShowedDialogAboutInternetConnection) {
 
             // show dialog
             new InternetRequiredDialogFragment().show(getSupportFragmentManager(), "InternetDialog");
@@ -731,6 +731,7 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Add all AccidentCluster list as markers to map
+     *
      * @param accidentClusterList List to add
      */
     public void addClustersToMap(List<AccidentCluster> accidentClusterList) {
@@ -837,8 +838,9 @@ public class MainActivity extends AppCompatActivity
     /**
      * Move map to location and add marker to specify searched location
      * When search result selected in the result dialog(@dialogs.SearchDialogs.searchAddress) it call this method
+     *
      * @param searchResultLocation Location of search result
-     * @param searchResultAddress Address of search result
+     * @param searchResultAddress  Address of search result
      */
     public void updateMapFromSearchResult(LatLng searchResultLocation, String searchResultAddress) {
 
@@ -850,8 +852,7 @@ public class MainActivity extends AppCompatActivity
                     .title(MarkerInfoWindowAdapter.FORCE_SIMPLE_SNIPPET_SHOW)
                     .snippet(searchResultAddress)
                     .clusterGroup(ClusterGroup.NOT_CLUSTERED));
-        }
-        else {
+        } else {
             mSearchResultMarker.setPosition(searchResultLocation);
             mSearchResultMarker.setSnippet(searchResultAddress);
         }
@@ -885,7 +886,7 @@ public class MainActivity extends AppCompatActivity
         mMap.clear();
 
         // force re-adding my location marker and search result marker
-        if(mSearchResultMarker != null)
+        if (mSearchResultMarker != null)
             mSearchResultMarker = mMap.addMarker(new MarkerOptions()
                     .snippet(mSearchResultMarker.getSnippet())
                     .position(mSearchResultMarker.getPosition())

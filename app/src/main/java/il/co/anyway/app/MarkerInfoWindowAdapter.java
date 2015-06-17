@@ -15,13 +15,11 @@ import il.co.anyway.app.models.Accident;
 
 class MarkerInfoWindowAdapter implements InfoWindowAdapter {
 
+    public static final String FORCE_SIMPLE_SNIPPET_SHOW = "no-layout-marker-only-sniipet";
     @SuppressWarnings("unused")
     private final String LOG_TAG = MarkerInfoWindowAdapter.class.getSimpleName();
-
     private View mInfoWindows = null;
     private LayoutInflater mInflater = null;
-
-    public static final String FORCE_SIMPLE_SNIPPET_SHOW = "no-layout-marker-only-sniipet";
 
     public MarkerInfoWindowAdapter(LayoutInflater inflater) {
         this.mInflater = inflater;

@@ -94,6 +94,7 @@ public class SearchAddress {
     /**
      * Show search result as dialog list and allow user to choose the right address
      * or show dialog with 'address not found' message
+     *
      * @param resultList search result list
      */
     private void showSearchResult(final List<Address> resultList) {
@@ -204,7 +205,7 @@ public class SearchAddress {
 
                 // check status, continue only if found results
                 String resultStatus = jsonObject.getString("status");
-                if(resultStatus.equals("OK")) {
+                if (resultStatus.equals("OK")) {
 
                     JSONArray arr = jsonObject.getJSONArray("results");
                     for (int i = 0; i < arr.length(); i++) {
@@ -215,7 +216,7 @@ public class SearchAddress {
                         // if no result is found for this address google geo-coder return one result
                         // which is israel country, this is the only case the formatted address length
                         // will be 5(the length of the word 'Israel' in hebrew
-                        if(strAddress.length() == 5)
+                        if (strAddress.length() == 5)
                             continue;
 
                         double lng = currentResult

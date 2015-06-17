@@ -582,7 +582,7 @@ public class Utility {
 
     public static boolean isNetworkConnectionAvailable(Context context) {
 
-        NetworkInfo info = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE))
+        NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE))
                 .getActiveNetworkInfo();
 
         return info != null && info.isConnected();

@@ -12,9 +12,8 @@
         android:name="il.co.anyway.app.SettingsFragment"
         android:layout_width="280dp"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" />
 
     <fragment
         android:id="@+id/map_container"
@@ -22,31 +21,25 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/settings_fragment"
-        android:layout_toEndOf="@+id/settings_fragment">
-
-    </fragment>
+        android:layout_toLeftOf="@+id/settings_fragment" />
 
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:indeterminateDrawable="@drawable/my_progress_indeterminate"
         android:visibility="gone" />
 
     <ImageButton
-        android:contentDescription="@string/my_location"
+        android:id="@+id/imageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_action_location_found"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="10dp"
-        android:layout_marginEnd="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
-        android:onClick="onMyLocationButtonClick"/>
+        android:contentDescription="@string/my_location"
+        android:onClick="onMyLocationButtonClick"
+        android:src="@drawable/ic_action_location_found" />
 
 </RelativeLayout>

@@ -2,7 +2,6 @@ package il.co.anyway.app;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -16,11 +15,9 @@ import java.util.Date;
 
 public class DatePreference extends DialogPreference {
 
-    private final String LOG_TAG = DatePreference.class.getSimpleName();
-
     public static String MINIMUM_DATE = "01/01/2005";
     public static String MAXIMUM_DATE = "31/12/2013";
-
+    private final String LOG_TAG = DatePreference.class.getSimpleName();
     private int lastDate = 0;
     private int lastMonth = 0;
     private int lastYear = 0;
