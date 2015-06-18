@@ -1,6 +1,7 @@
 package il.co.anyway.app;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -149,10 +150,6 @@ public class MainActivity extends AppCompatActivity
                     }
                 };
         prefs.registerOnSharedPreferenceChangeListener(mSharedPrefListener);
-
-        // check if app opened by a link to specific location, if so - move to that location
-        getDataFromSharedURL();
-
     }
 
     @Override
@@ -284,6 +281,10 @@ public class MainActivity extends AppCompatActivity
         // call both markers and clusters, only one of them will run, the other return
         addMarkersToMap();
         addClustersToMap(mLastAccidentsClusters);
+
+        // check if app opened by a link to specific location, if so -
+        // show confirm dialog to the user
+        checkIfAppOpenedFromLink();
     }
 
     @Override
@@ -598,18 +599,54 @@ public class MainActivity extends AppCompatActivity
     /**
      * check if user opened the intent from a link shared with him, like: http://www.anyway.co.il/...parameters
      *
-     * @return true if user open the app from the link and all parameters are correct, false otherwise
+     * @return true if user open the app from the link, false otherwise
+     */
+    private boolean checkIfAppOpenedFromLink() {
+
+        if (getIntent().getData() != null) {
+
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+
+                    .setMessage(R.string.confirm_move_to_url_data)
+                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            getDataFromSharedURL();
+
+                        }
+
+                    })
+                    .setNegativeButton(R.string.no, null)
+                    .show();
+
+            return true;
+
+        }
+
+        return false;
+    }
+
+    /**
+     * get parameters data from URL and set app preferences and map location accordingly
+     *
+     * @return true if all parameters are correct, false otherwise
      */
     private boolean getDataFromSharedURL() {
 
-        // url parameters: start_date, end_date, show_fatal, show_severe, show_light, show_inaccurate, zoom, lat, lon
+        // url parameters: start_date, end_date, show_fatal,
+        // show_severe, show_light, show_inaccurate, zoom, lat, lon
 
         Uri data = getIntent().getData();
         if (data == null)
             return false;
         else {
+            // disable the moving to user location (if available) in onMapLoaded
+            mNewInstance = false;
 
-            Log.i(LOG_TAG + "Url", "query: " + data.getQuery());
+            Log.i(LOG_TAG + "_URL", "query: " + data.getQuery());
 
             String start_date_str = data.getQueryParameter("start_date");
             String end_date_str = data.getQueryParameter("end_date");
@@ -636,10 +673,12 @@ public class MainActivity extends AppCompatActivity
 
                 setSettingsAndMoveToLocation(start_date, end_date, show_fatal, show_severe, show_light, show_inaccurate, zoom, latitude, longitude);
 
+                // clear intent data, so this operation will only occur once
+                getIntent().setData(null);
                 return true;
             } catch (Exception e) {
                 // NumberFormatException || ParseException
-                Log.e(LOG_TAG + "_URL", e.getMessage());
+                Log.e(LOG_TAG + "_URL", "Error on parsing url", e);
                 return false;
             }
         }
@@ -664,7 +703,7 @@ public class MainActivity extends AppCompatActivity
 
         // TODO create a special view for links result instead of replacing use settings
 
-        // Get preferences form SharedPreferncses
+        // Get preferences form SharedPreferences
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -687,7 +726,7 @@ public class MainActivity extends AppCompatActivity
      * @param animate   animate the map movement if true
      */
     private boolean setMapToLocation(Location location, int zoomLevel, boolean animate) {
-        if (location == null)
+        if (location == null || mMap == null)
             return false;
 
         if (animate)

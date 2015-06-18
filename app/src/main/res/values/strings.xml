@@ -9,9 +9,6 @@
 
     <!-- Main map activity -->
     <string name="action_report_bug">דווח על תקלה</string>
-    <string name="action_share_screen">שתף מסך נוכחי</string>
-    <string name="share_subject">שיתוף תאונות באזורך מ ANYWAY</string>
-    <string name="share_title">שיתוף מ ANYWAY</string>
     <string name="action_about">מידע נוסף</string>
     <string name="marker_default_desc">לחץ כאן לפרטים נוספים</string>
 
@@ -52,5 +49,10 @@
     <string name="ok_got_it">בסדר, הבנתי</string>
     <string name="dont_as_again">אל תשאל שוב</string>
 
+    <!-- Sharing -->
+    <string name="action_share_screen">שתף מסך נוכחי</string>
+    <string name="share_subject">שיתוף תאונות באזורך מ ANYWAY</string>
+    <string name="share_title">שיתוף מ ANYWAY</string>
+    <string name="confirm_move_to_url_data">זיהינו שנכנסת לאפליקציה מלינק חיצוני, האם ברצונך לעדכן את התצוגה בהתאם?</string>
 
 </resources>
