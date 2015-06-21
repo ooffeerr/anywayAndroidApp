@@ -16,9 +16,9 @@ import android.widget.TextView;
 public class TutorialActivity extends FragmentActivity {
 
     private TextView mNextTv;
-    private ImageView mDot1, mDot2, mDot3;
+    private ImageView mDot1, mDot2, mDot3, mDot4, mDot5, mDot6;
 
-    private static final int NUMBER_OF_TABS = 3;
+    private static final int NUMBER_OF_TABS = 6;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -45,6 +45,9 @@ public class TutorialActivity extends FragmentActivity {
         mDot1 = (ImageView) findViewById(R.id.imageView1);
         mDot2 = (ImageView) findViewById(R.id.imageView2);
         mDot3 = (ImageView) findViewById(R.id.imageView3);
+        mDot4 = (ImageView) findViewById(R.id.imageView4);
+        mDot5 = (ImageView) findViewById(R.id.imageView5);
+        mDot6 = (ImageView) findViewById(R.id.imageView6);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -67,6 +70,9 @@ public class TutorialActivity extends FragmentActivity {
                         mDot1.setImageResource(R.drawable.dot_selected);
                         mDot2.setImageResource(R.drawable.dot_not_selected);
                         mDot3.setImageResource(R.drawable.dot_not_selected);
+                        mDot4.setImageResource(R.drawable.dot_not_selected);
+                        mDot5.setImageResource(R.drawable.dot_not_selected);
+                        mDot6.setImageResource(R.drawable.dot_not_selected);
                         mNextTv.setText(R.string.next);
                         break;
 
@@ -74,6 +80,9 @@ public class TutorialActivity extends FragmentActivity {
                         mDot1.setImageResource(R.drawable.dot_not_selected);
                         mDot2.setImageResource(R.drawable.dot_selected);
                         mDot3.setImageResource(R.drawable.dot_not_selected);
+                        mDot4.setImageResource(R.drawable.dot_not_selected);
+                        mDot5.setImageResource(R.drawable.dot_not_selected);
+                        mDot6.setImageResource(R.drawable.dot_not_selected);
                         mNextTv.setText(R.string.next);
                         break;
 
@@ -81,6 +90,39 @@ public class TutorialActivity extends FragmentActivity {
                         mDot1.setImageResource(R.drawable.dot_not_selected);
                         mDot2.setImageResource(R.drawable.dot_not_selected);
                         mDot3.setImageResource(R.drawable.dot_selected);
+                        mDot4.setImageResource(R.drawable.dot_not_selected);
+                        mDot5.setImageResource(R.drawable.dot_not_selected);
+                        mDot6.setImageResource(R.drawable.dot_not_selected);
+                        mNextTv.setText(R.string.next);
+                        break;
+
+                    case 3:
+                        mDot1.setImageResource(R.drawable.dot_not_selected);
+                        mDot2.setImageResource(R.drawable.dot_not_selected);
+                        mDot3.setImageResource(R.drawable.dot_not_selected);
+                        mDot4.setImageResource(R.drawable.dot_selected);
+                        mDot5.setImageResource(R.drawable.dot_not_selected);
+                        mDot6.setImageResource(R.drawable.dot_not_selected);
+                        mNextTv.setText(R.string.next);
+                        break;
+
+                    case 4:
+                        mDot1.setImageResource(R.drawable.dot_not_selected);
+                        mDot2.setImageResource(R.drawable.dot_not_selected);
+                        mDot3.setImageResource(R.drawable.dot_not_selected);
+                        mDot4.setImageResource(R.drawable.dot_not_selected);
+                        mDot5.setImageResource(R.drawable.dot_selected);
+                        mDot6.setImageResource(R.drawable.dot_not_selected);
+                        mNextTv.setText(R.string.next);
+                        break;
+
+                    case 5:
+                        mDot1.setImageResource(R.drawable.dot_not_selected);
+                        mDot2.setImageResource(R.drawable.dot_not_selected);
+                        mDot3.setImageResource(R.drawable.dot_not_selected);
+                        mDot4.setImageResource(R.drawable.dot_not_selected);
+                        mDot5.setImageResource(R.drawable.dot_not_selected);
+                        mDot6.setImageResource(R.drawable.dot_selected);
                         mNextTv.setText(R.string.done);
                         break;
 
@@ -173,6 +215,14 @@ public class TutorialActivity extends FragmentActivity {
                 case 3: pageLayout = R.layout.fragment_tutorial_c;
                     break;
 
+                case 4: pageLayout = R.layout.fragment_tutorial_d;
+                    break;
+
+                case 5: pageLayout = R.layout.fragment_tutorial_e;
+                    break;
+
+                case 6: pageLayout = R.layout.fragment_tutorial_f;
+                    break;
             }
 
             View rootView = inflater.inflate(pageLayout, container, false);

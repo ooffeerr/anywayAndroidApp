@@ -60,5 +60,13 @@
     <string name="next">הבא</string>
     <string name="skip">דלג</string>
     <string name="done">סיום</string>
+    <string name="tutorial_screen_a_text">\u200FANYWAY זו הדרך שלנו למנוע את התאונה הבאה</string>
+    <string name="tutorial_screen_a_btn_text">בואו נראה לכם איך</string>
+    <string name="tutorial_screen_b_text">על המפה ניתן לראות היכן התרחשו תאונות דרכים עם נפגעים</string>
+    <string name="tutorial_screen_b_sub_text">מסמל את המיקום שלך</string>
+    <string name="tutorial_screen_c_text">לא מוצאים תאונה ספציפית?\nשנו את הגדרות סינון התאונות</string>
+    <string name="tutorial_screen_d_text">מכירים אזור בעייתי?\nחפשו אותו לפי כתובת</string>
+    <string name="tutorial_screen_d_subtext">לחצו לחיצה ארוכה בכל נקודה במפה על מנת לפתוח דיון חדש</string>
+
 
 </resources>
