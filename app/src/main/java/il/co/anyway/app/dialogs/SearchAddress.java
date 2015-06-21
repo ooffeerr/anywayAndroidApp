@@ -180,7 +180,7 @@ public class SearchAddress {
             try {
                 // Construct the URL for the Anyway cluster query
                 Uri builtUri = Uri.parse(GOOGLE_GEOCODER_URL).buildUpon()
-                        .appendQueryParameter("address", mAddressToSearch) //TODO
+                        .appendQueryParameter("address", mAddressToSearch)
                         .build();
 
                 URL url = new URL(builtUri.toString());

@@ -78,17 +78,19 @@ public class MainActivity extends AppCompatActivity
     private static final LatLng START_LOCATION = new LatLng(31.774511, 35.011642);
     private static final int START_ZOOM_LEVEL = 7;
     private static final int MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS = 16;
+    private static final String TUTORIAL_SHOWED_KEY = "il.co.anyway.app.TUTORIAL_SHOWED";
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
-    private FragmentManager fm;
-    private SupportMapFragment mapFragment;
+    private FragmentManager mFragmentManager;
+    private SupportMapFragment mMapFragment;
 
-    private boolean mNewInstance;
-    private boolean mMapIsInClusterMode;
-    private boolean mDoubleBackToExitPressedOnce;
-    private boolean sentUserLocation;
-    private boolean mShowedDialogAboutInternetConnection;
+    private boolean mNewInstance,
+            mMapIsInClusterMode,
+            mDoubleBackToExitPressedOnce,
+            mSentUserLocation,
+            mShowedDialogAboutInternetConnection,
+            mShowedTutorialBefore;
 
     private List<AccidentCluster> mLastAccidentsClusters = null;
 
@@ -108,7 +110,7 @@ public class MainActivity extends AppCompatActivity
 
         // flag to send user location to anyway when opening app
         // location update taking place in onLocationChange
-        sentUserLocation = false;
+        mSentUserLocation = false;
 
         // force double pressing on back key to leave discussion
         mDoubleBackToExitPressedOnce = false;
@@ -128,7 +130,6 @@ public class MainActivity extends AppCompatActivity
         createLocationRequest();
         buildLocationSettingsRequest();
         mGpsDialogNeverShowed = true;
-
 
         // add Preference changed listener int order to update map data after preference changed
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -150,6 +151,11 @@ public class MainActivity extends AppCompatActivity
                     }
                 };
         prefs.registerOnSharedPreferenceChangeListener(mSharedPrefListener);
+
+        // get tutorial show status from shared preferences to make sure tutorial will only open once
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        mShowedTutorialBefore = sp.getBoolean(TUTORIAL_SHOWED_KEY, false);
+
     }
 
     @Override
@@ -222,16 +228,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setUpMapIfNeeded() {
-        fm = getSupportFragmentManager();
-        mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
-        if (mapFragment == null) {
-            mapFragment = SupportMapFragment.newInstance();
+        mFragmentManager = getSupportFragmentManager();
+        mMapFragment = (SupportMapFragment) mFragmentManager.findFragmentById(R.id.map_container);
+        if (mMapFragment == null) {
+            mMapFragment = SupportMapFragment.newInstance();
 
-            FragmentTransaction tx = fm.beginTransaction();
-            tx.add(R.id.map_container, mapFragment);
+            FragmentTransaction tx = mFragmentManager.beginTransaction();
+            tx.add(R.id.map_container, mMapFragment);
             tx.commit();
         }
-        mapFragment.getExtendedMapAsync(this);
+        mMapFragment.getExtendedMapAsync(this);
     }
 
     @Override
@@ -285,6 +291,8 @@ public class MainActivity extends AppCompatActivity
         // check if app opened by a link to specific location, if so -
         // show confirm dialog to the user
         checkIfAppOpenedFromLink();
+
+        showTutorialIfNeeded();
     }
 
     @Override
@@ -433,13 +441,13 @@ public class MainActivity extends AppCompatActivity
         if (location == null)
             return;
 
-        if (!sentUserLocation) {
+        if (!mSentUserLocation) {
             AnywayRequestQueue.getInstance(this)
                     .sendUserAndSearchedLocation(
                             location.getLatitude(), location.getLongitude(),
                             AnywayRequestQueue.HIGHLIGHT_TYPE_USER_GPS
                     );
-            sentUserLocation = true;
+            mSentUserLocation = true;
         }
 
         if (mPositionMarker == null) {
@@ -701,8 +709,6 @@ public class MainActivity extends AppCompatActivity
                                               int show_fatal, int show_severe, int show_light, int show_inaccurate,
                                               int zoom, double latitude, double longitude) {
 
-        // TODO create a special view for links result instead of replacing use settings
-
         // Get preferences form SharedPreferences
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -866,7 +872,9 @@ public class MainActivity extends AppCompatActivity
         d.setMarkerAddedToMap(true);
     }
 
-    // show information about Anyway in dialog
+    /**
+     * Show information about Anyway in dialog
+     */
     private void showAboutInfoDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setView(getLayoutInflater().inflate(R.layout.info_dialog, null));
@@ -920,7 +928,9 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    // When clearing map needed to re-add current location marker
+    /**
+     * Clear the map from markers and re-adding search and location markers
+     */
     private void clearMap() {
         mMap.clear();
 
@@ -936,7 +946,10 @@ public class MainActivity extends AppCompatActivity
         onLocationChanged(mLocation);
     }
 
-    // take user to location
+    /**
+     * Handler for 'MyLocation' button
+     * @param view Button clicked
+     */
     public void onMyLocationButtonClick(View view) {
         if (mLocation == null) {
             mGpsDialogNeverShowed = true;
@@ -944,5 +957,29 @@ public class MainActivity extends AppCompatActivity
         }
 
         setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+    }
+
+    /**
+     * Show tutorial activity if it never shown before
+     * Also save the state of activity as 'shown' in Shared Preferneces
+     */
+    private void showTutorialIfNeeded() {
+
+        if (!mShowedTutorialBefore) {
+            // set tutorial as showed
+            // using shared preferences
+
+            // TODO remove this comment
+            /*
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit()
+                    .putBoolean(TUTORIAL_SHOWED_KEY, true)
+                    .apply();
+            */
+            mShowedTutorialBefore = true;
+
+            // start tutorial activity
+            startActivity(new Intent(this, TutorialActivity.class));
+        }
     }
 }

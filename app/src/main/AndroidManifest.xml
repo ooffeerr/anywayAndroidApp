@@ -26,27 +26,28 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTop"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="http"
-                    android:host="anyway.co.il" />
+                    android:host="anyway.co.il"
+                    android:scheme="http" />
                 <data
-                    android:scheme="http"
-                    android:host="www.anyway.co.il" />
-                <data android:scheme="anyway"
-                    android:host="main" />
+                    android:host="www.anyway.co.il"
+                    android:scheme="http" />
+                <data
+                    android:host="main"
+                    android:scheme="anyway" />
             </intent-filter>
         </activity>
 
@@ -67,20 +68,32 @@
         </activity>
         <activity
             android:name=".DisqusActivity"
+            android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_disqus"
-            android:parentActivityName=".MainActivity"
-            android:configChanges="orientation|screenSize">
+            android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="il.co.anyway.app.MainActivity" />
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="anyway"
-                    android:host="disqus" />
+                <data
+                    android:host="disqus"
+                    android:scheme="anyway" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".TutorialActivity"
+            android:label="@string/title_activity_tutorial"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="il.co.anyway.app.MainActivity" />
+
         </activity>
     </application>
 

@@ -47,12 +47,18 @@
     <string name="no_internet_connection">לא ניתן להציג מידע ללא חיבור לאינטרנט, יש להתחבר לרשת האינטרנט ולנסות שנית</string>
     <string name="no_internet_connection_title">אין חיבור אינטרנט</string>
     <string name="ok_got_it">בסדר, הבנתי</string>
-    <string name="dont_as_again">אל תשאל שוב</string>
+
 
     <!-- Sharing -->
     <string name="action_share_screen">שתף מסך נוכחי</string>
     <string name="share_subject">שיתוף תאונות באזורך מ ANYWAY</string>
     <string name="share_title">שיתוף מ ANYWAY</string>
     <string name="confirm_move_to_url_data">זיהינו שנכנסת לאפליקציה מלינק חיצוני, האם ברצונך לעדכן את התצוגה בהתאם?</string>
+
+    <!-- Tutorial -->
+    <string name="title_activity_tutorial">הדרכה</string>
+    <string name="next">הבא</string>
+    <string name="skip">דלג</string>
+    <string name="done">סיום</string>
 
 </resources>
