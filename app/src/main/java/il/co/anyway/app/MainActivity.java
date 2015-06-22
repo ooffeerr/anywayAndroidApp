@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.androidmapsextensions.ClusterGroup;
@@ -292,6 +293,12 @@ public class MainActivity extends AppCompatActivity
         // show confirm dialog to the user
         checkIfAppOpenedFromLink();
 
+        // show My location button
+        ImageButton imageButton = (ImageButton)findViewById(R.id.myLocationImageButton);
+        if (imageButton != null)
+            imageButton.setVisibility(View.VISIBLE);
+
+        // show app tutorial (if it wasn't showed before)
         showTutorialIfNeeded();
     }
 

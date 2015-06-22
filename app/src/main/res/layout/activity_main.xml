@@ -30,6 +30,7 @@
         android:layout_marginTop="10dp"
         android:contentDescription="@string/my_location"
         android:onClick="onMyLocationButtonClick"
-        android:src="@drawable/ic_action_location_found" />
+        android:src="@drawable/ic_action_location_found"
+        android:visibility="gone" />
 
 </RelativeLayout>
