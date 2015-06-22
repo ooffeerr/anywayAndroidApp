@@ -10,7 +10,7 @@
     tools:context="il.co.anyway.app.TutorialActivity$PlaceholderFragment">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/mainTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -20,31 +20,50 @@
         android:gravity="center"/>
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageView"
-        android:layout_below="@+id/textView"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:id="@+id/mainImageView"
+        android:layout_below="@+id/mainTextView"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/map_sample"/>
+        android:src="@drawable/sample_map"
+        android:layout_margin="10dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/imageView"
-        android:text="@string/tutorial_screen_b_sub_text"
+        android:layout_below="@id/mainImageView"
+        android:text="@string/tutorial_screen_b_location_sub_text"
         android:layout_centerHorizontal="true"
-        android:id="@+id/textView2"
+        android:id="@+id/locationTextView"
         android:textSize="25sp"/>
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/imageView4"
+        android:id="@+id/locationMarkerImageView"
         android:src="@drawable/position_indicator"
-        android:layout_alignBottom="@+id/textView2"
-        android:layout_toEndOf="@+id/textView2"
-        android:layout_below="@+id/imageView"
-        android:layout_toRightOf="@+id/textView2" />
+        android:layout_alignBottom="@+id/locationTextView"
+        android:layout_alignTop="@id/locationTextView"
+        android:layout_toRightOf="@+id/locationTextView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/locationTextView"
+        android:text="@string/tutorial_screen_b_disqus_sub_text"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/disqusTextView"
+        android:textSize="25sp"
+        android:layout_marginTop="5dp"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/disqusMarkerImageView"
+        android:src="@drawable/discussion"
+        android:layout_alignTop="@+id/disqusTextView"
+        android:layout_alignBottom="@id/disqusTextView"
+        android:layout_toRightOf="@id/disqusTextView" />
 
 
 </RelativeLayout>

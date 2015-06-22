@@ -12,7 +12,7 @@
     <ImageView
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:id="@+id/imageView"
+        android:id="@+id/mainImageView"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:src="@drawable/anyway_logo"
@@ -21,11 +21,11 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView"
+        android:id="@+id/mainTextView"
         android:text="@string/tutorial_screen_a_text"
         android:layout_marginTop="30dp"
         android:textSize="30sp"
-        android:layout_below="@+id/imageView"
+        android:layout_below="@+id/mainImageView"
         android:layout_centerHorizontal="true"
         android:gravity="center" />
 
@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:text="@string/tutorial_screen_a_btn_text"
         android:layout_marginTop="40dp"
-        android:layout_below="@id/textView"
+        android:layout_below="@id/mainTextView"
         android:layout_centerHorizontal="true"
         android:background="#ff005a17"
         android:textColor="#fff"

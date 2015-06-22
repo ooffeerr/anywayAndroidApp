@@ -16,9 +16,9 @@ import android.widget.TextView;
 public class TutorialActivity extends FragmentActivity {
 
     private TextView mNextTv;
-    private ImageView mDot1, mDot2, mDot3, mDot4, mDot5, mDot6;
+    private ImageView mDot1, mDot2, mDot3, mDot4, mDot5;
 
-    private static final int NUMBER_OF_TABS = 6;
+    private static final int NUMBER_OF_TABS = 5;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -42,12 +42,11 @@ public class TutorialActivity extends FragmentActivity {
         // get UI widgets
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mNextTv = (TextView)findViewById(R.id.textViewNext);
-        mDot1 = (ImageView) findViewById(R.id.imageView1);
-        mDot2 = (ImageView) findViewById(R.id.imageView2);
-        mDot3 = (ImageView) findViewById(R.id.imageView3);
-        mDot4 = (ImageView) findViewById(R.id.imageView4);
-        mDot5 = (ImageView) findViewById(R.id.imageView5);
-        mDot6 = (ImageView) findViewById(R.id.imageView6);
+        mDot1 = (ImageView) findViewById(R.id.dotView1);
+        mDot2 = (ImageView) findViewById(R.id.dotView2);
+        mDot3 = (ImageView) findViewById(R.id.dotView3);
+        mDot4 = (ImageView) findViewById(R.id.dotView4);
+        mDot5 = (ImageView) findViewById(R.id.dotView5);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -66,23 +65,21 @@ public class TutorialActivity extends FragmentActivity {
 
                 switch (position) {
 
-                    case 0:
+                    case 4:
                         mDot1.setImageResource(R.drawable.dot_selected);
                         mDot2.setImageResource(R.drawable.dot_not_selected);
                         mDot3.setImageResource(R.drawable.dot_not_selected);
                         mDot4.setImageResource(R.drawable.dot_not_selected);
                         mDot5.setImageResource(R.drawable.dot_not_selected);
-                        mDot6.setImageResource(R.drawable.dot_not_selected);
                         mNextTv.setText(R.string.next);
                         break;
 
-                    case 1:
+                    case 3:
                         mDot1.setImageResource(R.drawable.dot_not_selected);
                         mDot2.setImageResource(R.drawable.dot_selected);
                         mDot3.setImageResource(R.drawable.dot_not_selected);
                         mDot4.setImageResource(R.drawable.dot_not_selected);
                         mDot5.setImageResource(R.drawable.dot_not_selected);
-                        mDot6.setImageResource(R.drawable.dot_not_selected);
                         mNextTv.setText(R.string.next);
                         break;
 
@@ -92,37 +89,24 @@ public class TutorialActivity extends FragmentActivity {
                         mDot3.setImageResource(R.drawable.dot_selected);
                         mDot4.setImageResource(R.drawable.dot_not_selected);
                         mDot5.setImageResource(R.drawable.dot_not_selected);
-                        mDot6.setImageResource(R.drawable.dot_not_selected);
                         mNextTv.setText(R.string.next);
                         break;
 
-                    case 3:
+                    case 1:
                         mDot1.setImageResource(R.drawable.dot_not_selected);
                         mDot2.setImageResource(R.drawable.dot_not_selected);
                         mDot3.setImageResource(R.drawable.dot_not_selected);
                         mDot4.setImageResource(R.drawable.dot_selected);
                         mDot5.setImageResource(R.drawable.dot_not_selected);
-                        mDot6.setImageResource(R.drawable.dot_not_selected);
                         mNextTv.setText(R.string.next);
                         break;
 
-                    case 4:
+                    case 0:
                         mDot1.setImageResource(R.drawable.dot_not_selected);
                         mDot2.setImageResource(R.drawable.dot_not_selected);
                         mDot3.setImageResource(R.drawable.dot_not_selected);
                         mDot4.setImageResource(R.drawable.dot_not_selected);
                         mDot5.setImageResource(R.drawable.dot_selected);
-                        mDot6.setImageResource(R.drawable.dot_not_selected);
-                        mNextTv.setText(R.string.next);
-                        break;
-
-                    case 5:
-                        mDot1.setImageResource(R.drawable.dot_not_selected);
-                        mDot2.setImageResource(R.drawable.dot_not_selected);
-                        mDot3.setImageResource(R.drawable.dot_not_selected);
-                        mDot4.setImageResource(R.drawable.dot_not_selected);
-                        mDot5.setImageResource(R.drawable.dot_not_selected);
-                        mDot6.setImageResource(R.drawable.dot_selected);
                         mNextTv.setText(R.string.done);
                         break;
 
@@ -135,6 +119,9 @@ public class TutorialActivity extends FragmentActivity {
 
             }
         });
+
+        // set the last tab as first to force right to left behaviour
+        mViewPager.setCurrentItem(NUMBER_OF_TABS-1);
     }
 
     public void skipTutorial(View view) {
@@ -144,9 +131,9 @@ public class TutorialActivity extends FragmentActivity {
     public void nextTutorialPage(View view) {
         int currentTab = mViewPager.getCurrentItem();
 
-        if (currentTab < NUMBER_OF_TABS-1)
-            mViewPager.setCurrentItem(currentTab+1);
-        else if (currentTab == NUMBER_OF_TABS-1)
+        if (currentTab > 0)
+            mViewPager.setCurrentItem(currentTab-1);
+        else if (currentTab == 0)
             finish();
     }
 
@@ -209,25 +196,21 @@ public class TutorialActivity extends FragmentActivity {
             int pageLayout = R.layout.fragment_tutorial_a;
             switch (pageViewPosition) {
 
-                case 2: pageLayout = R.layout.fragment_tutorial_b;
+                case 1: pageLayout = R.layout.fragment_tutorial_e;
+                    break;
+
+                case 2: pageLayout = R.layout.fragment_tutorial_d;
                     break;
 
                 case 3: pageLayout = R.layout.fragment_tutorial_c;
                     break;
 
-                case 4: pageLayout = R.layout.fragment_tutorial_d;
+                case 4: pageLayout = R.layout.fragment_tutorial_b;
                     break;
 
-                case 5: pageLayout = R.layout.fragment_tutorial_e;
-                    break;
-
-                case 6: pageLayout = R.layout.fragment_tutorial_f;
-                    break;
             }
 
-            View rootView = inflater.inflate(pageLayout, container, false);
-
-            return rootView;
+            return inflater.inflate(pageLayout, container, false);
         }
     }
 

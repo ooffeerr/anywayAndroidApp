@@ -19,55 +19,53 @@
         android:layout_alignParentStart="true"
         android:background="#ffbbbbbb">
 
-        <LinearLayout
+        <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="20dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/dotView3"
+            android:src="@drawable/dot_not_selected"
             android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true">
+            android:layout_centerHorizontal="true"
+            android:layout_margin="3dp"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView1"
-                android:src="@drawable/dot_selected"
-                android:layout_margin="2dp"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dotView2"
+            android:src="@drawable/dot_not_selected"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/dotView3"
+            android:layout_margin="3dp"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView2"
-                android:src="@drawable/dot_not_selected"
-                android:layout_margin="2dp" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView3"
-                android:src="@drawable/dot_not_selected"
-                android:layout_margin="2dp" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dotView1"
+            android:src="@drawable/dot_selected"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/dotView2"
+            android:layout_margin="3dp"
+            />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView4"
-                android:src="@drawable/dot_not_selected"
-                android:layout_margin="2dp" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dotView4"
+            android:src="@drawable/dot_not_selected"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/dotView3"
+            android:layout_margin="3dp"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView5"
-                android:src="@drawable/dot_not_selected"
-                android:layout_margin="2dp" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dotView5"
+            android:src="@drawable/dot_not_selected"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/dotView4"
+            android:layout_margin="3dp" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView6"
-                android:src="@drawable/dot_not_selected"
-                android:layout_margin="2dp" />
-
-        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -75,8 +73,7 @@
             android:text="@string/next"
             android:id="@+id/textViewNext"
             android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
             android:layout_margin="10dp"
             android:clickable="true"
             android:onClick="nextTutorialPage"
@@ -88,8 +85,7 @@
             android:layout_height="wrap_content"
             android:text="@string/skip"
             android:id="@+id/textViewSkip"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
+            android:layout_alignParentRight="true"
             android:layout_margin="10dp"
             android:clickable="true"
             android:onClick="skipTutorial"

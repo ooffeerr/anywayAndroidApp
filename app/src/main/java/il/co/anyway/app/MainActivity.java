@@ -968,14 +968,12 @@ public class MainActivity extends AppCompatActivity
         if (!mShowedTutorialBefore) {
             // set tutorial as showed
             // using shared preferences
-
-            // TODO remove this comment
-            /*
+            // to make sure it won't show again
             PreferenceManager.getDefaultSharedPreferences(this)
                     .edit()
                     .putBoolean(TUTORIAL_SHOWED_KEY, true)
                     .apply();
-            */
+
             mShowedTutorialBefore = true;
 
             // start tutorial activity
