@@ -531,26 +531,20 @@ public class MainActivity extends AppCompatActivity
         }
 
         // zoom in when clicking on AccidentCluster marker
-        // level of zoom is decided by cluster size
         if (marker.getData() instanceof AccidentCluster) {
 
+            // zoom in in jumps of two levels each time
             int requiredZoomLevel = currentZoomLevel + 2;
-            requiredZoomLevel = requiredZoomLevel > 16 ? 16 : requiredZoomLevel;
 
+            // but not more then MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS
+            requiredZoomLevel = requiredZoomLevel > MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS ? MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS : requiredZoomLevel;
+
+            // if cluster contain only one accident, zoom in all the way
             AccidentCluster accidentCluster = marker.getData();
-            switch (accidentCluster.getCount()) {
-                case 1:
-                    requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 2;
-                    break;
-                case 2:
-                    requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1;
-                    break;
-                case 3:
-                    requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS;
-            }
+            if (accidentCluster.getCount() == 1)
+                requiredZoomLevel = MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS + 1;
 
             setMapToLocation(marker.getPosition(), requiredZoomLevel, true);
-
             return true;
         }
 
