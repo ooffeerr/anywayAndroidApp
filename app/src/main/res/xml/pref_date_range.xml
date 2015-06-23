@@ -5,12 +5,14 @@
         <il.co.anyway.app.DatePreference
             android:defaultValue="@string/pref_default_from_date"
             android:key="@string/pref_from_date_key"
-            android:title="@string/pref_title_from_date" />
+            android:title="@string/pref_title_from_date"
+            android:layout="@layout/custom_preference_widget_layout" />
 
         <il.co.anyway.app.DatePreference
             android:defaultValue="@string/pref_default_to_date"
             android:key="@string/pref_to_date_key"
-            android:title="@string/pref_title_to_date" />
+            android:title="@string/pref_title_to_date"
+            android:layout="@layout/custom_preference_widget_layout" />
 
     </PreferenceCategory>
 

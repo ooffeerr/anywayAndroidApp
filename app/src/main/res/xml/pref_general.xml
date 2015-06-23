@@ -4,22 +4,26 @@
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/pref_accidents_fatal_key"
-            android:title="@string/pref_title_accidents_fatal" />
+            android:title="@string/pref_title_accidents_fatal"
+            android:layout="@layout/custom_preference_widget_layout" />
 
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/pref_accidents_severe_key"
-            android:title="@string/pref_title_accidents_severe" />
+            android:title="@string/pref_title_accidents_severe"
+            android:layout="@layout/custom_preference_widget_layout" />
 
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/pref_accidents_light_key"
-            android:title="@string/pref_title_accidents_light" />
+            android:title="@string/pref_title_accidents_light"
+            android:layout="@layout/custom_preference_widget_layout" />
 
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/pref_accidents_inaccurate_key"
-            android:title="@string/pref_title_accidents_inaccurate" />
+            android:title="@string/pref_title_accidents_inaccurate"
+            android:layout="@layout/custom_preference_widget_layout" />
     </PreferenceCategory>
 
 

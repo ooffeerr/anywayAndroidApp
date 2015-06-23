@@ -5,6 +5,10 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListView;
 
 public class SettingsFragment extends PreferenceFragment {
 
@@ -84,5 +88,17 @@ public class SettingsFragment extends PreferenceFragment {
         dp_to.setText(current_to);
         dp_to.setSummary(current_to);
         bindPreferenceSummaryToValue(dp_to);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        // set preferences padding to 10 (to avoid tablet two-pane layout hiding the title)
+        View v = super.onCreateView(inflater, container, savedInstanceState);
+        if(v != null) {
+            ListView lv = (ListView) v.findViewById(android.R.id.list);
+            lv.setPadding(10, 10, 10, 10);
+        }
+        return v;
     }
 }
