@@ -104,9 +104,7 @@ public class DisqusActivity extends AppCompatActivity {
      * Add new discussion marker in the server, called after first comment
      */
     private void addNewDiscussion() {
-        AnywayRequestQueue.getInstance(this).createNewDisqus(
-                mLocation.latitude, mLocation.longitude, this
-        );
+        AnywayRequestQueue.getInstance(this).createNewDisqus(mLocation.latitude, mLocation.longitude);
     }
 
     /**
@@ -145,7 +143,7 @@ public class DisqusActivity extends AppCompatActivity {
                     // on another discussion (that can be reached from the discussion page
                     boolean sameDiscussion = false;
                     String previousUrl = view.getUrl();
-                    if (previousUrl != null) {
+                    if (previousUrl != null && mLocation != null) {
                         sameDiscussion = previousUrl.contains(Double.toString(mLocation.latitude)) &&
                                 previousUrl.contains(Double.toString(mLocation.longitude));
                     }

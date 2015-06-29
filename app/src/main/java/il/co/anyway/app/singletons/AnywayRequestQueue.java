@@ -42,18 +42,51 @@ public class AnywayRequestQueue {
     private static AnywayRequestQueue instance = null;
     RequestQueue mRequestQueue;
 
+    /**
+     * constructor is private to keep singleton behavior
+     * allowing only one instance of the class to exist
+     *
+     * @param context context which request queue will be created
+     */
     private AnywayRequestQueue(Context context) {
         // Instantiate the RequestQueue - Volley will choose network and cache automatically.
         // This also start the queue
         mRequestQueue = Volley.newRequestQueue(context);
     }
 
+    /**
+     * Create/return the instance of the request queue
+     *
+     * @param context context which the request queue will crated, can be null if request queue already exist
+     * @return AnywayRequestQueue instance, or null if instance and context is null
+     */
     public static AnywayRequestQueue getInstance(Context context) {
-        if (instance == null)
-            instance = new AnywayRequestQueue(context);
+        if (instance == null) {
+            if (context == null)
+                return null;
+            else
+                instance = new AnywayRequestQueue(context);
+        }
+
         return instance;
     }
 
+    /**
+     * Add a request to get accidents from Anyway by parameters
+     * Build the request url and call @code #addMarkersRequest(url)
+     *
+     * @param ne_lat north east bound latitude
+     * @param ne_lng north east bound longitude
+     * @param sw_lat south west bound latitude
+     * @param sw_lng south west bound longitude
+     * @param zoom zoom level
+     * @param start_date start date (timestamp as String)
+     * @param end_date end date (timestamp as String)
+     * @param show_fatal show fatal accidents
+     * @param show_severe show severe accidents
+     * @param show_light show light accidents
+     * @param show_inaccurate show inaccurate accidents
+     */
     public void addMarkersRequest(double ne_lat, double ne_lng, double sw_lat, double sw_lng, int zoom,
                                   String start_date, String end_date,
                                   boolean show_fatal, boolean show_severe, boolean show_light, boolean show_inaccurate) {
@@ -84,6 +117,11 @@ public class AnywayRequestQueue {
         }
     }
 
+    /**
+     * Create a request for accidents details by url and add it to request queue
+     *
+     * @param url URL of request
+     */
     private void addMarkersRequest(String url) {
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -115,10 +153,13 @@ public class AnywayRequestQueue {
         mRequestQueue.add(jsObjRequest);
     }
 
-    public void createNewDisqus(final double lat, final double lng, final Context context) {
-
-        if (context == null)
-            return;
+    /**
+     * Create new discussion marker in anyway server
+     *
+     * @param lat latitude of discussion location
+     * @param lng longitude of discussion location
+     */
+    public void createNewDisqus(final double lat, final double lng) {
 
         String identifier = "(" + lat + ", " + lng + ")";
         JSONObject jsonObjectData = new JSONObject();
@@ -163,6 +204,12 @@ public class AnywayRequestQueue {
         mRequestQueue.add(newDisqusRequest);
     }
 
+    /**
+     *
+     * @param lat
+     * @param lng
+     * @param type
+     */
     public void sendUserAndSearchedLocation(double lat, double lng, int type) {
 
         JSONObject jsonObjectData = new JSONObject();
