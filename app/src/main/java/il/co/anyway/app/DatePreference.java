@@ -16,7 +16,7 @@ import java.util.Date;
 public class DatePreference extends DialogPreference {
 
     public static String MINIMUM_DATE = "01/01/2005";
-    public static String MAXIMUM_DATE = "31/12/2013";
+    public static String MAXIMUM_DATE = "01/01/2015";
     private final String LOG_TAG = DatePreference.class.getSimpleName();
     private int lastDate = 0;
     private int lastMonth = 0;

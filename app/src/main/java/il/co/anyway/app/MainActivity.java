@@ -396,7 +396,7 @@ public class MainActivity extends AppCompatActivity
                 final Status status = locationSettingsResult.getStatus();
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
-                        Log.i(LOG_TAG, "All location settings are satisfied.");
+                        //Log.i(LOG_TAG, "All location settings are satisfied.");
                         startLocationUpdates();
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
@@ -416,7 +416,7 @@ public class MainActivity extends AppCompatActivity
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        Log.i(LOG_TAG, "Location settings are inadequate, and cannot be fixed here. Dialog not created.");
+                        //Log.i(LOG_TAG, "Location settings are inadequate, and cannot be fixed here. Dialog not created.");
                         break;
                 }
             }

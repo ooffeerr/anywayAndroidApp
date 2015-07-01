@@ -1,7 +1,5 @@
 package il.co.anyway.app.singletons;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,7 +137,7 @@ public class MarkersManager {
         }
 
 
-        Log.i(LOG_TAG, counter + " accidents of " + toAddList.size() + " added");
+        //Log.i(LOG_TAG, counter + " accidents of " + toAddList.size() + " added");
         return counter;
     }
 
@@ -167,7 +165,7 @@ public class MarkersManager {
         }
 
 
-        Log.i(LOG_TAG, counter + " discussions of " + toAddList.size() + " added");
+        //Log.i(LOG_TAG, counter + " discussions of " + toAddList.size() + " added");
         return counter;
     }
 

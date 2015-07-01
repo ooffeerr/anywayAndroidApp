@@ -65,7 +65,7 @@ public class FetchClusteredAccidents {
         @Override
         protected List<AccidentCluster> doInBackground(Void... params) {
 
-            Log.i(LOG_TAG, "Start fetching cluster");
+            //Log.i(LOG_TAG, "Start fetching cluster");
 
             List<AccidentCluster> result = new ArrayList<>();
 
@@ -116,7 +116,7 @@ public class FetchClusteredAccidents {
 
                 String JSONResp = stringBuilder.toString();
 
-                Log.i(LOG_TAG, "Fetched " + JSONResp.length() + " chars");
+                //Log.i(LOG_TAG, "Fetched " + JSONResp.length() + " chars");
 
                 JSONArray arr = new JSONArray(JSONResp);
                 for (int i = 0; i < arr.length(); i++) {
@@ -131,7 +131,7 @@ public class FetchClusteredAccidents {
                     result.add(ac);
                 }
 
-                Log.i(LOG_TAG, "Converted to " + result.size() + " clusters");
+               //Log.i(LOG_TAG, "Converted to " + result.size() + " clusters");
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error " + e.getMessage());
             } catch (JSONException e) {
