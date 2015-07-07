@@ -8,4 +8,11 @@
         android:orderInCategory="30"
         android:title="@string/refresh_comments"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_action_share"
+        android:orderInCategory="4"
+        android:title="@string/action_share_disqus"
+        app:showAsAction="ifRoom" />
 </menu>

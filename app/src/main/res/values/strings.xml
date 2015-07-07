@@ -54,6 +54,9 @@
     <string name="share_subject">שיתוף תאונות באזורך מ ANYWAY</string>
     <string name="share_title">שיתוף מ ANYWAY</string>
     <string name="confirm_move_to_url_data">זיהינו שנכנסת לאפליקציה מלינק חיצוני, האם ברצונך לעדכן את התצוגה בהתאם?</string>
+    <string name="action_share_disqus">שתף דיון נוכחי</string>
+    <string name="share_disqus_title">שיתוף דיון מ ANYWAY</string>
+    <string name="share_new_disqus_error">לא ניתן לשתף דיון חדש ללא תגובות, יש להגיב קודם</string>
 
     <!-- Tutorial -->
     <string name="title_activity_tutorial">הדרכה</string>

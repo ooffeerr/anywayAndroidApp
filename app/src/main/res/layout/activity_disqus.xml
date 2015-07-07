@@ -8,6 +8,6 @@
     <WebView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/disqus"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="fill_parent" />
 
 </RelativeLayout>

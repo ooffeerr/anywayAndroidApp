@@ -3,15 +3,18 @@ package il.co.anyway.app;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -84,6 +87,21 @@ public class DisqusActivity extends AppCompatActivity {
             mWebView.clearHistory();
             return true;
         }
+        else if (id == R.id.action_share) {
+
+            if (mNewDiscussion) {
+                Toast.makeText(this, R.string.share_new_disqus_error, Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            String currentStringUri = "http://www.anyway.co.il/discussion?identifier=" + mIdentifier;
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("text/plain");
+            i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_disqus_title));
+            i.putExtra(Intent.EXTRA_TEXT, currentStringUri);
+            startActivity(Intent.createChooser(i, getString(R.string.share_disqus_title)));
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -119,6 +137,11 @@ public class DisqusActivity extends AppCompatActivity {
 
         // enable javascript
         webSettings.setJavaScriptEnabled(true);
+
+        // in lollipop, the WebView by default do not allow third party cookies (like google or disqus)
+        // if not enabled - login with SSO in not available
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            CookieManager.getInstance().setAcceptThirdPartyCookies(mWebView, true);
 
         mWebView.requestFocusFromTouch();
 
@@ -175,8 +198,8 @@ public class DisqusActivity extends AppCompatActivity {
 
                 }
                 if (url.contains(BASE_URL + "/login")) {
-                    view.clearHistory();
                     view.loadUrl(mUrl);
+                    view.clearHistory();
                 }
             }
 
