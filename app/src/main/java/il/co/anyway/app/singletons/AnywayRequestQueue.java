@@ -100,6 +100,7 @@ public class AnywayRequestQueue {
                 .appendQueryParameter("sw_lat", Double.toString(sw_lat))
                 .appendQueryParameter("sw_lng", Double.toString(sw_lng))
                 .appendQueryParameter("zoom", Integer.toString(zoom))
+                .appendQueryParameter("thin_markers","false")
                 .appendQueryParameter("start_date", start_date)
                 .appendQueryParameter("end_date", end_date)
                 .appendQueryParameter("show_fatal", show_fatal ? "1" : "0")
@@ -107,6 +108,10 @@ public class AnywayRequestQueue {
                 .appendQueryParameter("show_light", show_light ? "1" : "0")
                 .appendQueryParameter("show_inaccurate", show_inaccurate ? "1" : "0")
                 .appendQueryParameter("format", DEFAULT_REQUEST_FORMAT)
+
+                // TODO add this options in user preferences
+                .appendQueryParameter("show_markers","1")
+                .appendQueryParameter("show_discussions","1")
                 .build();
 
         try {

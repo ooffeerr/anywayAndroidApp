@@ -29,7 +29,7 @@ import il.co.anyway.app.models.AccidentCluster;
 public class FetchClusteredAccidents {
 
     private final static String LOG_TAG = FetchClusteredAccidents.class.getSimpleName();
-    private final static String ANYWAY_CLUSTER_URL = "http://anywaycluster.azurewebsites.net/api/cluster";
+    private final static String ANYWAY_CLUSTER_URL = "http://www.anyway.co.il/clusters";
 
     private static FetchAsync currentRunningTask = null;
 
@@ -89,13 +89,18 @@ public class FetchClusteredAccidents {
                         .appendQueryParameter("ne_lng", Double.toString(mBounds.northeast.longitude))
                         .appendQueryParameter("sw_lat", Double.toString(mBounds.southwest.latitude))
                         .appendQueryParameter("sw_lng", Double.toString(mBounds.southwest.longitude))
-                        .appendQueryParameter("zoom_level", Integer.toString(mZoomLevel))
+                        .appendQueryParameter("zoom", Integer.toString(mZoomLevel))
+                        .appendQueryParameter("thin_markers","true")
                         .appendQueryParameter("start_date", Utility.getTimeStamp(fromDate))
                         .appendQueryParameter("end_date", Utility.getTimeStamp(toDate))
                         .appendQueryParameter("show_fatal", show_fatal ? "1" : "0")
                         .appendQueryParameter("show_severe", show_severe ? "1" : "0")
                         .appendQueryParameter("show_light", show_light ? "1" : "0")
                         .appendQueryParameter("show_inaccurate", show_inaccurate ? "1" : "0")
+
+                        // TODO add this options in user preferences
+                        .appendQueryParameter("show_markers", "1")
+                        .appendQueryParameter("show_discussions", "1")
                         .build();
 
                 URL url = new URL(builtUri.toString());
@@ -114,17 +119,18 @@ public class FetchClusteredAccidents {
                 while ((line = reader.readLine()) != null)
                     stringBuilder.append(line);
 
-                String JSONResp = stringBuilder.toString();
+                String JSONRespStr = stringBuilder.toString();
 
                 //Log.i(LOG_TAG, "Fetched " + JSONResp.length() + " chars");
 
-                JSONArray arr = new JSONArray(JSONResp);
+                JSONObject jsonResponse = new JSONObject(JSONRespStr);
+                JSONArray arr = jsonResponse.getJSONArray("clusters");
                 for (int i = 0; i < arr.length(); i++) {
 
                     JSONObject jsonCluster = arr.getJSONObject(i);
-                    double lat = jsonCluster.getDouble("lat");
-                    double lng = jsonCluster.getDouble("lng");
-                    int count = jsonCluster.getInt("count");
+                    double lat = jsonCluster.getDouble("latitude");
+                    double lng = jsonCluster.getDouble("longitude");
+                    int count = jsonCluster.getInt("size");
 
                     AccidentCluster ac = new AccidentCluster(count, new LatLng(lat, lng));
 
