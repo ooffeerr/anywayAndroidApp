@@ -1,7 +1,6 @@
 package il.co.anyway.app;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,11 +13,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
-
-import il.co.anyway.app.singletons.AnywayRequestQueue;
 
 
 public class DisqusActivity extends AppCompatActivity {
@@ -27,8 +23,7 @@ public class DisqusActivity extends AppCompatActivity {
     public static final String DISQUS_LOCATION = "il.co.anyway.app.DISQUS_TALK_LOCATION";
     public static final String DISQUS_NEW = "il.co.anyway.app.DISQUS_TALK_NEW";
 
-    private static final String BASE_URL = "http://anywaycluster.azurewebsites.net/disqus";
-    private static final String BASE_URL_WITH_SHORT_NAME = BASE_URL + "/anyway-feedback";
+    private static final String DISCUSSION_URL = "http://www.anyway.co.il/discussion";
     private final String LOG_TAG = DisqusActivity.class.getSimpleName();
 
     private WebView mWebView;
@@ -89,11 +84,6 @@ public class DisqusActivity extends AppCompatActivity {
         }
         else if (id == R.id.action_share) {
 
-            if (mNewDiscussion) {
-                Toast.makeText(this, R.string.share_new_disqus_error, Toast.LENGTH_SHORT).show();
-                return true;
-            }
-
             String currentStringUri = "http://www.anyway.co.il/discussion?identifier=" + mIdentifier;
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("text/plain");
@@ -111,18 +101,16 @@ public class DisqusActivity extends AppCompatActivity {
      */
     private void buildDisqusUrl() {
         // build url of Disqus
-        Uri builtUri = Uri.parse(BASE_URL_WITH_SHORT_NAME).buildUpon()
-                .appendQueryParameter("identifier", mIdentifier)
-                .appendQueryParameter("newDiscussion", Boolean.toString(mNewDiscussion))
-                .build();
-        mUrl = builtUri.toString();
-    }
+        Uri.Builder uriBuilder = Uri.parse(DISCUSSION_URL).buildUpon()
+                .appendQueryParameter("identifier", mIdentifier);
 
-    /**
-     * Add new discussion marker in the server, called after first comment
-     */
-    private void addNewDiscussion() {
-        AnywayRequestQueue.getInstance(this).createNewDisqus(mLocation.latitude, mLocation.longitude);
+        if (mNewDiscussion) {
+            uriBuilder.appendQueryParameter("lat", Double.toString(mLocation.latitude))
+                    .appendQueryParameter("lon", Double.toString(mLocation.longitude));
+        }
+
+        mUrl = uriBuilder.build().toString();
+        Log.i(LOG_TAG, mUrl);
     }
 
     /**
@@ -154,32 +142,6 @@ public class DisqusActivity extends AppCompatActivity {
         // when login the page stays show "busy" icon and do nothing.
         // here we catch that situation and handle it
         mWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-
-                // catch url forwarding that mark new comment, stop it and add new discussion marker
-                if (url.contains("new-discussion")) {
-
-                    view.stopLoading();
-
-                    // make sure that user is commenting on the same discussion opened and not
-                    // on another discussion (that can be reached from the discussion page
-                    boolean sameDiscussion = false;
-                    String previousUrl = view.getUrl();
-                    if (previousUrl != null && mLocation != null) {
-                        sameDiscussion = previousUrl.contains(Double.toString(mLocation.latitude)) &&
-                                previousUrl.contains(Double.toString(mLocation.longitude));
-                    }
-
-                    if (sameDiscussion && mNewDiscussion) {
-                        addNewDiscussion();
-                        mNewDiscussion = false; // mark this discussion as exist
-                        buildDisqusUrl(); // re-build url
-                    }
-                }
-
-                super.onPageStarted(view, url, favicon);
-            }
 
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -194,10 +156,10 @@ public class DisqusActivity extends AppCompatActivity {
                         url.startsWith("https://disqus.com/_ax/google/complete") ||
                         url.startsWith("http://disqus.com/_ax/google/complete")) {
 
-                    view.loadUrl(BASE_URL + "/login");
+                    view.loadUrl(DISCUSSION_URL + "/login");
 
                 }
-                if (url.contains(BASE_URL + "/login")) {
+                if (url.contains(DISCUSSION_URL + "/login")) {
                     view.loadUrl(mUrl);
                     view.clearHistory();
                 }

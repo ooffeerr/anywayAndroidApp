@@ -159,61 +159,11 @@ public class AnywayRequestQueue {
     }
 
     /**
-     * Create new discussion marker in anyway server
+     * send location fore statistics
      *
-     * @param lat latitude of discussion location
-     * @param lng longitude of discussion location
-     */
-    public void createNewDisqus(final double lat, final double lng) {
-
-        String identifier = "(" + lat + ", " + lng + ")";
-        JSONObject jsonObjectData = new JSONObject();
-        try {
-            jsonObjectData.put("latitude", Double.toString((lat)));
-            jsonObjectData.put("longitude", Double.toString(lng));
-            jsonObjectData.put("title", identifier);
-            jsonObjectData.put("identifier", identifier);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Error creating json for new discussion request");
-            return;
-        }
-
-        PriorityJsonObjectRequest newDisqusRequest = new PriorityJsonObjectRequest
-                (Request.Method.POST, ANYWAY_DISCUSSION_POST_URL, jsonObjectData, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-
-                        Discussion discussion = Utility.parseJsonToDiscussion(response);
-                        if (discussion != null)
-                            MarkersManager.getInstance().addDiscussion(discussion);
-
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(LOG_TAG, "Error on creating discussion", error);
-                    }
-                }) {
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("Content-Type", "application/json");
-                return params;
-            }
-        };
-
-        newDisqusRequest.setShouldCache(false);
-        newDisqusRequest.setPriority(Request.Priority.HIGH);
-        mRequestQueue.add(newDisqusRequest);
-    }
-
-    /**
-     *
-     * @param lat
-     * @param lng
-     * @param type
+     * @param lat location latitude
+     * @param lng location longitude
+     * @param type HIGHLIGHT_TYPE_USER_SEARCH / HIGHLIGHT_TYPE_USER_GPS
      */
     public void sendUserAndSearchedLocation(double lat, double lng, int type) {
 
