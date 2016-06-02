@@ -61,7 +61,6 @@ import il.co.anyway.app.dialogs.SearchAddress;
 import il.co.anyway.app.models.Accident;
 import il.co.anyway.app.models.AccidentCluster;
 import il.co.anyway.app.models.Discussion;
-import il.co.anyway.app.singletons.AnywayRequestQueue;
 import il.co.anyway.app.singletons.MarkersManager;
 
 public class MainActivity extends AppCompatActivity
@@ -82,6 +81,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TUTORIAL_SHOWED_KEY = "il.co.anyway.app.TUTORIAL_SHOWED";
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private ILocationManager locationManager;
     private GoogleMap mMap;
     private FragmentManager mFragmentManager;
     private SupportMapFragment mMapFragment;
@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences.OnSharedPreferenceChangeListener mSharedPrefListener;
 
     private GoogleApiClient mGoogleApiClient;
-    private Location mLocation;
     private Marker mPositionMarker, mSearchResultMarker;
     private LocationRequest mLocationRequest;
     private LocationSettingsRequest mLocationSettingsRequest;
@@ -307,7 +306,7 @@ public class MainActivity extends AppCompatActivity
 
         // if the user didn't opened the map before try to set the map to user location
         if (mNewInstance) {
-            setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+            setMapToLocation(locationManager.getLocation(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
             mNewInstance = false;
         }
 
@@ -323,6 +322,8 @@ public class MainActivity extends AppCompatActivity
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+
+        locationManager = new LocationManager(this, mGoogleApiClient);
     }
 
     /**
@@ -425,10 +426,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnected(Bundle bundle) {
-        // If the initial location was never previously requested, we use
-        // FusedLocationApi.getLastLocation() to get it.
-        if (mLocation == null)
-            mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        locationManager.updateLocation(this);
+
     }
 
     @Override
@@ -443,38 +442,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        mLocation = location;
-
-        if (location == null)
-            return;
-
-        if (!mSentUserLocation) {
-            AnywayRequestQueue.getInstance(this)
-                    .sendUserAndSearchedLocation(
-                            location.getLatitude(), location.getLongitude(),
-                            AnywayRequestQueue.HIGHLIGHT_TYPE_USER_GPS
-                    );
-            mSentUserLocation = true;
-        }
-
-        if (mPositionMarker == null) {
-
-            mPositionMarker = mMap.addMarker(new MarkerOptions()
-                    .flat(true)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.position_indicator))
-                    .title(MarkerInfoWindowAdapter.FORCE_SIMPLE_SNIPPET_SHOW)
-                    .snippet(getString(R.string.my_location))
-                    .position(
-                            new LatLng(location.getLatitude(), location
-                                    .getLongitude())));
-            mPositionMarker.setClusterGroup(ClusterGroup.NOT_CLUSTERED);
-
-        } else {
-
-            mPositionMarker.setPosition(new LatLng(location.getLatitude(), location
-                    .getLongitude()));
-        }
-
+        locationManager.onLocationChanged(location);
     }
 
     @Override
@@ -944,7 +912,7 @@ public class MainActivity extends AppCompatActivity
                     .clusterGroup(ClusterGroup.NOT_CLUSTERED));
 
         mPositionMarker = null;
-        onLocationChanged(mLocation);
+        locationManager.onLocationChanged(locationManager.getLocation());
     }
 
     /**
@@ -952,12 +920,12 @@ public class MainActivity extends AppCompatActivity
      * @param view Button clicked
      */
     public void onMyLocationButtonClick(View view) {
-        if (mLocation == null) {
+        if (locationManager.getLocation() == null) {
             mGpsDialogNeverShowed = true;
             checkLocationSettings();
         }
 
-        setMapToLocation(mLocation, MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
+        setMapToLocation(locationManager.getLocation(), MINIMUM_ZOOM_LEVEL_TO_SHOW_ACCIDENTS, true);
     }
 
     /**
@@ -980,5 +948,17 @@ public class MainActivity extends AppCompatActivity
             // start tutorial activity
             startActivity(new Intent(this, TutorialActivity.class));
         }
+    }
+
+    public Marker getmPositionMarker() {
+        return mPositionMarker;
+    }
+
+    public boolean ismSentUserLocation() {
+        return mSentUserLocation;
+    }
+
+    public void setmSentUserLocation(boolean mSentUserLocation) {
+        this.mSentUserLocation = mSentUserLocation;
     }
 }
